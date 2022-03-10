@@ -1018,8 +1018,8 @@
                 for(let j of bees) {
                     if(j.sleepTime > 0){j.sleepTime -= 0.5;if(j.sleepTime <= 0){j.sleepTime = 0;j.eng = beeData[j.id]["eng"];}} //10fps
                     let beeStuff = "";
-                    beeStuff += " | <span class='tooltip'>"+j.id+", lv. "+j.lvl+" ("+j.xp+"/"+(2*5**j.lvl)+")";
-                    if(j.sleepTime > 0) {beeStuff += ", sleeping ("+timeformat(j.sleepTime)+" XP)"}
+                    beeStuff += " | <span class='tooltip'>"+j.id+", lv. "+j.lvl+" ("+j.xp+"/"+(2*5**j.lvl)+" xp)";
+                    if(j.sleepTime > 0) {beeStuff += ", sleeping ("+timeformat(j.sleepTime)+")"}
                     else {/*beeStuff += timeformat(j.eng*20/3)+" energy"*/}
                     beeStuff += "<span class='txt'>"+beeData[j.id]["desc"]+"</span></span>"
                     beesDisplay.innerHTML += beeStuff;
