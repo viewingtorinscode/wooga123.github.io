@@ -179,7 +179,24 @@
                         hasScience = code.HS;
                         alert("Save data loaded!");
                     } else {
-                        alert("Save data deleted!");
+                        if(!confirm("Really delete save data? (press OK to delete)")) {
+                            honey = code.H;
+                            pollen = code.P;
+                            bagMax = code.BM;
+                            bees = code.BE;
+                            buffs = code.BU;
+                            quests = code.Q;
+                            inv = code.I;
+                            tool = code.T;
+                            equips = code.E;
+                            respawn = code.R;
+                            prices = code.PR;
+                            shop = code.S;
+                            hasScience = code.HS;
+                            alert("Save data loaded!");
+                        } else {
+                            alert("Deleted save data :(");
+                        }
                     }
                 } else {
                     alert("No save found, starting a new game");
@@ -327,41 +344,43 @@
                 }
                 if(item.custom) {
                     if(item.custom == "rjelly") {
-                        bees = bees.filter(function(e) {return e !== bees[bee]});
                         let eggLuck = Math.random();
+                        let choice;
                         if(eggLuck <= 0.17*0.7) {
-                            bees.push({id:"rad",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "rad";
                         } else if(eggLuck <= 0.33*0.7) {
-                            bees.push({id:"bomber",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "bomber";
                         } else if(eggLuck <= 0.5*0.7) {
-                            bees.push({id:"looker",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "looker";
                         } else if(eggLuck <= 0.67*0.7) {
-                            bees.push({id:"bumble",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "bumble";
                         } else if(eggLuck <= 0.83*0.7) {
-                            bees.push({id:"cool",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "cool";
                         } else if(eggLuck <= 0.7) {
-                            bees.push({id:"brave",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "brave";
                         } else if(eggLuck <= 0.73) {
-                            bees.push({id:"bubble",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "bubble";
                         } else if(eggLuck <= 0.76) {
-                            bees.push({id:"bucko",eng:30,sleepTime:0,xp:0,lvl:1});
+                            choice = "bucko";
                         } else if(eggLuck <= 0.79) {
-                            bees.push({id:"commander",eng:30,sleepTime:0,xp:0,lvl:1});
+                            choice = "commander";
                         } else if(eggLuck <= 0.82) {
-                            bees.push({id:"demo",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "demo";
                         } else if(eggLuck <= 0.85) {
-                            bees.push({id:"exhausted",eng:1000000,sleepTime:0,xp:0,lvl:1});
+                            choice = "exhausted";
                         } else if(eggLuck <= 0.88) {
-                            bees.push({id:"fire",eng:25,sleepTime:0,xp:0,lvl:1});
+                            choice = "fire";
                         } else if(eggLuck <= 0.92) {
-                            bees.push({id:"frosty",eng:25,sleepTime:0,xp:0,lvl:1});
+                            choice = "frosty";
                         } else if(eggLuck <= 0.95) {
-                            bees.push({id:"honey",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "honey";
                         } else if(eggLuck <= 0.98) {
-                            bees.push({id:"rage",eng:20,sleepTime:0,xp:0,lvl:1});
+                            choice = "rage";
                         } else if(eggLuck <= 1) {
-                            bees.push({id:"riley",eng:25,sleepTime:0,xp:0,lvl:1});
+                            choice = "riley";
                         }
+                        bees.push({id:choice,eng:beeData[choice]["eng"],sleepTime:0,xp:bees[bee].xp,lvl:bees[bee].lvl});
+                        bees = bees.filter(function(e) {return e !== bees[bee]});
                     }
                 }
                 for(let q of quests) {
@@ -834,7 +853,7 @@
                             }
                         }
                     };
-                    procQuests((tool + gthr) * pollMod);
+                    procQuests((tool/2 + gthr) * pollMod);
                     let bomb = function(pol) {
                         pollen += pol*pollMod*1+(equips["guard"].bmbpol ? equips["guard"].bmbpol*0.01 : 0);
                         procQuests(pol*pollMod*1+(equips["guard"].bmbpol ? equips["guard"].bmbpol*0.01 : 0));
@@ -1018,7 +1037,7 @@
                 for(let j of bees) {
                     if(j.sleepTime > 0){j.sleepTime -= 0.5;if(j.sleepTime <= 0){j.sleepTime = 0;j.eng = beeData[j.id]["eng"];}} //10fps
                     let beeStuff = "";
-                    beeStuff += " | <span class='tooltip'>"+j.id+", lv. "+j.lvl+" ("+j.xp+"/"+(2*5**j.lvl)+" xp)";
+                    beeStuff += " | <span class='tooltip'>"+j.id+" bee, lv. "+j.lvl+" ("+j.xp+"/"+(2*5**j.lvl)+" xp)";
                     if(j.sleepTime > 0) {beeStuff += ", sleeping ("+timeformat(j.sleepTime)+")"}
                     else {/*beeStuff += timeformat(j.eng*20/3)+" energy"*/}
                     beeStuff += "<span class='txt'>"+beeData[j.id]["desc"]+"</span></span>"
