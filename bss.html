@@ -724,7 +724,6 @@
                     pollMod *= 1 + hasBuff("crit")[0];
                     pollMod *= 1 + hasBuff("babylove")[0];
                     pollMod *= 1 + hasBuff("pmark")[0]*0.5;
-                    pollMod *= 1 - hasBuff("hmark")[0]*0.15;
                     
                     pollMod *= 1 + hasBuff(field+"buff")[0];
                     pollMod *= 1 + (equips["hat"].pollen ? equips["hat"].pollen*0.01 : 0);
@@ -734,7 +733,7 @@
                     }
                     
                     honey += hasBuff("gumdrop")[0]*0.4*(tool/2 + gthr)*pollMod; //10fps
-                    honey += 0.15*(tool/2+gthr);
+                    honey += hasBuff("hmark")[0]*0.1*(tool/2+gthr)*pollMod;
                     
                     pollen += (tool/2 + gthr) * pollMod; //10fps
                     
