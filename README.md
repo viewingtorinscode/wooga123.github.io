@@ -1,2 +1,2 @@
 # wooga123.github.io
-I don't actually know what to do here :D
+This is where I put my coding projects that I want to share. Right now, it's just a bee swarm simulator clone
