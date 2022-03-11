@@ -22,7 +22,7 @@
         </style>
     </head>
     <body>
-        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.8.2: The Monster Update</span><br/>
+        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.9.1: The Legendary Update</span><br/>
         <button onclick="document.getElementById('tutorial').remove();" id="tutorial" style="border: 2px solid white;">
             === How to play ===<br/>
             - enter a field code (like 'sunf') in the field box to collect pollen<br/>
@@ -326,7 +326,7 @@
             let goldenEgg = function() {
                 let eggLuck = Math.random();
                 let choice;
-                else if(eggLuck <= 0.1*0.8) {choice = "bubble";}
+                if(eggLuck <= 0.1*0.8) {choice = "bubble";}
                 else if(eggLuck <= 0.2*0.8) {choice = "bucko";}
                 else if(eggLuck <= 0.3*0.8) {choice = "commander";}
                 else if(eggLuck <= 0.4*0.8) {choice = "demo";}
@@ -342,7 +342,7 @@
             let diamondEgg = function() {
                 let eggLuck = Math.random();
                 let choice;
-                else if(eggLuck <= 0.25) {choice = "baby";}
+                if(eggLuck <= 0.25) {choice = "baby";}
                 else if(eggLuck <= 0.50) {choice = "carpenter";}
                 else if(eggLuck <= 0.75) {choice = "demon";}
                 else {choice = "diamond";}
