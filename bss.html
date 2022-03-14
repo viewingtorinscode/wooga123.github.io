@@ -151,10 +151,10 @@
             // saving
             let saveLocal = function() {
                 let code = JSON.stringify({H:honey,P:pollen,BM:bagMax,BE:bees,BU:buffs,Q:quests,I:inv,T:tool,E:equips,R:respawn,PR:prices,S:shop,HS:hasScience,MI:mondoInfo});
-                window.localStorage.setItem("bssSave_new", code);
+                window.localStorage.setItem("bssSave_1.11", code);
             };
             let loadLocal = function() {
-                if(window.localStorage.getItem("bssSave_new")) {
+                if(window.localStorage.getItem("bssSave_1.11")) {
                     let code = JSON.parse(window.localStorage.getItem("bssSave_new"));
                     if(confirm("Continue game? ("+formatted(code.H)+" honey, "+code.BE.length+" bees)")) {
                         honey = code.H;
