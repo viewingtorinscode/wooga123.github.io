@@ -614,7 +614,7 @@
                         bees.push({id:"basic",eng:20,sleepTime:0,xp:0,lvl:1});
                     }
                     prices.egg *= 1.25;
-                    getId("buy_egg").innerHTML = "Buy a basic egg for "+formatted(prices.egg)+" honey<span class='txt'>Drop rates:<br/>90% - Basic Bee<br/>10% - Random Rare Bee</span>";
+                    getId("buy_egg").innerHTML = "Buy a basic egg for "+formatted(prices.egg)+" honey<span class='txt'>Drop rates:<br/>90% - Basic Bee<br/>7% - Random Rare Bee<br/>2.4% - Random Epic Bee<br/>0.6% - Random Legendary Bee</span>";
                 }
             };
             let buy_rj = function() {
@@ -687,7 +687,7 @@
                         }
                     };
                     gainBuff("fight", "Fighting Bees", "Bees are unable to gather, convert or attack", fightTime);
-                    let rewardTimeout = setTimeout(rewardFunc, time*1000*6, name, honeyReward, drops);
+                    let rewardTimeout = setTimeout(rewardFunc, fightTime*1000/5, name, honeyReward, drops);
                 } else if(bees.length >= reqbees) { alert("Your bees are already fighting or sleeping"); }
                 else { alert("Not enough bees to access "+name+", need at least "+reqbees); }
             };
