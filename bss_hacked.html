@@ -1,0 +1,1286 @@
+<html style="background-color: #222; color: white;">
+    <head>
+        <title>Portland Public Schools Mail</title>
+        <style>
+.tooltip {
+  user-select: none;
+} .txt {
+  position: absolute;
+  background: #777;
+  color: black;
+  display: none;
+  border-radius: 5px;
+  text-align: center;
+  margin-left: 10px;
+  padding: 5px;
+} .tooltip:hover .txt {
+  display: inline;
+} button, input {
+  background-color: navy;
+  color: white;
+} #quests tr {
+  background-color: #303030;
+}
+        </style>
+    </head>
+    <body>
+        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.11: The 25 Bee Update</span><br/>
+        <button onclick="getId('tutorial').remove();" id="tutorial" style="border: 2px solid white;">
+            === How to play ===<br/>
+            - enter a field code (like 'sunf') in the field box to collect pollen<br/>
+            - enter 'convert' in the box to turn it into honey<br/>
+            - you can collect pollen while your bees are sleeping, but can't convert<br/>
+            - click the buttons near the bottom to have your bees attack monsters<br/>
+            - click an item (you might need to click a few times) to use it<br/>
+            - complete quests to gain honey and items<br/>
+            [ click to close ]
+        </button>
+        <p id="honey">Loading... (Actually, if you're reading this, the game is probably <b>NOT</b> loading. You should contact Torin. (tsolmer9183@student.pps.net))</p>
+        <p id="bees"></p>
+        <p id="buffs"></p>
+        <table><tbody id="quests"></tbody></table>
+        <p id="equips"></p>
+        <p id="inv"></p>
+        <p style="display: inline;">Enter field name (or click one: <span onclick="getId('field').value = 'convert';">convert</span> (to convert @ hive),
+            <span class="tooltip" onclick="getId('field').value = 'sunf';">sunf
+                <span class="txt">Sunflower Field: x1.08 pollen, color: white</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'dand';">dand
+                <span class="txt">Dandelion Field: x1.15 pollen, color: white</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'mush';">mush
+                <span class="txt">Mushroom Field: x1.16 pollen, color: red</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'bluf';">bluf
+                <span class="txt">Blue Flower Field: x1.11 pollen, color: blue</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'clov';">clov
+                <span class="txt">Clover Field: x1.49 pollen, color: all</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'spdr';">spdr
+                <span class="txt">Spider Field: x1.96 pollen, color: white, req 5 bees</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'sbry';">sbry
+                <span class="txt">Strawberry Field: x1.83 pollen, color: red, req 5 bees</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'bamb';">bamb
+                <span class="txt">Bamboo Field: x1.88 pollen, color: blue, req 5 bees</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'aple';">aple
+                <span class="txt">Pineapple Field: x2.12 pollen, color: white, req 10 bees</span></span>, 
+            <span class="tooltip" onclick="getId('field').value = 'stmp';">stmp
+                <span class="txt">Stump Field: x2.94 pollen, color: blue, req 10 bees</span></span>,
+            <span class="tooltip" onclick="getId('field').value = 'cact';">cact
+                <span class="txt">Cactus Field: x2.56 pollen, color: all, req 15 bees</span></span>,
+            <span class="tooltip" onclick="getId('field').value = 'pine';">pine
+                <span class="txt">Pine Tree Field: x2.40 pollen, color: blue, req 15 bees</span></span>,
+            <span class="tooltip" onclick="getId('field').value = 'pump';">pump
+                <span class="txt">Pumpkin Field: x2.76 pollen, color: white, req 15 bees</span></span>,
+            <span class="tooltip" onclick="getId('field').value = 'rose';">rose
+                <span class="txt">Rose Field: x2.44 pollen, color: red, req 15 bees</span></span>,
+            <span class="tooltip" onclick="getId('field').value = 'mont';">mont
+                <span class="txt">Mountain Top Field: x2.97 pollen, color: red/blue, req 25 bees</span></span>): </p>
+        <input id="field">
+        <br/>----- Equipment -----<br/>
+        <button onclick="bag_up()" id="bag_up">Upgrade to Jar (bag) for 600 honey</button><br/>
+        <button onclick="tool_up()" id="tool_up">Upgrade to Rake (tool) for 800 honey</button><br/>
+        <button onclick="prev()">&lt;</button>
+        <button onclick="equip()" id="equip" class="tooltip"></button>
+        <button onclick="next()">&gt;</button>
+        <br/>----- Honey Shops -----<br/>
+        <button onclick="buy_egg()" id="buy_egg" class="tooltip">Buy a basic egg for 1000 honey
+            <span class="txt">Drop rates:<br/>90% - Basic Bee<br/>10% - Random Rare Bee</span>
+        </button>
+        <button onclick="buy_rj()" id="buy_rj">Buy a royal jelly for 25k honey</button>
+        <button onclick="buy_ticket()" id="buy_ticket">Buy a ticket for 100k honey</button>
+        <button onclick="buy_treat()" id="buy_treat">Buy a treat for 100 honey</button>
+        <br/>----- Ticket Shops -----<br/>
+        <button onclick="buy_tickets({name:'Royal Jelly',amt:1}, 5)">Buy a royal jelly for 5 tickets</button>
+        <button onclick="buy_tickets({name:'Magic Bean',amt:1}, 20)">Buy a magic bean for 20 tickets</button>
+        <button onclick="buy_tickets({name:'Gumdrop',amt:3}, 1)">Buy 3 gumdrops for a ticket</button>
+        <br/>----- Monsters -----<br/>
+        <button onclick="ladybug()" id="ladybug" disabled>Defeat a ladybug</button>
+        <button onclick="rbeetle()" id="rhino beetle" disabled>Defeat a rhino beetle</button>
+        <span> | Req 5 bees: </span><button onclick="spider()" id="spider" disabled>Defeat a spider</button>
+        <span> | Req 10 bees: </span><button onclick="mantis()" id="mantis" disabled>Defeat a mantis</button>
+        <span> | Req 15 bees: </span><button onclick="wwolf()" id="werewolf" disabled>Defeat a werewolf</button>
+        <button onclick="scorp()" id="scorpion" disabled>Defeat a scorpion</button> | Req 25 bees: 
+        <button onclick="mondoChick()" id="mondoChick" disabled>Attack Mondo Chick</button>
+        <br/>----- Saving -----<br/>
+        <span>Save code goes here: </span><input id="savecode"><br/>
+        <button onclick="save()"><b>EXPORT</b></button><button onclick="load()"><b>IMPORT</b></button>
+        <script>
+            // Stuff to do      Status
+            // Ant Challenge    Won't do right now
+            // Legendary Bees   Partly done
+            // Mythic Bees      Need to make legendaries first
+            // Full Questlines  Next Update
+            
+            // tooltip code
+            let mousex = 0;
+            let mousey = 0;
+            document.onmousemove = function(e) {
+                let x = document.getElementsByClassName("txt");
+                mousex = e.clientX;
+                mousey = e.clientY;
+                for (t of x) {
+                    t.style.left = (mousex+10) + "px";
+                    t.style.top = (mousey+10+window.pageYOffset) + "px";
+                }
+            }
+            let honey = 0;
+            let pollen = 0;
+            let bagMax = 200;
+            let bees = [{id:"lion",eng:60,sleepTime:0,xp:0,lvl:10},{id:"carpenter",eng:25,sleepTime:0,xp:0,lvl:10},{id:"demon",eng:20,sleepTime:0,xp:0,lvl:10},{id:"diamond",eng:20,sleepTime:0,xp:0,lvl:10}]
+            let buffs = [];
+            let quests = [
+                {name:"Sunflower Start",id:"black1",fields:[{field:"sunf",prog:0,goal:100}],reward:{honey:200}},
+                {name:"Treat Tutorial",id:"mother1",items:[{name:"Treat",prog:0,goal:1}],lvls:[{lvl:2,amt:1}],reward:{honey:250,items:[{name:"Treat",amt:3},{name:"Ticket",amt:1}]}},
+                {name:"Lesson on Ladybugs",id:"panda1",mobs:[{name:"Ladybug",prog:0,goal:1}],reward:{honey:400}}
+            ];
+            let inv = [{name: "Moon Charm", amt: 1000},{name: "Popped Sprout", amt: 1000},{name: "Glitter", amt: 1000}];
+            let tool = 1;
+            let equips = {"belt": {name: "empty belt slot", slot: "belt", desc: "Nothing", stats: {}, owned: true, price: 0}, "hat": {name: "empty hat slot", slot: "hat", desc: "Nothing", stats: {}, owned: true, price: 0}, "guard": {name: "empty guard slot", slot: "guard", desc: "Nothing", stats: {}, owned: true, price: 0}, "boots": {name: "empty boots slot", slot: "boots", desc: "Nothing", stats: {}, owned: true, price: 0}};
+            let respawn = {"ladybug": 0, "rhino beetle": 0, "spider": 0, "werewolf": 0, "scorpion": 0, "mantis": 0};
+            let selectedEquip = 0;
+            let shop = [
+                {name: "Basic Boots", slot: "boots", desc: "Collect pollen as you walk through flowers!", stats: {movepol: 30}, owned: false, price: 14000, recipe: [{name: "Sunflower Seed", amt: 10}]},
+                {name: "Hiking Boots", slot: "boots", desc: "A durable pair of boots helpful for traversing the mountain.", stats: {movepol: 100}, owned: false, price: 2.2e6, recipe: [{name: "Strawberry", amt: 50}]},
+                {name: "Belt Pocket", slot: "belt", desc: "Attaches to your waist to expand the size of your container.", stats: {conv: 10, cap: 5000}, owned: false, price: 14000, recipe: [{name: "Sunflower Seed", amt: 10}]},
+                {name: "Belt Bag", slot: "belt", desc: "A convenient pouch designed for easy access.", stats: {conv: 20, cap: 25000}, owned: false, price: 440000, recipe: [{name: "Sunflower Seed", amt: 50},{name: "Pineapple", amt: 50}]},
+                {name: "Helmet", slot: "hat", desc: "A hard hat that helps prevent head injuries.", stats: {pollen: 10}, owned: false, price: 30000, recipe: [{name: "Pineapple", amt: 5}, {name: "Moon Charm", amt: 1}]},
+                {name: "Propeller Hat", slot: "hat", desc: "A playful hat that keeps the sun out of your eyes.", stats: {pollen: 15, abilRate: 5}, owned: false, price: 30000, recipe: [{name: "Pineapple", amt: 5}, {name: "Moon Charm", amt: 1}]},
+                {name: "Bomber Guard", slot: "guard", desc: "A shoulder pad crafted by a Bomber Bee.", stats: {cap: 30000, wpol: 10, bmbpol: 30}, owned: false, price: 300000, recipe: [{name: "Sunflower Seed", amt: 25}]},
+                {name: "Looker Guard", slot: "guard", desc: "A shoulder pad crafted by a Looker Bee.", stats: {cap: 30000, cchance: 2, cpower: 50}, owned: false, price: 300000, recipe: [{name: "Pineapple", amt: 25}]}
+            ];
+            let prices = {egg:1000, rj:25e3, tick:100e3, treat:100};
+            let hasScience = false;
+            let mondoInfo = {hp:0,time:0,respawn:0};
+            // saving
+            let saveLocal = function() {
+                let code = JSON.stringify({H:honey,P:pollen,BM:bagMax,BE:bees,BU:buffs,Q:quests,I:inv,T:tool,E:equips,R:respawn,PR:prices,S:shop,HS:hasScience,MI:mondoInfo});
+                window.localStorage.setItem("bssSave_hack1.11", code);
+            };
+            let loadLocal = function() {
+                if(window.localStorage.getItem("bssSave_hack1.11")) {
+                    let code = JSON.parse(window.localStorage.getItem("bssSave_new"));
+                    if(confirm("Continue game? ("+formatted(code.H)+" honey, "+code.BE.length+" bees)")) {
+                        honey = code.H;
+                        pollen = code.P;
+                        bagMax = code.BM;
+                        bees = code.BE;
+                        buffs = code.BU;
+                        quests = code.Q;
+                        inv = code.I;
+                        tool = code.T;
+                        equips = code.E;
+                        respawn = code.R;
+                        prices = code.PR;
+                        shop = code.S;
+                        if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
+                        if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+                        alert("Save data loaded!");
+                    } else {
+                        if(!confirm("Really delete save data? (press OK to delete)")) {
+                            honey = code.H;
+                            pollen = code.P;
+                            bagMax = code.BM;
+                            bees = code.BE;
+                            buffs = code.BU;
+                            quests = code.Q;
+                            inv = code.I;
+                            tool = code.T;
+                            equips = code.E;
+                            respawn = code.R;
+                            prices = code.PR;
+                            shop = code.S;
+                            if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
+                            if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+                            alert("Save data loaded!");
+                        } else {
+                            alert("Deleted save data :(");
+                        }
+                    }
+                } else {
+                    alert("No save found, starting a new game");
+                }
+            };
+            let save = function() {
+                let code = btoa(JSON.stringify({H:honey,P:pollen,BM:bagMax,BE:bees,BU:buffs,Q:quests,I:inv,T:tool,E:equips,R:respawn,PR:prices,S:shop,HS:hasScience}));
+                getId("savecode").value = code;
+            };
+            let load = function() {
+                let code = JSON.parse(atob(getId("savecode").value));
+                honey = code.H;
+                pollen = code.P;
+                bagMax = code.BM;
+                bees = code.BE;
+                buffs = code.BU;
+                quests = code.Q;
+                inv = code.I;
+                tool = code.T;
+                equips = code.E;
+                respawn = code.R;
+                prices = code.PR;
+                shop = code.S;
+                if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
+                if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+            };
+            // data
+            let fields = {
+                "sunf":{pollen:1.08,red:14,blue:15,white:71},
+                "dand":{pollen:1.15,red:5, blue:10,white:85},
+                "mush":{pollen:1.16,red:70,blue:0, white:30},
+                "bluf":{pollen:1.11,red:0, blue:70,white:30},
+                "clov":{pollen:1.49,red:34,blue:34,white:32},
+                "bamb":{pollen:1.88,red:0, blue:70,white:30},
+                "spdr":{pollen:2.00,red:0, blue:0, white:99},
+                "sbry":{pollen:1.83,red:70,blue:0, white:30},
+                "aple":{pollen:2.12,red:5, blue:6, white:89},
+                "stmp":{pollen:3.00,red:6, blue:75,white:19},
+                "pump":{pollen:2.76,red:22,blue:21,white:57},
+                "cact":{pollen:2.56,red:50,blue:43,white:7},
+                "rose":{pollen:2.44,red:82,blue:0, white:18},
+                "pine":{pollen:2.40,red:0, blue:84,white:16},
+                "mont":{pollen:3.00,red:50,blue:50,white:0}
+            };
+            let beeData = {
+                "basic":{"col":"white","eng":20,"atk":1,"gather":0.39,"convert":4,"ability":"","desc":"An ordinary bee. Not very well-rounded or hard-working."},
+                "rad":{"col":"red","eng":20,"atk":1,"gather":0.48,"convert":5.3,"ability":"rboost","desc":"A stylish bee with a taste for red flowers. Everyone wants to be this bee. <br/><i>Sometimes generates Red Boost, which increases Red Pollen.</i>"},
+                "bomber":{"col":"white","eng":20,"atk":2,"gather":0.39,"convert":6,"ability":"zbomb","desc":"This crafty bee makes pollen-collecting bombs. <br/><i>Sometimes collects a large amount of pollen.</i>"},
+                "brave":{"col":"white","eng":30,"atk":5,"gather":0.39,"convert":10,"ability":"","desc":"This loyal bee will do anything to protect its owner."},
+                "bumble":{"col":"blue","eng":40,"atk":1,"gather":0.69,"convert":4,"ability":"bbomb","desc":"A mellow fellow who moves a little slow, but works harder and longer than others. <br/><i>Sometimes collects a large amount of pollen based on the amount of blue in the field.</i>"},
+                "cool":{"col":"blue","eng":20,"atk":1,"gather":0.51,"convert":6,"ability":"bboost","desc":"A sarcastic bee who's a little better than the others. <br/><i>Sometimes generates Blue Boost, which increases Blue Pollen.</i>"},
+                "looker":{"col":"white","eng":20,"atk":1,"gather":0.48,"convert":8,"ability":"focus","desc":"This silent bee is always watching and gaining valuable insights. <br/><i>Sometimes generates Focus, which randomly doubles pollen.</i>"},
+                "bubble":{"col":"blue","eng":20,"atk":3,"gather":0.39,"convert":8,"ability":"bbomb+","desc":"As a larva, this bee lived in the ocean. It loves Blue flowers cause they remind it of home. <br/><i>Sometimes collects a large amount of pollen based on the amount of blue in the field.</i>"},
+                "bucko":{"col":"blue","eng":20,"atk":5,"gather":0.57,"convert":5.3,"ability":"bboost","desc":"Leader of the Blue bees, and a long time rival of Riley Bee. Its tenacity is its greatest strength. <br/><i>Sometimes generates Blue Boost, which increases Blue Pollen.</i>"},
+                "commander":{"col":"white","eng":30,"atk":4,"gather":0.57,"convert":4,"ability":"focubomb","desc":"A strong, no-nonsense bee who stays level-headed when things get rough. <br/><i>Sometimes generates Focus (which randomly doubles pollen) and collects a large amount of pollen.</i>"},
+                "demo":{"col":"white","eng":20,"atk":3,"gather":0.39,"convert":10,"ability":"zbomb+","desc":"An elite Bomber Bee who has worked its way up the ranks. It is an expert in explosives. <br/><i>Sometimes collects a large amount of pollen.</i>"},
+                "exhausted":{"col":"white","eng":45*60,"atk":1,"gather":0.33,"convert":4,"ability":"zbomb+","desc":"This bee suffers from insomnia. It moves slowly, but it (almost) never needs to sleep. <br/><i>Sometimes collects a large amount of pollen.</i>"},
+                "fire":{"col":"red","eng":25,"atk":4,"gather":0.45,"convert":4,"ability":"rbomb+","desc":"As an egg, this bee was accidentally left in the trunk of a car in the middle of the summer for over 3 days! <br/><i>Sometimes collects a large amount of pollen based on the amount of red in the field.</i>"},
+                "frosty":{"col":"blue","eng":25,"atk":1,"gather":0.39,"convert":4,"ability":"bcombo","desc":"A bee made of snow. It magically came to life after someone put a top hat on its head. <br/><i>Sometimes collects a large amount of pollen based on the amount of blue in the field, then grants a boost to Blue Pollen.</i>"},
+                "honey":{"col":"white","eng":20,"atk":1,"gather":0.39,"convert":36,"ability":"honeyhoney","desc":"A satisfied bee always full with the finest honey. If you're lucky it will share some. <br/><i>Sometimes generates Honey Mark, which converts pollen into honey.</i>"},
+                "rage":{"col":"red","eng":20,"atk":4,"gather":0.39,"convert":4,"ability":"rage","desc":"A very angry bee who has been wronged its whole life. It harnesses its rage to become more powerful. <br/><i>Sometimes generates Rage, which increases bee damage.</i>"},
+                "riley":{"col":"red","eng":25,"atk":5,"gather":0.75,"convert":6,"ability":"rboost","desc":"Leader of the Red bees, and a long time rival of Bucko Bee. Its fiery nature has elevated it above the rest. <br/><i>Sometimes generates Red Boost, which increases Red Pollen.</i>"},
+                "baby":{"col":"white","eng":15,"atk":0,"gather":0.31,"convert":3,"ability":"babylove","desc":"This little bee isn't very good at bee tasks yet, but it's guaranteed to bring you joy and luck. <br/><i>Rarely generates Baby Love, which doubles pollen.</i>"},
+                "carpenter":{"col":"white","eng":25,"atk":4,"gather":0.52,"convert":6,"ability":"2mark","desc":"A bee with a knack for construction. It built its own body out of wood. <br/><i>Sometimes generates Honey Mark, which converts pollen into honey, and Pollen Mark, which increases pollen.</i>"},
+                "demon":{"col":"red","eng":20,"atk":8,"gather":1.37,"convert":3,"ability":"rbomb+","desc":"A powerful bee with magical powers fueled by pure hatred. <br/><i>Sometimes collects a large amount of pollen based on the amount of red in the field.</i>"},
+                "diamond":{"col":"blue","eng":20,"atk":1,"gather":0.39,"convert":50,"ability":"bboost","desc":"An extremely wealthy and pompous bee who has the money and talent to justify its attitude. <br/><i>Sometimes generates Blue Boost, which increases Blue Pollen. Passive: +10% Honey Per Pollen.</i>","passive":"hpp-up"},
+                "lion":{"col":"white","eng":60,"atk":9,"gather":0.78,"convert":16,"ability":"zbomb+","desc":"Half lion, half bee. This is the king of both the jungle and bee hive. <br/><i>Sometimes collects a large amount of pollen.</i>"},
+                "music":{"col":"white","eng":20,"atk":1,"gather":0.62,"convert":12,"ability":"melody","desc":"TODO. <br/><i>Can generate Focus (which grants Crit Chance) and Melody (which grants Crit Power).</i>"},
+                "ninja":{"col":"blue","eng":20,"atk":4,"gather":0.78,"convert":5,"ability":"bbomb+","desc":"TODO. <br/><i>Sometimes collects a large amount of pollen based on the amount of blue in the field.</i>"},
+                "shy":{"col":"red","eng":40,"atk":2,"gather":0.78,"convert":16,"ability":"rcombo","desc":"TODO. <br/><i>Sometimes collects a large amount of pollen based on the amount of red in the field, then grants a boost to Red Pollen.</i>"}
+            };
+            let itemData = {
+                "Treat": {desc: "Looks like a dog treat. But there's no dogs in this game. <i>(Gives 10 XP)</i>", xp: 10},
+                "Gumdrop": {desc: "It has honey in it. That sounds like it would taste terrible. <i>(Gain 40% of Pollen you collect as Honey for 5s)</i>", global: true, buffs:[{id:"gumdrop",name:"Gumdrops",desc:"Gain Honey based on Pollen collection",time:25}]},
+                "Ticket": {desc: "Useless by itself, but can be put in Mr. Basques's Ticket Drawing or used for various other things.", unusable: true},
+                "Strawberry": {desc: "Bees can eat strawberries now? And you can't? <i>(Gives 25 XP, x2 to a Red Bee)</i>", xp: 25, color: "red"},
+                "Magic Bean": {desc: "Shiny! <i>(Make sure you're in a field before you use this)</i>", global: true, custom: "mbean"},
+                "Popped Sprout": {desc: "Torin couldn't get the tokens to auto-spawn, so now you have this", global: true, custom: "mbean_pop"},
+                "Glue": {desc: "Don't ask me what glue has to do with pollen. I don't know. <i>(x1.25 Pollen for 10 min)</i>", global: true, buffs: [{id: "glue", name: "Glue", desc: "+25% Pollen", time: 3000}]},
+                "Royal Jelly": {desc: "A jelly jar with a crown and the words \"Made in Torinsroom\" printed on it. <i>(Transforms a bee into another one)</i>", custom: "rjelly"},
+                "Blueberry": {desc: "This blueberry is really big, it's too bad you have no mouth! <i>(Gives 25 XP, x2 to a Blue Bee)</i>", xp: 25, color: "blue"},
+                "Sunflower Seed": {desc: "Delicious! <i>(Gives 25 XP)</i>", xp: 25},
+                "Pineapple": {desc: "This thing tastes terrible I'd rather eat a sunflower seed <i>(Gives 25 XP)</i>", xp: 25},
+                "Red Extract": {desc: "The essence of red flowers. <i>(x1.25 Red Pollen for 10 min)</i>", global: true, buffs: [{id: "rextr", name: "Red Extract", desc: "+25% Red Pollen", time: 3000}]},
+                "Blue Extract": {desc: "The essence of blue flowers. <i>(x1.25 Blue Pollen for 10 min)</i>", global: true, buffs: [{id: "bextr", name: "Blue Extract", desc: "+25% Blue Pollen", time: 3000}]},
+                "Bitterberry": {desc: "See the name. <i>(Gives 100 XP)</i>", xp: 100},
+                "Silver Egg": {desc: "Can bees even lay eggs? <i>(Hatches into a random Rare or higher bee)</i>", global: true, custom: "segg"},
+                "Gold Egg": {desc: "Can bees lay gold eggs? Or any eggs? <i>(Hatches into a random Epic or higher bee)</i>", global: true, custom: "gegg"},
+                "Diamond Egg": {desc: "This is one of the best items ever, use it wisely! <i>(Hatches into a random Legendary bee)</i>", global: true, custom: "gegg"},
+                "Moon Charm": {desc: "To be honest I have no idea what a moon charm is. <i>(Gives 100 XP)</i>", xp: 100},
+                "Glitter": {desc: "Shiny! <i>(Make sure you're in a field before you use this)</i>", buffs: [{id: "[[FIELD]]buff", name: "[[FIELD]] field buff", desc: "+100% [[FIELD]] pollen", time: 4500}], global: true},
+                "Field Dice": {desc: "Fun fact: I almost made this a board game instead of a video game. <i>(Boosts a random field for 15 min)</i>", buffs: [{id: "[[RANDFIELD]]buff", name: "[[RANDFIELD]] field buff", desc: "+100% [[RANDFIELD]] pollen", time: 4500}], global: true},
+                "Micro-Converter": {desc: "50% faster than the Mega-Converter! <i>(Instantly converts all pollen)</i>", buffs: [{id: "micro", name: "Micro-Converter", desc: "Converting Pollen...", time: 5}]}
+            };
+            // useful stuff
+            String.prototype.toTitleCase = function () {
+                return this.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
+            };
+            let getId = function(x) {return document.getElementById(x);};
+            let formatted = function(e) {
+                if(e<1e3) {return Math.round(e);}
+                else if(e<1e6) {return Math.round(e/10)/100+"k";}
+                else if(e<1e9) {return Math.round(e/1e4)/100+"m";}
+                else if(e<1e12) {return Math.round(e/1e7)/100+"b";}
+                else if(e<1e15) {return Math.round(e/1e10)/100+"T";}
+                
+                else {return e;}
+            };
+            let timeformat = function(e) {
+                let secs = Math.ceil(e/5);
+                if(secs<60) {return secs+" sec";}
+                else if(secs<3600) {return Math.floor(secs / 60)+" min "+(secs % 60)+" sec";}
+                else {return Math.floor(secs / 3600)+" hr "+Math.floor(secs % 3600 / 60)+" min "+(secs % 60)+" sec";}
+                
+            };
+            let getStatTotal = function(stat) {
+                let ttl = 0;
+                for(let i of bees) {
+                    if(i.sleepTime == 0) {ttl += beeData[i.id][stat] * (.8+.2*i.lvl);}
+                }
+                if(stat="atk") {ttl += bees.length * hasBuff("rage")[0];}
+                return ttl;
+            };
+            let notNan = function(number) {
+                if(number) {return number;} else {return 0;}
+            };
+            let hasBuff = function(buff) {
+                for(let b of buffs) {
+                    if(b.id == buff) {return [b.stacks, buffs.indexOf(b)];}
+                }
+                return [0, -1];
+            };
+            let hasPassive = function(passive) {
+                for(let b of bees) {
+                    if(b["passive"] == passive) {
+                        return true;
+                    }
+                }
+                return false;
+            };
+            let gainBuff = function(id, name, desc, time) {
+                let curBuff = hasBuff(id);
+                if(curBuff[0]>0) {buffs[curBuff[1]].stacks += 1; buffs[curBuff[1]].time = time;}
+                else {buffs.push({id:id,name:name,desc:desc,time:time,stacks:1});}
+            };
+            let gainItem = function(item) {
+                for(let x of inv) {
+                    if(item.name == x.name) {
+                        x.amt += item.amt;
+                        return;
+                    }
+                }
+                inv.push(item);
+            };
+            let silverEgg = function() {
+                let eggLuck = Math.random();
+                let choice;
+                if(eggLuck <= 0.17*0.7) {choice = "rad";}
+                else if(eggLuck <= 0.33*0.7) {choice = "bomber";}
+                else if(eggLuck <= 0.50*0.7) {choice = "looker";}
+                else if(eggLuck <= 0.67*0.7) {choice = "bumble";}
+                else if(eggLuck <= 0.83*0.7) {choice = "cool";}
+                else if(eggLuck <= 1.00*0.7) {choice = "brave";}
+                else {choice = goldenEgg();}
+                return choice;
+            };
+            let goldenEgg = function() {
+                let eggLuck = Math.random();
+                let choice;
+                if(eggLuck <= 0.1*0.8) {choice = "bubble";}
+                else if(eggLuck <= 0.2*0.8) {choice = "bucko";}
+                else if(eggLuck <= 0.3*0.8) {choice = "commander";}
+                else if(eggLuck <= 0.4*0.8) {choice = "demo";}
+                else if(eggLuck <= 0.5*0.8) {choice = "exhausted";}
+                else if(eggLuck <= 0.6*0.8) {choice = "fire";}
+                else if(eggLuck <= 0.7*0.8) {choice = "frosty";}
+                else if(eggLuck <= 0.8*0.8) {choice = "honey";}
+                else if(eggLuck <= 0.9*0.8) {choice = "rage";}
+                else if(eggLuck <= 1.0*0.8) {choice = "riley";}
+                else {choice = diamondEgg();}
+                return choice;
+            };
+            let diamondEgg = function() {
+                let eggLuck = Math.random();
+                let choice;
+                if(eggLuck <= 0.25) {choice = "baby";}
+                else if(eggLuck <= 0.50) {choice = "carpenter";}
+                else if(eggLuck <= 0.75) {choice = "demon";}
+                else {choice = "diamond";}
+                return choice;
+            };
+            let useOnBee = function(item, bee) {
+                if(itemData[item.name].xp) {
+                    bees[bee].xp += itemData[item.name].xp;
+                    if(itemData[item.name].color) {
+                        if(itemData[item.name].color == beeData[bees[bee].id]["col"]) {
+                            bees[bee].xp += itemData[item.name].xp;
+                        }
+                    }
+                    while(bees[bee].xp >= 2.5 * 4**bees[bee].lvl) {
+                        bees[bee].xp -= 2.5 * 4**bees[bee].lvl;
+                        bees[bee].lvl += 1;
+                    }
+                }
+                if(item.custom) {
+                    if(item.custom == "rjelly") {
+                        let choice = silverEgg();
+                        let beeInfo = bees[bee];
+                        bees.push({id:choice, eng:beeData[choice]["eng"]*(1+0.2*(beeInfo.lvl-1)), sleepTime:0, xp:beeInfo.xp, lvl:beeInfo.lvl});
+                        bees = bees.filter(function(e) {return e !== bees[bee]});
+                    }
+                }
+                for(let q of quests) {
+                    for(let f of (q.items ? q.items : [])) {
+                        if((item.name==f.name || f.name=="*") && f.prog < f.goal) {
+                            f.prog += 1;
+                        }
+                    }
+                }
+            };
+            let useGlobal = function(item) {
+                if(item.buffs) {
+                    for(let b of item.buffs) {
+                        let field = getId("field").value;
+                        gainBuff(b.id.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.name.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.desc.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.time);
+                    }
+                }
+                if(item.custom) {
+                    if(item.custom == "segg") {
+                        let newBee = silverEgg();
+                        bees.push({id:newBee,eng:beeData[newBee]["eng"],sleepTime:0,xp:0,lvl:1});
+                    } else if(item.custom == "gegg") {
+                        let newBee = goldenEgg();
+                        bees.push({id:newBee,eng:beeData[newBee]["eng"],sleepTime:0,xp:0,lvl:1});
+                    } else if(item.custom == "degg") {
+                        let newBee = diamondEgg();
+                        bees.push({id:newBee,eng:beeData[newBee]["eng"],sleepTime:0,xp:0,lvl:1});
+                    } else if(item.custom == "mbean") {
+                        quests.push({id:"mbean",fields:[{field:getId("field").value,prog:0,goal:50000}],reward:{honey:0,items:[{name:"Popped Sprout", amt: 1}]}});
+                    } else if(item.custom == "mbean_pop") {
+                        for(let i=0;i<20;i++) {
+                            honey += 200 + Math.random()*150;
+                            if(Math.random() <= 0.99) {
+                                gainItem({name: ["Treat","Strawberry","Blueberry","Ticket","Sunflower Seed", "Pineapple","Royal Jelly"][Math.floor(Math.random()*6)], amt: 1});
+                            } else {
+                                gainItem({name: "Silver Egg", amt: 1});
+                            }
+                        }
+                    }
+                }
+                for(let q of quests) {
+                    for(let f of (q.items ? q.items : [])) {
+                        if((item.name==f.name || f.name=="*") && f.prog < f.goal) {
+                            f.prog += 1;
+                        }
+                    }
+                }
+            };
+            let useItem = function(index) {
+                let iname = inv[index].name;
+                let idata = itemData[iname];
+                let useAmt = 1;
+                if(inv[index].amt > 1) {
+                    let num = 0;
+                    while (num > inv[index].amt || notNan(parseInt(num) + 0) <= 0) {
+                        num = prompt("How many do you want to use?", "Maximum: "+inv[index].amt);
+                    }
+                    useAmt = num;
+                }
+                if(idata.global) {
+                    for(let x=0;x<useAmt;x++){useGlobal({name: iname, ...idata});}
+                } else if(!idata.unusable) {
+                    let beeChoice = prompt("Use on what bee? (enter bee #, first bee = 1)", "")-1;
+                    for(let x=0;x<useAmt;x++){useOnBee({name: iname, ...idata}, beeChoice);}
+                }
+                if(!idata.unusable) {
+                    inv[index].amt -= useAmt;
+                    if(inv[index].amt == 0) {
+                        inv = inv.filter(function(e) {return e !== inv[index]});
+                    }
+                }
+            };
+            let itemDrop = function(item, pct) {
+                if(Math.random() < pct/100) {gainItem(item);}
+            };
+            // upgrades
+            let bag_up = function() {
+                if(bagMax == 200 && honey >= 600) {
+                    honey-=600; bagMax=750; getId("bag_up").innerHTML = "Upgrade to Backpack for 5500 honey";
+                } else if(bagMax == 750 && honey >= 5500) {
+                    honey-=5500; bagMax=3500; getId("bag_up").innerHTML = "Upgrade to Canister for 22000 honey (This and further upgrades also increase your converting speed)";
+                } else if(bagMax == 3500 && honey >= 22000) {
+                    honey-=22000; bagMax=10000; getId("bag_up").innerHTML = "Upgrade to Mega-Jug for 50000 honey";
+                } else if(bagMax == 10000 && honey >= 50000) {
+                    honey-=50000; bagMax=25000; getId("bag_up").innerHTML = "Upgrade to Compressor for 160k honey";
+                } else if(bagMax == 25000 && honey >= 160e3) {
+                    honey-=160e3; bagMax=50000; getId("bag_up").innerHTML = "Upgrade to Elite Barrel for 650k honey";
+                } else if(bagMax == 50000 && honey >= 650e3) {
+                    honey-=650e3; bagMax=125e3; getId("bag_up").innerHTML = "Upgrade to Port-O-Hive for 2 million honey (This and further upgrades also instantly convert some pollen";
+                } else if(bagMax == 125e3 && honey >= 2e6) {
+                    honey-=2e6; bagMax=250e3; getId("bag_up").innerHTML = "Upgrade to Porcelain Port-O-Hive for 100 million honey (Also increases pollen gained)";
+                } else if(bagMax == 50000 && honey >= 1e8) {
+                    honey-=1e8; bagMax=500e3; getId("bag_up").innerHTML = "Bag is fully upgraded (Porcelain Port-O-Hive)";
+                }
+            };
+            let tool_up = function() {
+                if(tool == 1 && honey >= 800) {
+                    honey-=800; tool=1.72; getId("tool_up").innerHTML = "Upgrade to Clippers for 2000 honey";
+                } else if(tool == 1.72 && honey >= 2000) {
+                    honey-=2000; tool=2.8; getId("tool_up").innerHTML = "Upgrade to Magnet for 6000 honey";
+                } else if(tool == 2.8 && honey >= 6000) {
+                    honey-=6000; tool=3.6; getId("tool_up").innerHTML = "Upgrade to Vacuum for 14000 honey";
+                } else if(tool == 3.6 && honey >= 14000) {
+                    honey-=14000; tool=6.52; getId("tool_up").innerHTML = "Upgrade to Super Scooper for 40000 honey";
+                } else if(tool == 6.52 && honey >= 40000) {
+                    honey-=40000; tool=8; getId("tool_up").innerHTML = "Upgrade to Pulsar for 125k honey";
+                } else if(tool == 8 && honey >= 125000) {
+                    honey-=125000; tool=11.6; getId("tool_up").innerHTML = "Upgrade to Electromagnet for 300k honey";
+                } else if(tool == 11.6 && honey >= 300000) {
+                    honey-=300000; tool=14.4; getId("tool_up").innerHTML = "Upgrade to Scissors for 850k honey";
+                } else if(tool == 14.4 && honey >= 850000) {
+                    honey-=850000; tool=24; getId("tool_up").innerHTML = "Upgrade to Honey Dipper for 3 million honey";
+                } else if(tool == 24 && honey >= 3e6) {
+                    honey-=3e6; tool=32; getId("tool_up").innerHTML = "Upgrade to Golden Rake for 20 million honey";
+                } else if(tool == 32 && honey >= 20e6) {
+                    honey-=20e6; tool=44; getId("tool_up").innerHTML = "Upgrade to Spark Staff for 60 million honey";
+                } else if(tool == 44 && honey >= 60e6) {
+                    honey-=60e6; tool=69; getId("tool_up").innerHTML = "Tool is fully upgraded (Spark Staff)";
+                }
+            };
+            let displayShop = function() {
+                let newItem = shop[selectedEquip];
+                getId("equip").innerHTML = "Buy "+newItem.name+" (";
+                if(newItem.stats.cap) {getId("equip").innerHTML += "+"+formatted(newItem.stats.cap)+" capacity, ";}
+                if(newItem.stats.conv) {getId("equip").innerHTML += "+"+newItem.stats.conv+" conversion/s, ";}
+                if(newItem.stats.cchance) {getId("equip").innerHTML += "+"+newItem.stats.cchance+"% crit chance, ";}
+                if(newItem.stats.pollen) {getId("equip").innerHTML += "+"+newItem.stats.pollen+"% pollen, ";}
+                if(newItem.stats.wpol) {getId("equip").innerHTML += "+"+newItem.stats.wpol+"% white pollen, ";}
+                if(newItem.stats.abilRate) {getId("equip").innerHTML += "+"+newItem.stats.abilRate+"% ability rate, ";}
+                if(newItem.stats.bmbpol) {getId("equip").innerHTML += "+"+newItem.stats.bmbpol+"% bomb power, ";}
+                if(newItem.stats.movepol) {getId("equip").innerHTML += "+"+newItem.stats.movepol+" pollen/s, ";}
+                
+                if(newItem.owned == true) {
+                    getId("equip").innerHTML += "owned)<span class='txt'>"+newItem.desc+"</span>";
+                }
+                else {
+                    getId("equip").innerHTML += "price: "+formatted(newItem.price)+")<span class='txt' id='shopdesc'>"+newItem.desc+"</span>";
+                    getId("shopdesc").innerHTML += "<br/><i>Recipe:</i>";
+                    for(let i of newItem.recipe) {
+                        getId("shopdesc").innerHTML += " ["+i.name+"] <i>x"+i.amt+"</i>";
+                    }
+                    //getId("equip").innerHTML += "</span>";
+                }
+            };
+            let prev = function() {
+                selectedEquip -= 1;
+                if(selectedEquip < 0) {selectedEquip = shop.length - 1;}
+                displayShop();
+            };
+            let next = function() {
+                selectedEquip += 1;
+                if(selectedEquip >= shop.length) {selectedEquip = 0;}
+                displayShop();
+            };
+            let equip = function() {
+                let selected = shop[selectedEquip];
+                let price = selected.price;
+                let hasMaterials = false;
+                if(selected.owned==true) { price = 0; }
+                else {
+                    for(let r of selected.recipe) {
+                        for(let i of inv) {
+                            if(i.name == r.name) {
+                                if(i.amt >= r.amt) {
+                                    hasMaterials = true;
+                                    break;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+                if(honey >= price && hasMaterials == true) {
+                    for(let r of selected.recipe) {
+                        for(let i of inv) {
+                            if(i.name == r.name) {
+                                if(i.amt >= r.amt) {
+                                    i.amt -= r.amt;
+                                    if(i.amt == 0) {
+                                        inv = inv.filter(function(e) {return e !== i}); // remove materials
+                                    }
+                                    break;
+                                } else {
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                    honey -= price;
+                    selected.owned = true;
+                    shop.push(equips[selected.slot]);
+                    equips[selected.slot] = selected;
+                    shop = shop.filter(function(e) {return e !== selected});
+                    displayShop();
+                }
+            };
+            displayShop();
+            let buy_egg = function() {
+                if(honey >= prices.egg) {
+                    honey -= prices.egg;
+                    let eggLuck = Math.random();
+                    if(eggLuck <= 0.017) {
+                        bees.push({id:"rad",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else if(eggLuck <= 0.033) {
+                        bees.push({id:"bomber",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else if(eggLuck <= 0.05) {
+                        bees.push({id:"looker",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else if(eggLuck <= 0.067) {
+                        bees.push({id:"bumble",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else if(eggLuck <= 0.083) {
+                        bees.push({id:"cool",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else if(eggLuck <= 0.1) {
+                        bees.push({id:"brave",eng:20,sleepTime:0,xp:0,lvl:1});
+                    } else {
+                        bees.push({id:"basic",eng:20,sleepTime:0,xp:0,lvl:1});
+                    }
+                    prices.egg *= 1.25;
+                    getId("buy_egg").innerHTML = "Buy a basic egg for "+formatted(prices.egg)+" honey<span class='txt'>Drop rates:<br/>90% - Basic Bee<br/>10% - Random Rare Bee</span>";
+                }
+            };
+            let buy_rj = function() {
+                if(honey >= prices.rj) {
+                    honey -= prices.rj;
+                    gainItem({name:"Royal Jelly",amt:1});
+                    prices.rj = Math.min(2.5e6, prices.rj+10000);
+                    getId("buy_rj").innerHTML = "Buy a royal jelly for "+formatted(prices.rj)+" honey";
+                }
+            };
+            let buy_treat = function() {
+                if(honey >= prices.treat) {
+                    honey -= prices.treat;
+                    gainItem({name:"Treat",amt:1});
+                    prices.treat = Math.min(10000, prices.treat+40);
+                    getId("buy_treat").innerHTML = "Buy a treat for "+formatted(prices.treat)+" honey";
+                }
+            };
+            let buy_ticket = function() {
+                if(honey >= prices.tick) {
+                    honey -= prices.tick;
+                    gainItem({name:"Ticket",amt:1});
+                    prices.tick = Math.min(10e6, prices.tick+40000);
+                    getId("buy_ticket").innerHTML = "Buy a ticket for "+formatted(prices.tick)+" honey";
+                }
+            };
+            let buy_tickets = function(what, cost) {
+                for(let i of inv) {
+                    if(i.name == "Ticket") {
+                        if(i.amt >= cost) {
+                            i.amt -= cost;
+                            if(i.amt == 0) {
+                                inv = inv.filter(function(e) {return e !== i}); // remove tickets
+                            }
+                            gainItem(what);
+                            break;
+                        } else {
+                            break;
+                        }
+                    }
+                }
+            };
+            // monsters
+            let noBees = function(time) {
+                for(let i of bees) {
+                    if(i.sleepTime == 0) {
+                        i.eng = 0;
+                        i.sleepTime = time;
+                    }
+                }
+            };
+            let monster = function(name, hp, reqbees, honeyReward, drops, time) {
+                if(hasBuff("fight")[0] == 0 && getStatTotal("atk") > 0 && bees.length >= reqbees) {
+                    let fightTime = hp/getStatTotal("atk");
+                    alert("All your active bees are fighting the "+name+", since they have a combined attack of "+Math.round(getStatTotal("atk")*10)/10+" it will take "+timeformat(fightTime));
+                    //noBees(fightTime); // No longer needed, the below "buff" takes care of it
+                    getId(name).setAttribute("disabled", "");
+                    respawn[name] = time*300 + fightTime;
+                    let rewardFunc = function(_name, _honeyReward, _drops) {
+                        honey += (Math.random()-0.5)*_honeyReward + _honeyReward;
+                        for(let d of _drops) {
+                            itemDrop({name:d,amt:1}, 50);
+                        }
+                        for(let q of quests) {
+                            for(let f of (q.mobs ? q.mobs : [])) {
+                                if(f.name==_name.toTitleCase() && f.prog < f.goal) {
+                                    f.prog += 1;
+                                }
+                            }
+                        }
+                    };
+                    gainBuff("fight", "Fighting Bees", "Bees are unable to gather, convert or attack", fightTime);
+                    let rewardTimeout = setTimeout(rewardFunc, time*1000*6, name, honeyReward, drops);
+                } else if(bees.length >= reqbees) { alert("Your bees are already fighting or sleeping"); }
+                else { alert("Not enough bees to access "+name+", need at least "+reqbees); }
+            };
+            let ladybug = function() {
+                monster("ladybug", 150, 0, 100, ["Strawberry", "Gumdrop", "Treat"], 5);
+            };
+            let rbeetle = function() {
+                monster("rhino beetle", 150, 0, 100, ["Blueberry", "Gumdrop", "Treat"], 5);
+            };
+            let spider = function() {
+                monster("spider", 1000, 5, 500, ["Pineapple", "Sunflower Seed", "Glue", "Moon Charm"], 10);
+            };
+            let mantis = function() {
+                monster("mantis", 600, 10, 3000, ["Blueberry", "Pineapple", "Blue Extract", "Moon Charm", "Glitter", "Ticket"], 10);
+            };
+            let wwolf = function() {
+                monster("werewolf", 2500, 15, 20000, ["Royal Jelly", "Royal Jelly", "Ticket", "Ticket", "Glitter", "Treat", "Treat", "Treat", "Sunflower Seed", "Pineapple", "Sunflower Seed", "Pineapple", "Sunflower Seed", "Pineapple", "Moon Charm", "Moon Charm"], 20);
+            };
+            let scorp = function() {
+                monster("scorpion", 800, 15, 6000, ["Strawberry", "Strawberry", "Strawberry", "Strawberry", "Strawberry", "Pineapple", "Red Extract", "Glitter", "Moon Charm", "Ticket", "Royal Jelly", "Red Extract"], 10);
+            };
+            let mondoChick = function() {
+                if(bees.length >= 25) {
+                    if(mondoInfo.time <= 0 && mondoInfo.respawn <= 0) {
+                        mondoInfo.hp = 300e3;
+                        mondoInfo.time = 900; // 15 * 60;
+                        alert("Mondo Chick has spawned! Defeat him in 15 minutes!");
+                    } else if(mondoInfo.time > 0 && mondoInfo.respawn <= 0) {
+                        if(hasBuff("fight")[0]==0) {
+                            mondoInfo.hp -= getStatTotal("atk") * 10;
+                            gainBuff("fight", "Fighting Bees", "Bees are unable to gather, convert or attack", 50);
+                        } else {
+                            alert("Your bees are already fighting");
+                        }
+                    }
+                } else {
+                    alert("Not enough bees to access Mondo Chick (need at least 25)");
+                }
+            };
+            let time2save = 50;
+            // main loop
+            let gameloop = function() {
+                let honeyDisplay = getId("honey");
+                let beesDisplay = getId("bees");
+                let buffDisplay = getId("buffs");
+                let questDisplay = getId("quests");
+                let equipDisplay = getId("equips");
+                let inventory = getId("inv");
+                let field = getId("field").value;
+                
+                let conv = getStatTotal("convert")/2; //10fps
+                if(bagMax==10000){conv*=1.3}
+                if(bagMax==25000){conv*=1.4}
+                if(bagMax==50000){conv*=1.55}
+                if(bagMax==125e3){conv*=1.7}
+                if(bagMax==250e3){conv*=2}
+                if(bagMax==500e3){conv*=3}
+                
+                conv *= 1 + hasBuff("enhancement")[0]*0.25;
+                conv *= 1 - hasBuff("fight")[0];
+                //conv *= 1 + hasBuff("micro")[0]*999;
+                conv += notNan(0.1*equips["belt"].stats.conv);
+                
+                let gthr = getStatTotal("gather")/2 + notNan(equips["boots"].stats.movepol);
+                gthr *= 1 - hasBuff("fight")[0];
+                //alert("gthr="+gthr);
+                
+                let pollenMax = bagMax + notNan(equips["belt"].stats.cap) + notNan(equips["guard"].stats.cap);
+                let pollMod = 0;
+                for (let B of buffs) {
+                    B.time -= 0.5; //10fps
+                    if(B.time <= 0) {buffs = buffs.filter(function(e) {return e !== B});}
+                }
+                // science bear
+                if(!hasScience && bees.length >= 10) {
+                    hasScience = true;
+                    alert("You reached 10 bees and unlocked a new questline! Cool");
+                    quests.push({name:"Preliminary Research",id:"sci1",fields:[{field:"white",prog:0,goal:20000},{field:"sbry",prog:0,goal:10000},{field:"bamb",prog:0,goal:10000}],reward:{honey:3.141592653e4,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                }
+                // respawn
+                for (let M in respawn) {
+                    respawn[M] -= 0.5; //10fps
+                    if(respawn[M] <= 0) {
+                        getId(M).removeAttribute("disabled");
+                        getId(M).innerHTML = "Defeat a "+M;
+                    } else {
+                        getId(M).innerHTML = "Defeat a "+M+" ("+timeformat(respawn[M])+")";
+                    }
+                }
+                // mondo chick
+                getId("mondoChick").innerHTML = "Attack Mondo Chick";
+                mondoInfo.respawn -= 0.1;
+                mondoInfo.time -= 0.1;
+                if(mondoInfo.respawn > 0) {
+                    getId("mondoChick").innerHTML = "Mondo Chick is respawning... ("+timeformat(mondoInfo.respawn)+")";
+                } else {
+                    getId("mondoChick").removeAttribute("disabled");
+                }
+                if(mondoInfo.hp > 0) {
+                    getId("mondoChick").innerHTML = "Attack Mondo Chick (HP: "+Math.ceil(mondoInfo.hp/1000)+"k, "+timeformat(mondoInfo.time*5)+" left)";
+                    mondoInfo.hp -= 33.3;
+                    if(mondoInfo.hp <= 0) {
+                        getId("mondoChick").setAttribute("disabled", "");
+                        mondoInfo.respawn = mondoInfo.time + 45*60;
+                        mondoInfo.time = 0;
+                        alert("You defeated Mondo Chick! Rewards TBD");
+                    }
+                }
+                if(mondoInfo.time <= 0 && mondoInfo.hp > 0) {
+                    getId("mondoChick").setAttribute("disabled", "");
+                    mondoInfo.hp = 0;
+                    mondoInfo.respawn = 45*60;
+                    alert("Mondo Chick got away!");
+                }
+                // saving
+                time2save -= 1; //10fps
+                if(time2save==0) {
+                    time2save = 50;
+                    saveLocal();
+                }
+                // conversion
+                let honeymark = (10*conv)/bees.length * hasBuff("honeymark")[0];
+                if(pollen < honeymark) {
+                    honey += pollen;
+                    pollen = 0;
+                } else {
+                    honey += honeymark;
+                    pollen -= honeymark;
+                }
+                if(field == "convert") {
+                    if(pollen < conv) {
+                        honey += pollen;
+                        if(hasPassive("hpp-up")) { honey += 0.1*pollen; }
+                        pollen = 0;
+                    } else {
+                        honey += conv;
+                        if(hasPassive("hpp-up")) { honey += 0.1*conv; }
+                        pollen -= conv;
+                    }
+                } else if(
+                    ["sunf","dand","mush","bluf","clov"].includes(field) ||
+                    (["bamb","spdr","sbry"].includes(field) && bees.length >= 5) ||
+                    (["stmp","aple"].includes(field) && bees.length >= 10) ||
+                    (["pump","cact","rose","pine"].includes(field) && bees.length >= 15) ||
+                    (["mont"].includes(field) && bees.length >= 25)
+                ) {
+                    pollMod = fields[field].pollen;
+                    
+                    pollMod *= 1 + hasBuff("rboost")[0]*0.002*fields[field].red;
+                    pollMod *= 1 + hasBuff("bboost")[0]*0.002*fields[field].blue;
+                    pollMod *= 1 + hasBuff("rextr")[0]*0.0025*fields[field].red;
+                    pollMod *= 1 + hasBuff("bextr")[0]*0.0025*fields[field].blue;
+                    pollMod *= 1 + hasBuff("glue")[0]*0.25;
+                    pollMod *= 1 + hasBuff("crit")[0];
+                    pollMod *= 1 + hasBuff("babylove")[0];
+                    pollMod *= 1 + hasBuff("pmark")[0]*0.5;
+                    
+                    pollMod *= 1 + hasBuff(field+"buff")[0];
+                    pollMod *= 1 + notNan(equips["hat"].stats.pollen*0.01);
+                    pollMod *= 1 + notNan(equips["guard"].stats.wpol*0.01*fields[field].white*0.01);
+                    
+                    if(bagMax == 500e3) {pollMod *= 1.1;} // Porcelain Port-O-Hive buff
+                    
+                    if(Math.random() < 0.003*hasBuff("focus")[0] + notNan(equips["guard"].stats.cchance*0.001)) {
+                        gainBuff("crit", "<b>Crit!</b>", "Increased Pollen", 5);
+                    }
+                    
+                    honey += hasBuff("gumdrop")[0]*0.4*(tool/2 + gthr)*pollMod; //10fps
+                    
+                    let instaConv = hasBuff("hmark")[0] * 0.15;
+                    if(bagMax == 250e3) {instaConv += 0.05;}      // } Container Buffs
+                    else if (bagMax == 500e3) {instaConv += 0.1;} // }
+                    
+                    pollen += (tool/2 + gthr)*pollMod * (1-instaConv); //10fps
+                    honey += (tool/2 + gthr)*pollMod * instaConv;
+                    
+                    //leaves
+                    //Each field has 1 common item (98%) and 1 rare one (2%)
+                    if(Math.random() < 0.0035) { //10fps
+                        let leaf = function(common, rare) {
+                            if(Math.random() < 0.02) {
+                                gainItem({name: rare, amt: 1});
+                            } else {
+                                gainItem({name: common, amt: 1});
+                            }
+                        };
+                        if(field == "sunf") {
+                            leaf("Sunflower Seed", "Magic Bean");
+                        } else if(field == "dand" || field == "stmp") {
+                            leaf("Treat", "Glue");
+                        } else if(field == "mush" || field == "sbry") {
+                            leaf("Strawberry", "Red Extract");
+                        } else if(field == "bluf" || field == "bamb") {
+                            leaf("Blueberry", "Blue Extract");
+                        } else if(field == "clov") {
+                            leaf("Treat", "Royal Jelly");
+                        } else if(field == "spdr") {
+                            leaf("Treat", "Bitterberry");
+                        } else if(field == "aple") {
+                            leaf("Pineapple", "Magic Bean");
+                        }
+                    }
+                    //quests
+                    let procQuests = function(amt) {
+                        for(let q of quests) {
+                            for(let f of (q.fields ? q.fields : [])) {
+                                if((field==f.field || f.field=="any") && f.prog < f.goal) {
+                                    f.prog += amt;
+                                }
+                                if(f.field=="red" && f.prog < f.goal) {
+                                    f.prog += amt * (fields[field].red / 100);
+                                }
+                                if(f.field=="blue" && f.prog < f.goal) {
+                                    f.prog += amt * (fields[field].blue / 100);
+                                }
+                                if(f.field=="white" && f.prog < f.goal) {
+                                    f.prog += amt * (fields[field].white / 100);
+                                }
+                            }
+                        }
+                    };
+                    procQuests((tool/2 + gthr) * pollMod);
+                    let bomb = function(pol) {
+                        pollen += pol*pollMod*1+notNan(equips["guard"].stats.bmbpol*0.01);
+                        procQuests(pol*pollMod*1+notNan(equips["guard"].stats.bmbpol*0.01));
+                    };
+                    //abilities
+                    let abilRate = 0.01; //10fps
+                    abilRate *= 1 + (0.01*notNan(equips["hat"].stats.abilRate));
+                    for(let i of bees) {
+                        if(i.sleepTime == 0) {i.eng -= 0.075; if(i.eng <= 0) {i.eng = 0; i.sleepTime = 50;}}//10fps
+                        if(i.sleepTime == 0 && beeData[i.id]["ability"] == "rboost" && Math.random() < abilRate) {
+                            gainBuff("rboost", "Red Boost", "+20% Red Pollen", 75);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "bboost" && Math.random() < abilRate) {
+                            gainBuff("bboost", "Blue Boost", "+20% Blue Pollen", 75);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "zbomb" && Math.random() < abilRate) {
+                            bomb(91);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "zbomb+" && Math.random() < abilRate) {
+                            bomb(203);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "bbomb" && Math.random() < abilRate) {
+                            bomb(1.3 * fields[field].blue);
+                        } if(i.sleepTime == 0 && ["focus","melody"].includes(beeData[i.id]["ability"]) && Math.random() < abilRate) {
+                            gainBuff("focus", "Focus", "+3% Crit Chance", 100);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "bbomb+" && Math.random() < abilRate) {
+                            bomb(2.9 * fields[field].blue);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "rbomb+" && Math.random() < abilRate) {
+                            bomb(2.9 * fields[field].red);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "focubomb" && Math.random() < abilRate) {
+                            bomb(91); gainBuff("focus", "Focus", "+3% Crit Chance", 100);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "bcombo" && Math.random() < abilRate) {
+                            gainBuff("bboost", "Blue Boost", "+20% Blue Pollen", 100); bomb(1.3 * fields[field].blue);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "bcombo" && Math.random() < abilRate) {
+                            gainBuff("bboost", "Blue Boost", "+20% Blue Pollen", 100); bomb(1.3 * fields[field].blue);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "rage" && Math.random() < abilRate) {
+                            gainBuff("rage", "Rage", "+1 Bee Attack", 225);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "honeyhoney" && Math.random() < abilRate) {
+                            gainBuff("hmark", "Honey Mark", "Convert Pollen to Honey", 35 + i.lvl);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "babylove" && Math.random() < abilRate/5) {
+                            gainBuff("babylove", "Baby Love", "x2 Pollen", 150);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "2mark" && Math.random() < abilRate) {
+                            gainBuff("hmark", "Honey Mark", "Convert Pollen to Honey", 35 + i.lvl);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "2mark" && Math.random() < abilRate) {
+                            gainBuff("pmark", "Pollen Mark", "x1.5 Pollen", 35 + i.lvl);
+                        } if(i.sleepTime == 0 && beeData[i.id]["ability"] == "melody" && Math.random() < abilRate) {
+                            gainBuff("melody", "Melody", "x2 Crit Power", 150);
+                        }
+                    }
+                }
+                let completed = true;
+                for(let q of quests) {
+                    completed = true;
+                    for(let f of [...(q.fields ? q.fields : []), ...(q.items ? q.items : []), ...(q.mobs ? q.mobs : [])]) {
+                        if(f.prog >= f.goal) {f.prog = f.goal;}
+                        else {completed = false;}
+                    }
+                    if(q.lvls) {
+                        for(let l of q.lvls) {
+                            let qty = 0;
+                            for(let b of bees) {
+                                if(b.lvl >= l.lvl) {qty++;}
+                            }
+                            if(qty < l.amt) {completed=false;}
+                        }
+                    }
+                    if(completed) {
+                        alert("Quest complete!");
+                        honey += q.reward.honey;
+                        for(let item of (q.reward.items ? q.reward.items : [])) {
+                            gainItem(item);
+                        }
+                        if(q.reward.buff) {
+                            gainBuff(...q.reward.buff);
+                        }
+                        // assign another quest
+                        if(q.id=="black1") {
+                            quests.push({name:"Dandelion Deed",id:"black2",fields:[{field:"dand",prog:0,goal:250}],reward:{honey:400}});
+                        } else if(q.id=="black2") {
+                            quests.push({name:"Pollen Fetcher",id:"black3",fields:[{field:"any",prog:0,goal:500}],reward:{honey:500}});
+                        } else if(q.id=="black3") {
+                            quests.push({name:"Red Request",id:"black4",fields:[{field:"red",prog:0,goal:600}],reward:{honey:650}});
+                        } else if(q.id=="black4") {
+                            quests.push({name:"Into the Blue",id:"black5",fields:[{field:"blue",prog:0,goal:1000}],reward:{honey:750}});
+                        } else if(q.id=="black5") {
+                            quests.push({name:"Variety Fetcher",id:"black6",fields:[{field:"mush",prog:0,goal:1000},{field:"bluf",prog:0,goal:1000},{field:"clov",prog:0,goal:1000}],reward:{honey:0,items:[{name: "Silver Egg", amt: 1}]}});
+                        } else if(q.id=="black6") {
+                            quests.push({name:"Bamboo Boogie",id:"black7",fields:[{field:"bamb",prog:0,goal:4000}],reward:{honey:2000}});
+                        } else if(q.id=="black7") {
+                            quests.push({name:"Red Request II",id:"black8",fields:[{field:"red",prog:0,goal:5000}],reward:{honey:2500}});
+                        } else if(q.id=="black8") {
+                            quests.push({name:"Cobweb Sweeper",id:"black9",fields:[{field:"spdr",prog:0,goal:6000}],reward:{honey:3200}});
+                        } else if(q.id=="black9") {
+                            quests.push({name:"Leisure Loot",id:"black10",fields:[{field:"dand",prog:0,goal:3000},{field:"sunf",prog:0,goal:3000},{field:"mush",prog:0,goal:3000},{field:"bluf",prog:0,goal:3000}],reward:{honey:10000}});
+                        } else if(q.id=="black10") {
+                            quests.push({name:"White Wrangler",id:"black11",fields:[{field:"white",prog:0,goal:10000}],reward:{honey:7500}});
+                        } else if(q.id=="black11") {
+                            quests.push({name:"Pineapple Picking",id:"black12",fields:[{field:"aple",prog:0,goal:13000}],reward:{honey:10500}});
+                        } else if(q.id=="black12") {
+                            quests.push({name:"Weed Wacker",id:"black13",fields:[{field:"sbry",prog:0,goal:10000},{field:"bamb",prog:0,goal:10000},{field:"clov",prog:0,goal:10000}],reward:{honey:25000}});
+                        } else if(q.id=="black13") {
+                            quests.push({name:"Red + Blue = Gold",id:"black14",fields:[{field:"red",prog:0,goal:25000},{field:"blue",prog:0,goal:25000}],reward:{honey:0,items:[{name:"Gold Egg",amt:1}]}});
+                        } else if(q.id=="black14") {
+                            quests.push({name:"Colorless Collection",id:"black15",fields:[{field:"white",prog:0,goal:50000}],reward:{honey:35000}});
+                        } else if(q.id=="black15") {
+                            quests.push({name:"Spirit of Springtime",id:"black16",fields:[{field:"sbry",prog:0,goal:30000},{field:"sunf",prog:0,goal:30000}],reward:{honey:44000}});
+                        } else if(q.id=="black16") {
+                            quests.push({name:"Weed Wacker II",id:"black17",fields:[{field:"dand",prog:0,goal:40000},{field:"bamb",prog:0,goal:40000}],reward:{honey:50000}});
+                        } else if(q.id=="black17") {
+                            quests.push({name:"Pollen Fetcher III",id:"black18",fields:[{field:"any",prog:0,goal:100e3}],reward:{honey:50000,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="black18") {
+                            quests.push({name:"Lucky Landscaping",id:"black19",fields:[{field:"clov",prog:0,goal:100e3}],reward:{honey:75000}});
+                        } else if(q.id=="black19") {
+                            quests.push({name:"Azure Adventure",id:"black20",fields:[{field:"blue",prog:0,goal:150e3}],reward:{honey:100e3}});
+                        } else if(q.id=="black20") {
+                            quests.push({name:"Pink Pineapples",id:"black21",fields:[{field:"red",prog:0,goal:80000},{field:"aple",prog:0,goal:80000}],reward:{honey:125e3}});
+                        } else if(q.id=="black21") {
+                            quests.push({name:"Blue Mushrooms",id:"black22",fields:[{field:"bluf",prog:0,goal:100e3},{field:"mush",prog:0,goal:100e3}],reward:{honey:150e3,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="black22") {
+                            quests.push({name:"Cobweb Sweeper II",id:"black23",fields:[{field:"spdr",prog:0,goal:250e3}],reward:{honey:185e3}});
+                        } else if(q.id=="black23") {
+                            quests.push({name:"Rojo-a-go-go",id:"black24",fields:[{field:"red",prog:0,goal:300e3}],reward:{honey:200e3}});
+                        } else if(q.id=="black24") {
+                            quests.push({name:"Pumpkin Plower",id:"black25",fields:[{field:"pump",prog:0,goal:315e3}],reward:{honey:225e3}});
+                        } else if(q.id=="black25") {
+                            quests.push({name:"Pollen Fetcher IV",id:"black26",fields:[{field:"any",prog:0,goal:375e3}],reward:{honey:250e3,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="black26") {
+                            quests.push({name:"Bouncing around Biomes",id:"black27",fields:[{field:"pine",prog:0,goal:180e3},{field:"cact",prog:0,goal:180e3}],reward:{honey:275e3}});
+                        } else if(q.id=="black27") {
+                            quests.push({name:"Blue Pineapples",id:"black28",fields:[{field:"aple",prog:0,goal:200e3},{field:"blue",prog:0,goal:200e3}],reward:{honey:300e3}});
+                        } else if(q.id=="black28") {
+                            quests.push({name:"Rose Request",id:"black29",fields:[{field:"rose",prog:0,goal:450e3}],reward:{honey:320e3}});
+                        } else if(q.id=="black29") {
+                            quests.push({name:"Search for the White Clover",id:"black30",fields:[{field:"white",prog:0,goal:300e3},{field:"clov",prog:0,goal:200e3}],reward:{honey:350e3,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="black30") {
+                            quests.push({name:"Stomping Grounds",id:"black31",fields:[{field:"sunf",prog:0,goal:100e3},{field:"dand",prog:0,goal:100e3},{field:"mush",prog:0,goal:100e3},{field:"bluf",prog:0,goal:100e3}],reward:{honey:400e3,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="black31") {
+                            quests.push({name:"Collecting Cliffside",id:"black32",fields:[{field:"sbry",prog:0,goal:250e3},{field:"spdr",prog:0,goal:250e3},{field:"bamb",prog:0,goal:250e3}],reward:{honey:450e3,items:[{name:"Royal Jelly",amt:2}]}});
+                        } else if(q.id=="black32") {
+                            quests.push({name:"Mountain Meandering",id:"black33",fields:[{field:"rose",prog:0,goal:275e3},{field:"pine",prog:0,goal:275e3},{field:"pump",prog:0,goal:275e3},{field:"cact",prog:0,goal:275e3},{field:"aple",prog:0,goal:275e3}],reward:{honey:500e3,items:[{name:"Royal Jelly",amt:3}]}});
+                        } else if(q.id=="black33") {
+                            quests.push({name:"Quest of Legends",id:"black34",fields:[{field:"white",prog:0,goal:500e3},{field:"red",prog:0,goal:500e3},{field:"blue",prog:0,goal:500e3}],reward:{honey:1e6,items:[{name:"Diamond Egg",amt:1}]}});
+                        } else if(q.id=="black34") {
+                            quests.push({name:"High Altitude",id:"black35",fields:[{field:"clov",prog:0,goal:500e3},{field:"mont",prog:0,goal:750e3}],reward:{honey:650e3,items:[{name:"Royal Jelly",amt:1},{name:"Field Dice",amt:1},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black35") {
+                            quests.push({name:"Blissfully Blue",id:"black36",fields:[{field:"blue",prog:0,goal:1400e3},{field:"bamb",prog:0,goal:800e3},{field:"bluf",prog:0,goal:500e3}],reward:{honey:700e3,items:[{name:"Royal Jelly",amt:1},{name:"Blueberry",amt:30},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black36") {
+                            quests.push({name:"Rouge Round-Up",id:"black37",fields:[{field:"red",prog:0,goal:1600e3},{field:"rose",prog:0,goal:900e3},{field:"sbry",prog:0,goal:700e3}],reward:{honey:750e3,items:[{name:"Royal Jelly",amt:1},{name:"Strawberry",amt:30},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black37") {
+                            quests.push({name:"White as Snow",id:"black38",fields:[{field:"white",prog:0,goal:1500e3},{field:"aple",prog:0,goal:700e3},{field:"spdr",prog:0,goal:400e3},{field:"dand",prog:0,goal:300e3}],reward:{honey:700e3,items:[{name:"Royal Jelly",amt:1},{name:"Pineapple",amt:30},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black38") {
+                            quests.push({name:"Solo on the Stump",id:"black39",fields:[{field:"stmp",prog:0,goal:1e6}],reward:{honey:825e3,items:[{name:"Royal Jelly",amt:1},{name:"Gumdrop",amt:30},{name:"Ticket",amt:10}]}});
+                        } else if(q.id=="black39") {
+                            quests.push({name:"Colorful Craving",id:"black40",fields:[{field:"blue",prog:0,goal:1.5e6},{field:"red",prog:0,goal:1.5e6},{field:"pine",prog:0,goal:1e6},{field:"mush",prog:0,goal:600e3}],reward:{honey:850e3,items:[{name:"Royal Jelly",amt:1},{name:"Field Dice",amt:3},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black40") {
+                            quests.push({name:"Pumpkins, Please!",id:"black41",fields:[{field:"pump",prog:0,goal:2e6}],reward:{honey:875e3,items:[{name:"Royal Jelly",amt:1},{name:"Magic Bean",amt:1},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black41") {
+                            quests.push({name:"Smorgasboard",id:"black42",fields:[{field:"sunf",prog:0,goal:500e3},{field:"clov",prog:0,goal:500e3},{field:"bamb",prog:0,goal:500e3},{field:"aple",prog:0,goal:500e3},{field:"cact",prog:0,goal:500e3},{field:"rose",prog:0,goal:500e3},{field:"mont",prog:0,goal:500e3}],reward:{honey:1e6,items:[{name:"Royal Jelly",amt:1},{name:"Field Dice",amt:3},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black42") {
+                            quests.push({name:"Pollen Fetcher V",id:"black43",fields:[{field:"any",prog:0,goal:6e6}],reward:{honey:1150e3,items:[{name:"Royal Jelly",amt:1},{name:"Ticket",amt:5},{name:"Micro-Converter",amt:5}]}});
+                        } else if(q.id=="black43") {
+                            quests.push({name:"White Clover Again",id:"black44",fields:[{field:"white",prog:0,goal:3e6},{field:"clov",prog:0,goal:3e6}],reward:{honey:1250e3,items:[{name:"Royal Jelly",amt:5},{name:"Ticket",amt:5}]}});
+                        } else if(q.id=="black44") {
+                            quests.push({name:"Strawberry Field Forever",id:"black45",fields:[{field:"sbry",prog:0,goal:6e6}],reward:{honey:1150e3,items:[{name:"Royal Jelly",amt:1},{name:"Ticket",amt:5},{name:"Strawberry",amt:60}]}});
+                        } else if(q.id=="black45") {
+                            quests.push({name:"Tasting the Sky (final)",id:"black46",fields:[{field:"blue",prog:0,goal:6e6},{field:"mont",prog:0,goal:3e6},{field:"sunf",prog:0,goal:1e6}],reward:{honey:2e6,items:[{name:"Royal Jelly",amt:1},{name:"Ticket",amt:5},{name:"Sunflower Seed",amt:60}]}});
+                        }
+/*
+Tasting The Sky	
+Collect 6,000,000 Blue Pollen, Collect 3,000,000 Pollen from the Mountain Top Field, Collect 1,000,000 Pollen from the Sunflower Field.
+5x Ticket; 60x Sunflower Seed; 2,000,000 Honey; 1x Royal Jelly
+Whispy and Crispy	
+Collect 4,750,000 Pollen from the Cactus Field, Collect 1,500,000 Pollen from Dandelion Field.
+5x Ticket; 5x Micro-Converter; 2,200,000 Honey; 1x Royal Jelly
+Walk Through The Woods	
+Collect 8,000,000 Pollen from the Pine Tree Forest, Collect 5,000,000 Pollen from the Bamboo Field.
+5x Ticket; 1x Blue Extract; 2,500,000 Honey; 1x Royal Jelly
+Get Red-y	
+Collect 10,000,000 Red Pollen, Collect 4,000,000 Pollen from the Clover Field, Collect 1,500,000 Pollen from the Stump Field.
+5x Ticket; 100x Treat; 1x Red Extract; 2,800,000 Honey; 2x Royal Jelly
+One Stop On The Tip Top	
+Collect 15,000,000 Pollen from the Mountain Top Field.
+5x Ticket; 200x Treat; 5x Field Dice; 3,000,000 Honey; 2x Royal Jelly
+Blue Mushrooms 2	
+Collect 6,000,000 Pollen from the Blue Flower Field, Collect 6,000,000 Pollen from the Mushroom Field.
+5x Ticket; 300x Treat; 5x Micro-Converter; 3,500,000 Honey; 2x Royal Jelly
+Pretty Pumpkins	
+Collect 10,000,000 Pollen from the Pumpkin Patch, Collect 12,500,000 Pollen from the Rose Field.
+5x Ticket; 400x Treat; 1x Glitter; 4,000,000 Honey; 2x Royal Jelly
+Black Bear, Why?	
+Collect 15,000,000 Red Pollen, Collect 15,000,000 Blue Pollen, Collect 10,000,000 Pollen from the Cactus Field, Collect 6,000,000 Pollen from the Spider Field, Collect 4,000,000 Pollen from the Clover Field.
+5x Ticket; 500x Treat; 15x Stinger; 4,500,000 Honey; 2x Royal Jelly
+*/
+                        if(q.id=="mother1") {
+                            quests.push({name:"Bonding with Bees",id:"mother2",lvls:[{lvl:3,amt:1},{lvl:2,amt:2}],items:[{name:"Treat",prog:0,goal:5}],reward:{honey:1000,items:[{name:"Treat",amt:3},{name:"Ticket",amt:1}]}});
+                        } else if(q.id=="mother2") {
+                            quests.push({name:"Searching for a Sunflower Seed",id:"mother3",lvls:[{lvl:3,amt:3}],items:[{name:"Treat",prog:0,goal:10},{name:"Sunflower Seed",prog:0,goal:1}],reward:{honey:2000,items:[{name:"Treat",amt:3},{name:"Ticket",amt:2},{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="mother3") {
+                            quests.push({name:"The Gist of Jellies",id:"mother4",lvls:[{lvl:4,amt:3}],items:[{name:"Treat",prog:0,goal:15},{name:"Royal Jelly",prog:0,goal:1}],reward:{honey:5000,items:[{name:"Treat",amt:5},{name:"Ticket",amt:2}]}});
+                        } else if(q.id=="mother4") {
+                            quests.push({name:"Search for Strawberries",id:"mother5",lvls:[{lvl:5,amt:1},{lvl:4,amt:5}],items:[{name:"Treat",prog:0,goal:20},{name:"Strawberry",prog:0,goal:5}],reward:{honey:10000,items:[{name:"Treat",amt:5},{name:"Ticket",amt:3}]}});
+                        } else if(q.id=="mother5") {
+                            quests.push({name:"Binging on Blueberries",id:"mother6",lvls:[{lvl:5,amt:3}],items:[{name:"Treat",prog:0,goal:30},{name:"Blueberry",prog:0,goal:10}],reward:{honey:20000,items:[{name:"Treat",amt:10},{name:"Ticket",amt:3}]}});
+                        } else if(q.id=="mother6") {
+                            quests.push({name:"Jelly Jamboree",id:"mother7",lvls:[{lvl:6,amt:1},{lvl:5,amt:5}],items:[{name:"Treat",prog:0,goal:50},{name:"Royal Jelly",prog:0,goal:3}],reward:{honey:50000,items:[{name:"Treat",amt:20},{name:"Ticket",amt:4}]}});
+                        } else if(q.id=="mother7") {
+                            quests.push({name:"Even More Sunflower Seeds",id:"mother8",lvls:[{lvl:6,amt:6}],items:[{name:"Treat",prog:0,goal:100},{name:"Sunflower Seed",prog:0,goal:25}],reward:{honey:100e3,items:[{name:"Treat",amt:30},{name:"Ticket",amt:4},{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="mother8") {
+                            quests.push({name:"Picking Out Pineapples",id:"mother9",lvls:[{lvl:7,amt:1},{lvl:6,amt:8},{lvl:5,amt:12}],items:[{name:"Treat",prog:0,goal:250},{name:"Pineapple",prog:0,goal:25}],reward:{honey:250e3,items:[{name:"Treat",amt:40},{name:"Ticket",amt:5},{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="mother8") {
+                            quests.push({name:"Seven to Seven (final)",id:"mother9",lvls:[{lvl:7,amt:7}],items:[{name:"Treat",prog:0,goal:500},{name:"Blueberry",prog:0,goal:25},{name:"Strawberry",prog:0,goal:25}],reward:{honey:500e3,items:[{name:"Treat",amt:50},{name:"Ticket",amt:6},{name:"Royal Jelly",amt:1},{name:"Diamond Egg",amt:1}]}});
+                        }
+                        
+                        if(q.id=="panda1") {
+                            quests.push({name:"Rhino Rumble",id:"panda2",mobs:[{name:"Rhino Beetle",prog:0,goal:2}],reward:{honey:750}});
+                        } else if(q.id=="panda2") {
+                            quests.push({name:"Beetle Battle",id:"panda3",mobs:[{name:"Rhino Beetle",prog:0,goal:3},{name:"Ladybug",prog:0,goal:3}],reward:{honey:1500}});
+                        } else if(q.id=="panda3") {
+                            quests.push({name:"Spider Slayer",id:"panda4",mobs:[{name:"Spider",prog:0,goal:1}],reward:{honey:1500,items:[{name:"Royal Jelly",amt:1}]}});
+                        } else if(q.id=="panda4") {
+                            quests.push({name:"Ladybug Bonker",id:"panda5",mobs:[{name:"Ladybug",prog:0,goal:10}],reward:{honey:6000}});
+                        } else if(q.id=="panda5") {
+                            quests.push({name:"Rhino Wrecking",id:"panda6",mobs:[{name:"Rhino Beetle",prog:0,goal:15}],reward:{honey:12000}});
+                        } else if(q.id=="panda6") {
+                            quests.push({name:"Spider Slayer II",id:"panda7",mobs:[{name:"Spider",prog:0,goal:3}],reward:{honey:15000}});
+                        } else if(q.id=="panda7") {
+                            quests.push({name:"Final Showdown (not final)",id:"panda8",mobs:[{name:"Spider",prog:0,goal:10},{name:"Ladybug",prog:0,goal:20},{name:"Rhino Beetle",prog:0,goal:20}],reward:{honey:22500,items:[{name:"Silver Egg",amt:1}]}});
+                        } else if(q.id=="panda8") {
+                            quests.push({name:"Werewolf Hunter",id:"panda9",mobs:[{name:"Werewolf",prog:0,goal:1}],reward:{honey:2000,items:{name:"Royal Jelly",amt:1}}});
+                        } else if(q.id=="panda9") {
+                            quests.push({name:"Skirmish with Scorpions",id:"panda10",mobs:[{name:"Scorpion",prog:0,goal:10}],reward:{honey:7500,items:{name:"Royal Jelly",amt:1}}});
+                        } else if(q.id=="panda10") {
+                            quests.push({name:"Mantis Massacre",id:"panda11",mobs:[{name:"Mantis",prog:0,goal:15}],reward:{honey:15000,items:{name:"Royal Jelly",amt:1}}});
+                        } else if(q.id=="panda11") {
+                            quests.push({name:"The REAL Final Showdown (final)",id:"panda12",mobs:[{name:"Werewolf",prog:0,goal:3},{name:"Ladybug",prog:0,goal:10},{name:"Rhino Beetle",prog:0,goal:10},{name:"Mantis",prog:0,goal:5},{name:"Scorpion",prog:0,goal:5},{name:"Spider",prog:0,goal:5}],reward:{honey:150000,items:{name:"Gold Egg",amt:1}}});
+                        }
+                        
+                        if(q.id=="sci1") {
+                            quests.push({name:"Biology Study",id:"sci2",fields:[{field:"red",prog:0,goal:30000},{field:"clov",prog:0,goal:20000}],mobs:[{name:"Ladybug",prog:0,goal:8},{name:"Rhino Beetle",prog:0,goal:8}],reward:{honey:50000,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                        } else if(q.id=="sci2") {
+                            quests.push({name:"Proving the Hypothesis",id:"sci3",fields:[{field:"blue",prog:0,goal:35000},{field:"aple",prog:0,goal:35000}],mobs:[{name:"Mantis",prog:0,goal:3},{name:"Rhino Beetle",prog:0,goal:9}],reward:{honey:60000,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                        } else if(q.id=="sci3") {
+                            quests.push({name:"Bear Botany",id:"sci4",fields:[{field:"dand",prog:0,goal:25000},{field:"sunf",prog:0,goal:25000},{field:"bluf",prog:0,goal:25000}],mobs:[{name:"Spider",prog:0,goal:2}],reward:{honey:80000,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                        } else if(q.id=="sci4") {
+                            quests.push({name:"Kingdom Collection",id:"sci5",fields:[{field:"bamb",prog:0,goal:75000},{field:"mush",prog:0,goal:35000}],mobs:[{name:"Spider",prog:0,goal:2}],reward:{honey:90000,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                        } else if(q.id=="sci5") {
+                            quests.push({name:"Defensive Adaptations (final)",id:"sci6",fields:[{field:"cact",prog:0,goal:60000},{field:"rose",prog:0,goal:60000}],mobs:[{name:"Rhino Beetle",prog:0,goal:6},{name:"Scorpion",prog:0,goal:4}],reward:{honey:1e5,buff:["enhancement", "Scientific Enhancement", "+25% Convert Rate per level", 18000]}});
+                        }
+                        
+                        quests = quests.filter(function(e) {return e !== q}); // remove q from questlist
+                    }
+                }
+                if(pollen > pollenMax) {pollen = pollenMax;}
+                honeyDisplay.innerHTML = formatted(pollen)+" / "+formatted(pollenMax)+" Pollen | "+formatted(honey)+" Honey";
+                
+                beesDisplay.innerHTML = "<b>Bees:";
+                for(let j of bees) {
+                    if(j.sleepTime > 0) {
+                        j.sleepTime -= 0.5;
+                        if(j.sleepTime <= 0) {
+                            j.sleepTime = 0;
+                            j.eng = beeData[j.id]["eng"]*(1+0.2*(j.lvl-1));
+                        }
+                    }
+                    
+                    let beeStuff = "";
+                    beeStuff += " | <span class='tooltip'>"+j.id+" bee, lv. "+j.lvl+" ("+j.xp+"/"+(2.5*4**j.lvl)+" xp)";
+                    if(j.sleepTime > 0) {beeStuff += ", sleeping ("+timeformat(j.sleepTime)+")"}
+                    beeStuff += "<span class='txt'>"+beeData[j.id]["desc"]+"<br/>Stats: "+
+                        beeData[j.id]["col"]+" color, "+Math.round(beeData[j.id]["eng"]*(.8+.2*j.lvl))+" energy, "+
+                        beeData[j.id]["atk"]*(.8+.2*j.lvl).toFixed(1)+" attack, "+Math.round(beeData[j.id]["gather"]*100*(.8+.2*j.lvl))+" gather, "+
+                        Math.round(beeData[j.id]["convert"]*10*(.8+.2*j.lvl))+" convert</span></span>";
+                    beesDisplay.innerHTML += beeStuff;
+                }
+                
+                buffDisplay.innerHTML = (buffs.length > 0 ? "<b>Buffs:</b> " : "");
+                for(let b of buffs) {
+                    buffDisplay.innerHTML += " | <span class='tooltip'>"+b.name+" x"+b.stacks+" ("+timeformat(b.time)+")<span class='txt'>"+b.desc+"</span></span>";
+                }
+                
+                questDisplay.innerHTML = "<tr><td><b>Quest</b></td><td><b>Requirements</b></td><td><b>Rewards</b></td></tr>";
+                for(let q of quests) {
+                    let reqs = [];
+                    for(let f of (q.fields ? q.fields : [])) {
+                        reqs.push("collect "+formatted(f.prog)+"/"+formatted(f.goal)+"  pollen from "+f.field.replace("sunf", "the Sunflower Field").replace("dand", "the Dandelion Field").replace("bluf", "the Blue Flower Field").replace("mush", "the Mushroom Field").replace("clov", "the Clover Field").replace("spdr", "the Spider Field").replace("bamb", "the Bamboo Field").replace("sbry", "the Strawberry Field").replace("aple", "the Pineapple Field").replace("pine", "the Pine Tree Field").replace("cact", "the Cactus Field").replace("pump", "the Pumpkin Field").replace("rose", "the Rose Field").replace("blue", "blue flowers").replace("red", "red flowers").replace("sunf", "white flowers").replace("any", "anywhere"));
+                    }
+                    for(let i of (q.items ? q.items : [])) {
+                        reqs.push("use "+i.prog+"/"+i.goal+" "+i.name+"s");
+                    }
+                    for(let l of (q.lvls ? q.lvls : [])) {
+                        reqs.push("get "+l.amt+(l.amt==1 ? " bee" : " bees")+" to level "+l.lvl);
+                    }
+                    for(let m of (q.mobs ? q.mobs : [])) {
+                        reqs.push("defeat "+m.prog+"/"+m.goal+" "+m.name);
+                    }
+                    let rewardText = formatted(q.reward.honey)+" honey";
+                    for(let r of (q.reward.items ? q.reward.items : [])) {
+                        rewardText += ", "+r.name+" x"+r.amt;
+                    }
+                    if(q.reward.buff) {
+                        rewardText += ", <span class='tooltip'>"+b[1]+" ("+timeformat(b[2])+")<span class='txt'>"+b[2]+"</span></span>";
+                    }
+                    reqs = reqs.join(", ");
+                    questDisplay.innerHTML += "<tr><td>"+q.name+"</td><td>"+reqs+"</td><td>"+rewardText+"</td></tr>";
+                }
+                
+                equipDisplay.innerHTML = "<b>Equipment:</b> | Belt: "+equips.belt.name+" | Hat: "+equips.hat.name+" | Guard: "+equips.guard.name+" | Boots: "+equips.boots.name;
+                
+                inventory.innerHTML = "<b>Inventory:</b> ";
+                for(let I in inv) {
+                    inventory.innerHTML += " | <button onclick='useItem("+I+");' class='tooltip'>"+inv[I].name+" x"+inv[I].amt+"<span class='txt'>"+itemData[inv[I].name].desc+"</span></button>";
+                }
+                //refresh tooltips
+                let x = document.getElementsByClassName("txt");
+                for (t of x) {
+                    t.style.left = (mousex+10) + "px";
+                    t.style.top = (mousey+10+window.pageYOffset) + "px";
+                }
+            };
+            loadLocal(); // Disabled while developing; remember to turn this back on!
+            if(bagMax == 200) {
+                getId("bag_up").innerHTML = "Upgrade to Jar (bag) for 600 honey";
+            } else if(bagMax == 750) {
+                getId("bag_up").innerHTML = "Upgrade to Backpack for 5500 honey";
+            } else if(bagMax == 3500) {
+                getId("bag_up").innerHTML = "Upgrade to Canister for 22000 honey (This and further upgrades also increase your converting speed)";
+            } else if(bagMax == 10000) {
+                getId("bag_up").innerHTML = "Upgrade to Mega-Jug for 50000 honey";
+            } else if(bagMax == 25000) {
+                getId("bag_up").innerHTML = "Upgrade to Compressor for 160k honey";
+            } else if(bagMax == 50000) {
+                getId("bag_up").innerHTML = "Upgrade to Elite Barrel for 650k honey";
+            } else if(bagMax == 125e3) {
+                getId("bag_up").innerHTML = "Upgrade to Port-O-Hive for 2 million honey";
+            } else if(bagMax == 250e3) {
+                getId("bag_up").innerHTML = "Upgrade to Porcelain Port-O-Hive for 100 million honey (Also increases pollen gained)";
+            } else if(bagMax == 500e3) {
+                getId("bag_up").innerHTML = "Bag is fully upgraded (Porcelain Port-O-Hive)";
+            }
+            if(tool == 1) {
+                getId("tool_up").innerHTML = "Upgrade to Rake (tool) for 800 honey";
+            } else if(tool == 1.72) {
+                getId("tool_up").innerHTML = "Upgrade to Clippers for 2000 honey";
+            } else if(tool == 2.8) {
+                getId("tool_up").innerHTML = "Upgrade to Magnet for 6000 honey";
+            } else if(tool == 3.6) {
+                getId("tool_up").innerHTML = "Upgrade to Vacuum for 14000 honey";
+            } else if(tool == 6.52) {
+                getId("tool_up").innerHTML = "Upgrade to Super Scooper for 40000 honey";
+            } else if(tool == 8) {
+                getId("tool_up").innerHTML = "Upgrade to Pulsar for 125k honey";
+            } else if(tool == 11.6) {
+                getId("tool_up").innerHTML = "Upgrade to Electromagnet for 300k honey";
+            } else if(tool == 14.4) {
+                getId("tool_up").innerHTML = "Upgrade to Scissors for 850k honey";
+            } else if(tool == 24) {
+                getId("tool_up").innerHTML = "Upgrade to Honey Dipper for 3 million honey";
+            } else if(tool == 32) {
+                getId("tool_up").innerHTML = "Upgrade to Golden Rake for 20 million honey";
+            } else if(tool == 44) {
+                getId("tool_up").innerHTML = "Upgrade to Spark Staff for 60 million honey";
+            } else if(tool == 69) {
+                getId("tool_up").innerHTML = "Tool is fully upgraded (Spark Staff)";
+            }
+            getId("buy_ticket").innerHTML = "Buy a ticket for "+formatted(prices.tick)+" honey";
+            getId("buy_treat").innerHTML = "Buy a treat for "+formatted(prices.treat)+" honey";
+            getId("buy_rj").innerHTML = "Buy a royal jelly for "+formatted(prices.rj)+" honey";
+            getId("buy_egg").innerHTML = "Buy a basic egg for "+formatted(prices.egg)+" honey<span class='txt'>Drop rates:<br/>90% - Basic Bee<br/>7% - Random Rare Bee<br/>2.4% - Random Epic Bee<br/>0.6% - Random Legendary Bee</span>";
+            window.setInterval(gameloop, 100);
+        </script>
+    </body>
+</html>
