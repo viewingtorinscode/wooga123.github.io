@@ -151,10 +151,10 @@
             // saving
             let saveLocal = function() {
                 let code = JSON.stringify({H:honey,P:pollen,BM:bagMax,BE:bees,BU:buffs,Q:quests,I:inv,T:tool,E:equips,R:respawn,PR:prices,S:shop,HS:hasScience,MI:mondoInfo});
-                window.localStorage.setItem("bssSave_1.11", code);
+                window.localStorage.setItem("bssSave_new", code);
             };
             let loadLocal = function() {
-                if(window.localStorage.getItem("bssSave_1.11")) {
+                if(window.localStorage.getItem("bssSave_new")) {
                     let code = JSON.parse(window.localStorage.getItem("bssSave_new"));
                     if(confirm("Continue game? ("+formatted(code.H)+" honey, "+code.BE.length+" bees)")) {
                         honey = code.H;
@@ -170,7 +170,7 @@
                         prices = code.PR;
                         shop = code.S;
                         if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
-                        if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+                        if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = {respawn:0,time:0,hp:0}; alert("Mondo Info was missing, you may have loaded an earlier version. That's fine (probably)");}
                         alert("Save data loaded!");
                     } else {
                         if(!confirm("Really delete save data? (press OK to delete)")) {
@@ -187,7 +187,7 @@
                             prices = code.PR;
                             shop = code.S;
                             if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
-                            if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+                            if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = {respawn:0,time:0,hp:0}; alert("Mondo Info was missing, you may have loaded an earlier version. That's fine (probably)");}
                             alert("Save data loaded!");
                         } else {
                             alert("Deleted save data :(");
@@ -216,7 +216,7 @@
                 prices = code.PR;
                 shop = code.S;
                 if(code.HS) {hasScience = code.HS;} else {hasScience = false;}
-                if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = 0;}
+                if(code.MI) {mondoInfo = code.MI;} else {mondoInfo = {respawn:0,time:0,hp:0}; alert("Mondo Info was missing, you may have loaded an earlier version. That's fine (probably)");}
             };
             // data
             let fields = {
