@@ -24,7 +24,7 @@
         </style>
     </head>
     <body>
-        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.11.1: The 25 Bee Update</span><br/>
+        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.11.3: The 25 Bee Update</span><br/>
         <button onclick="getId('tutorial').remove();" id="tutorial" style="border: 2px solid white;">
             === How to play ===<br/>
             - enter a field code (like 'sunf') in the field box to collect pollen<br/>
@@ -132,7 +132,7 @@
             ];
             let inv = [{name: "Treat", amt: 1}];
             let tool = 1;
-            let equips = {"belt": {name: "empty belt slot", slot: "belt", desc: "Nothing", stats: {}, owned: true, price: 0}, "hat": {name: "empty hat slot", slot: "hat", desc: "Nothing", stats: {}, owned: true, price: 0}, "guard": {name: "empty guard slot", slot: "guard", desc: "Nothing", stats: {}, owned: true, price: 0}, "boots": {name: "empty boots slot", slot: "boots", desc: "Nothing", stats: {}, owned: true, price: 0}};
+            let equips = {"belt": {name: "[empty]", slot: "belt", desc: "Nothing", stats: {}, owned: true, price: 0}, "hat": {name: "[empty]", slot: "hat", desc: "Nothing", stats: {}, owned: true, price: 0}, "guard": {name: "[empty]", slot: "guard", desc: "Nothing", stats: {}, owned: true, price: 0}, "boots": {name: "[empty]", slot: "boots", desc: "Nothing", stats: {}, owned: true, price: 0}};
             let respawn = {"ladybug": 0, "rhino beetle": 0, "spider": 0, "werewolf": 0, "scorpion": 0, "mantis": 0};
             let selectedEquip = 0;
             let shop = [
@@ -419,7 +419,10 @@
                 if(item.buffs) {
                     for(let b of item.buffs) {
                         let field = getId("field").value;
-                        gainBuff(b.id.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.name.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.desc.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", fields.keys()[Math.floor(Math.random()*fields.keys().length)]), b.time);
+                        let fkeys = Object.keys(fields);
+                        let randField = fkeys[Math.floor(Math.random()*fkeys.length)];
+                        let repl = x => x.replace("[[FIELD]]", field).replace("[[RANDFIELD]]", randField);
+                        gainBuff(repl(b.id), repl(b.name), repl(b.desc), b.time);
                     }
                 }
                 if(item.custom) {
