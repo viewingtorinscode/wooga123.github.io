@@ -24,7 +24,7 @@
         </style>
     </head>
     <body>
-        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.11.3: The 25 Bee Update</span><br/>
+        <h2 style="display:inline">Bee Swarm Simulator! </h2><span>v1.11.4: The 25 Bee Update</span><br/>
         <button onclick="getId('tutorial').remove();" id="tutorial" style="border: 2px solid white;">
             === How to play ===<br/>
             - enter a field code (like 'sunf') in the field box to collect pollen<br/>
@@ -100,7 +100,7 @@
         <button onclick="mondoChick()" id="mondoChick" disabled>Attack Mondo Chick</button>
         <br/>----- Saving -----<br/>
         <span>Save code goes here: </span><input id="savecode"><br/>
-        <button onclick="save()"><b>EXPORT</b></button><button onclick="load()"><b>IMPORT</b></button>
+        <button onclick="save()"><b>EXPORT</b></button><button onclick="load()"><b>IMPORT</b> (slightly broken)</button>
         <script>
             // Stuff to do      Status
             // Ant Challenge    Won't do right now
@@ -120,7 +120,7 @@
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
-            let honey = 0;
+            let honey = 0; //1e10;
             let pollen = 0;
             let bagMax = 200;
             let bees = [{id:"basic",eng:20,sleepTime:0,xp:0,lvl:1}]
@@ -132,7 +132,7 @@
             ];
             let inv = [{name: "Treat", amt: 1}];
             let tool = 1;
-            let equips = {"belt": {name: "[empty]", slot: "belt", desc: "Nothing", stats: {}, owned: true, price: 0}, "hat": {name: "[empty]", slot: "hat", desc: "Nothing", stats: {}, owned: true, price: 0}, "guard": {name: "[empty]", slot: "guard", desc: "Nothing", stats: {}, owned: true, price: 0}, "boots": {name: "[empty]", slot: "boots", desc: "Nothing", stats: {}, owned: true, price: 0}};
+            let equips = {"belt": {name: "empty belt slot", slot: "belt", desc: "Nothing", stats: {}, owned: true, price: 0}, "hat": {name: "empty hat slot", slot: "hat", desc: "Nothing", stats: {}, owned: true, price: 0}, "guard": {name: "empty guard slot", slot: "guard", desc: "Nothing", stats: {}, owned: true, price: 0}, "boots": {name: "empty boots slot", slot: "boots", desc: "Nothing", stats: {}, owned: true, price: 0}};
             let respawn = {"ladybug": 0, "rhino beetle": 0, "spider": 0, "werewolf": 0, "scorpion": 0, "mantis": 0};
             let selectedEquip = 0;
             let shop = [
@@ -273,7 +273,7 @@
                 "Glue": {desc: "Don't ask me what glue has to do with pollen. I don't know. <i>(x1.25 Pollen for 10 min)</i>", global: true, buffs: [{id: "glue", name: "Glue", desc: "+25% Pollen", time: 3000}]},
                 "Royal Jelly": {desc: "A jelly jar with a crown and the words \"Made in Torinsroom\" printed on it. <i>(Transforms a bee into another one)</i>", custom: "rjelly"},
                 "Blueberry": {desc: "This blueberry is really big, it's too bad you have no mouth! <i>(Gives 25 XP, x2 to a Blue Bee)</i>", xp: 25, color: "blue"},
-                "Sunflower Seed": {desc: "Delicious! <i>(Gives 25 XP)</i>", xp: 25},
+                "Sunflower Seed": {desc: "Delicious! <i>(Gives 25 XP, x2 to a White Bee)</i>", xp: 25, color: "white"},
                 "Pineapple": {desc: "This thing tastes terrible I'd rather eat a sunflower seed <i>(Gives 25 XP)</i>", xp: 25},
                 "Red Extract": {desc: "The essence of red flowers. <i>(x1.25 Red Pollen for 10 min)</i>", global: true, buffs: [{id: "rextr", name: "Red Extract", desc: "+25% Red Pollen", time: 3000}]},
                 "Blue Extract": {desc: "The essence of blue flowers. <i>(x1.25 Blue Pollen for 10 min)</i>", global: true, buffs: [{id: "bextr", name: "Blue Extract", desc: "+25% Blue Pollen", time: 3000}]},
@@ -403,8 +403,8 @@
                     if(item.custom == "rjelly") {
                         let choice = silverEgg();
                         let beeInfo = bees[bee];
-                        bees.push({id:choice, eng:beeData[choice]["eng"]*(1+0.2*(beeInfo.lvl-1)), sleepTime:0, xp:beeInfo.xp, lvl:beeInfo.lvl});
                         bees = bees.filter(function(e) {return e !== bees[bee]});
+                        bees.push({id:choice, eng:beeData[choice]["eng"]*(1+0.2*(beeInfo.lvl-1)), sleepTime:0, xp:beeInfo.xp, lvl:beeInfo.lvl});
                     }
                 }
                 for(let q of quests) {
@@ -1217,7 +1217,8 @@ Collect 15,000,000 Red Pollen, Collect 15,000,000 Blue Pollen, Collect 10,000,00
                         rewardText += ", "+r.name+" x"+r.amt;
                     }
                     if(q.reward.buff) {
-                        rewardText += ", <span class='tooltip'>"+b[1]+" ("+timeformat(b[2])+")<span class='txt'>"+b[2]+"</span></span>";
+                        let qb = q.reward.buff;
+                        rewardText += ", <span class='tooltip'>"+qb[1]+" ("+timeformat(qb[3])+")<span class='txt'>"+qb[2]+"</span></span>";
                     }
                     reqs = reqs.join(", ");
                     questDisplay.innerHTML += "<tr><td>"+q.name+"</td><td>"+reqs+"</td><td>"+rewardText+"</td></tr>";
