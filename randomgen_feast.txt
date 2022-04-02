@@ -1,0 +1,224 @@
+
+$name : Feast Generator
+$author : Orteil
+$description : Generate endless feasts! Use it for your dinner parties, or to determine the menu for that trendy restaurant you've been wanting to open.
+$button : Feast!
+
+$organs
+[brains|heads|eyes|livers|lungs|stomachs|spleens|intestines|guts|spines|kidneys|tongues|bladders|entrails|innards]
+
+$mammal parts
+[legs|haunches|rumps|tails|ears|cheeks|bellies|flanks|ribs|necks|thighs|snouts|marrow bones]
+[organs]
+
+$animal
+[rabbit|hare] {part:[paws|[mammal parts]]} {60%}
+[dolphin|whale|porpoise] {part:[flukes|tails|fins|blowholes|blubber globs|[organs]]} {10%}
+[cow|ox|veal|bull|[horse|zebra|pony|donkey]|[yak|bison|buffalo|wildebeest]] {part:[hooves|udders|[mammal parts]]}
+[camel|dromadery] {part:[feet|humps|[mammal parts]]} {10%}
+[rat|mouse|hamster|gerbil|muskrat|vole|ferret|weasel|capybara|chinchilla|mink|mole|shrew|raccoon|lemming|possum|skunk|squirrel|sloth|lemur|chipmunk] {part:[paws|[mammal parts]]} {30%}
+[sheep|mutton|lamb|goat|[gazelle|antelope|impala|deer|moose|elk|ibex|oryx|llama|alpaca]] {part:[udders|feet|[mammal parts]]}
+[monkey|ape|gorilla|chimp|macaque|baboon] {part:[feet|paws|[mammal parts]]} {10%}
+[pig|[boar|hog|swine|sow|piglet]] {part:[feet|[mammal parts]]}
+[bear|[grizzly|polar bear|brown bear|panda]] {part:[claws|paws|[mammal parts]]} {15%}
+[wolf|coyote|fox|tiger|lion|panther|hyena] {part:[paws|[mammal parts]]} {15%}
+[seal|walrus] {part:[flippers|[mammal parts]]} {10%}
+[bat|fruit bat|pipistrelle] {part:[wings|[mammal parts]]} {10%}
+[kangaroo|wallaby|aardvark|tapir|anteater|koala|rhinoceros|otter|pangolin|elephant|mammoth|porcupine|hedgehog|platypus] {part:[mammal parts]} {30%}
+[chicken|cockerel|turkey|quail|pheasant|duck|goose|partridge|pigeon|bird|game bird|[grouse|seagull|crow|raven|peacock|nightingale|ostrich|swan|flamingo|condor|vulture|eagle|penguin|dodo|moa]] {part:[[legs|drumsticks]|wings|eggs|[beaks|tails|necks|rumps]|[organs]]}
+[turtle|frog|[toad|newt|tortoise|salamander|lizard|crocodile|alligator|[dinosaur|dino|t-rex|triceratops|iguanodon|diplodocus|dragon]]] {part:[legs|eggs|[tails|necks|rumps]|[organs]]} {20%}
+[snake|[python|boa|cobra|viper|serpent]] {part:[eggs|flanks|[organs]]} {10%}
+[crab|shrimp|lobster|crayfish|spider crab|snow crab] {part:[eggs|[moultlings|carapaces|legs]|claws|[organs]]} {50%}
+[insect|spider|[scorpion|beetle|cockroach|centipede|butterfly]|[bee|wasp|hornet]|[grasshopper|cricket]] {part:[[eggs|larvae]|[antennae|abdomens|carapaces|parts|legs]|[organs]]} {5%}
+[octopus|squid|cuttlefish|kraken] {part:[tentacles|eggs|beaks|[organs]]} {15%}
+[jellyfish|[slime|ooze|blob]] {part:[jellies|tentacles]} {5%}
+[fish|cod|grouper|salmon|trout|sardine|tuna|seabass|eel|minnow|haddock|halibut|bream|plaice|snapper|flounder|marlin|mackerel|manta ray|skate|shark] {part:[fins|tails|eggs|[organs]]}
+[clam|mussel|oyster|scallop|abalone|urchin|snail] {part:[feet|guts|eggs]} {40%}
+[beast|creature|monster] {part:[mammal parts]} {5%}
+
+
+$base animal mod
+[flying|winged|sky|mutant|jumping|wooly|feathered|sentient|glow-in-the-dark|talking|singing|spectacled|reticulated] {30%}
+[enchanted|cursed|blessed|magic|holy|undead|fel|cosmic|moon] {30%}
+[rare|endangered|extinct|forbidden|legendary|royal|imperial|fossil|lost|hybrid] {30%}
+[man-eating|killer|hell|dire] {30%}
+[mini|giant|pygmy|mega] {30%}
+[meaty|fattened|skinny|lean|plump]
+[suckling|young|elder|ancestral|wild]
+[prairie|forest|cave|mountain|desert|water|ocean|river|swamp|canyon|seasonal|boreal|polar|tropical]
+[country|village|town|garden|church|abbey|cellar|pen|barn|harbor|exotic|imported|[eastern|northern|western|southern]]
+[origin] {20%}
+
+$animal mod
+[base animal mod][ ] {20%}
+
+$origin bit
+[[b|c|ch|d|f|g|k|p|s|sh|t|v|z|ck|st|sp][|||[r|l]]|[h|j|l|m|n|r|[w|x|th|ph|sk|sc]]][a|a|a|e|e|i|o|u|[aa|ee|oo|y]|[ea|au|ou|oi|ai|ay|eau]][|||[l|r|n|t|s|[m|k|g|b|d|p]]]
+
+$origin start
+[a|a|a|a|e|e|e|[i|o|u]][|||[r|l]] {20%}
+[beau|del|mal|vil|vau|mil|high|tall|long|new |old |st. ] {3%}
+
+$origin end
+[b|c|d|f|g|k|l|m|n|p|r|s|t|v|[w|x|z|th|rk|ks|pt]][|||e|o|a] {30%}
+[ton|den|town|land|mont|burg|by|sy|tov|stan|grad|th|haven|street|stein|tean|moon|lake|loch|lac|rage|ment|nant|glade|cht|pt|jon|ris|ry|ney|ck|ban|hall|castle|garden|ville|banks|quin|gle|tle|ble|rock|bury|shire|dale|hold] {40%}
+[l|d|t|m|n|b|c|s][ian|ia|ish] {30%}
+
+$origin full
+[origin start][origin bit,x1-2][origin end]
+[origin start][origin bit,x2-3][origin end] {30%}
+[origin start][origin bit,x1-2]-[origin bit,x1-2,title][origin end] {5%}
+
+$>origin
+[origin full,title]
+
+$>gravy
+[||[hot|cold|iced|jellied|curdled|reheated|thick|dense|thin|steamed|diluted|sweetened|salted|whipped|sweet|sweet-and-sour|sweet-and-spicy|spicy|[white|brown|red|black|[pink|yellow|gray|blue|orange|green]]] ][ingredient] [[gravy|juice|sauce|dressing|soup|broth|stew]|[dip|syrup|juices|yogurt|milk|reduction|foam|porridge|pudding|cream|mousse|jam|marmalade|preserve|jelly|gruel|paste|fat|lard|grease|oil|blood|gelatin|marrow|secretions|fluids|fluff|cheese|ketchup|mustard|mayo|butter|tapenade|chutney|garnish|flakes]]
+
+$>meat
+[|[braised|roasted|boiled|stewed|honeyed|aged|smoked|ash-cooked|seasoned|sizzling|sauteed|broiled|charred|blackened|charbroiled|slow-cooked|grilled|barbecued|marinated|baked|fried|refried|country-fried|oily|raw|jellied|salted|sweet|spicy|[soured|bitter]|spiced|crispy|greasy|poached|sticky|[buttery|buttered]|preserved|dry-aged|prepared|assorted|diced|julienned|glazed|decorated|reconstituted|carved|cured|loaded|salt-crusted|herb-crusted|peppery|breaded|caramelized|gamey|confit|pickled|chilled|toasted|cheesy|teriyaki|[entire|whole]|artisanal|special|[tavern|sailor|pirate|inn|church|castle|king|queen|jester|bakery|butcher|jungle|caveman|tropic|desert|mountain|forest]-style|[origin]-style|[booze]-[battered|soaked|infused|drenched]|[cheese]-filled] ][animal mod][[animal,#thing][s]|[animal,#thing] [[#thing,as part]|[sausages|bangers|sausage links|steaks|sirloin steaks|briskets|skewers|meatloaves|cutlets|chops|cuts|slices|tenderloins|roasts|fillets|casseroles|jerkies|rings|kebabs|burgers|pizzas|sandwiches|patties|dogs|wursts|sushi|sashimi|quiches|pies|meatballs|a la [origin]|bacon slices|lard slices|ham slices|skins|cracklings|halves|carcasses]]][||| [in|with|dipped in|soaked in|[infused with|saturated with|simmered in|floating on]|drizzled with|coated with|glazed with|basted with] [gravy]]
+
+$cheese adj
+[[origin]'s|fragrant|odorant|smoked|fresh|young|old|aged|sharp|fine|crusted|maggoty|layered|salty|salted|unsalted|spicy|flowery|fruity|herbal|herb|blue|red|cloved|peppery|creamy|firm|smooth|hard|squeaky|stinky][ ] {30%}
+
+$>cheese
+[cheese adj][cheese|roquefort cheese|cheddar cheese|gouda cheese|edam cheese|colby cheese|mozzarella cheese|stilton cheese|goat cheese|gorgonzola cheese|brie|camembert] {70%}
+[cheese adj][[origin]|[abbey|church|chapel|farm|inn|tavern|king's|queen's|farmer's|sailor's|mixed|cave|ball|string|cottage|cream]|[grain]|[fruit]|[[grain]|[fruit]|[veggies (ing)]]-and-[[grain]|[fruit]|[veggies (ing)]]] cheese
+
+$plant adj
+[[origin]|pickled|new|young|fresh|vinegary|dewy|misty|baked|cooked|boiled|seasoned|honeyed|candied|glazed|chilled|aged|dried|fried|salted|sweet|[soured|bitter]|sun-dried|spicy|diced|sliced|steamed|grated|mashed|crushed|raw|germinated|[summer|autumn|spring|winter]|garden|wild][ ] {40%}
+
+$veggies (single)
+[potato|tomato|carrot]
+[zuchini|eggplant|cucumber|squash|pumpkin|beet|leek|parsnip|radish|turnip|onion|shallot|sweet potato|bamboo shoot]
+[mushroom|[morel|inkcap|bolete]|truffle] {30%}
+[vegetable|vegetable|tuber|[|[sweet|arrow|beet|deep|tap]]root]
+
+$veggies (uncountable)
+[rice|corn]
+[sprouts|seedlings|greens]
+[cabbage|lettuce|kale|broccoli|spinach]
+[olives|beans|peas|chickpeas|lentils|garlic|[watercress|dandelions|nettles|fiddleheads]]
+
+$veggies (uncountable ing)
+[rice|corn]
+[sprout|seedling]
+[cabbage|lettuce|kale|broccoli|spinach]
+[olive|bean|pea|chickpea|lentil|garlic|[watercress|dandelion|nettle|fiddlehead]]
+
+$veggies (ing)
+[veggies (uncountable ing)]
+[veggies (single)]
+
+$>veggies
+[veggies (single)]
+[veggies (uncountable)]
+
+$veggies (plural)
+[veggies (single)][s]
+[veggies (uncountable)]
+
+$>fruit
+[apple|pear]
+[orange|lemon|[citrus|grapefruit|blood orange|lime]]
+[plum|berry|peach|apricot|fig|cherry]
+[grape|strawberry|raspberry|blueberry]
+[pineapple|coconut|banana|chestnut|quince|date|melon|honeydew|persimmon|avocado|dragonfruit|durian|currant|kiwi|lychee]
+fruit
+
+$>booze
+[||[[origin]|spiced|sweet|fine|aged|young|new|mild|smooth|strong|fizzy|bubbly|flowery|aromatic|potent|herbal|fortified|imported|medicinal|cold|ice-cold|fresh|frozen|warm|hot|carbonated] ][||[[fruit]|[grain]|[veggies (ing)]|[[misc sweet filling]|grain|cereal|ginger|honey|fruity|fungus|malted|root|rose|minty|vanilla|[church|abbey|chapel]|farm|orchard|inn|tavern|[sailor's|pirate's|monk's|farmer's|king's|queen's|imperial]]] ][[ale|beer|wine|whiskey]|[sherry|brandy|rum|port|lager|liqueur|mead|ambrosia|tonic|vodka|gin|champagne|spirit|float|lemonade|soda|cordial]]
+[||[fizzy|cold|ice-cold|fresh|frozen|warm|bubbly|sweet|concentrated|cloudy|carbonated] ][[fruit]|[fruit]|[fruit]|[fruit]|[misc sweet filling]] [lemonade|syrup|[water|springwater]|juice|tea|soda]
+prune juice (a warrior's drink) {0.01%}
+
+$booze servings
+[2-30] [barrels|casks|kegs|bottles|gallons|pints] of [booze]
+[2-30] [bottles|gallons|pints|tankards|jugs|pitchers] of [booze][||| [on|with] ice|, chilled] {40%}
+[booze] by the [barrel|keg|tap] {8%}
+[[waterfalls|rivers|oceans] of|flowing|fountains of] [booze] {2%}
+
+$grain
+[wheat|barley|rye|oat|rice|corn]
+
+$baked adj
+[[origin]|fresh|fresh-baked|twice-baked|toasted|roasted|hot|warm|still-smoking|piping hot|[buttery|buttered]|latticed|fancy|gooey|crusty|oven-baked|honeyed|little|spicy|spiced|glazed|frosted|fried|oily|loaded|unleavened|[monk's|farmer's|king's|queen's|shepherd|[origin]'s[| famous]|mom's[| famous]]|cheesy|[booze]-flavored|fragrant|whole-grain|sticky|flaky|[white|brown|browned]|[animal]-shaped][ ] {30%}
+
+$misc sweet filling
+[caramel|sea-salt caramel|fudge|toffee]
+vanilla
+egg
+chocolate
+coffee {25%}
+sugar
+cinnamon
+[raisin|prune|oatmeal|cornmeal]
+[nut|seed]
+ginger
+[hazelnut|walnut|almond|coconut|peanut|pistachio]
+[pecan|pine nut|cashew|chestnut|soybean|butternut] {30%}
+[butter|cream|[whipped cream|buttermilk]]
+honey
+[molasse|treacle|mince|nougat|licorice]
+[cheese]
+
+$>bread
+[baked adj][grain] [bread loaves|loaves] {50%}
+[baked adj][grain] [flatbread|focaccia|sourdough] loaves {15%}
+[baked adj][ingredient][|||-and-[ingredient]] [buns|dumplings|naans|pasties|muffins|biscuits|crackers|chips|crisps|fritters|pancakes|crepes|waffles|wafers|cookies|rings|balls|crowns|rolls|bread rolls|turnovers|flaps|bagels|donuts|scones|petits fours|appetizers|snacks|twists|pops|knots|pretzels|nibbles|crumbs|sticks|treats|twirls|trifles|macarons|knishes|samosas|brioches|desserts|candies|gummies|[flatbread|focaccia|sourdough] loaves]
+[baked adj][compound ingredient] [sandwiches|quiches|[tiered cakes|shortcakes|poundcakes|cheesecakes|buttercakes]|cakes|cake [slices|wedges]|pies|tarts|flans|crumbles|pastries] {50%}
+
+$>misc dish
+[[baked adj]||][compound ingredient] [salad|fries|lasagna|gratin|casserole|mashed potatoes|pasta|[spaghetti|fusilli|fettuccine|fettuce|tagliatelle|cannelloni|penne|rigatoni|farfalle|tortelloni|ravioli|gnocchi|macaroni]|noodles|ravioli|curry|goulash|gumbo|hot pot|stew|soup|medley|bake|wok|ice cream|burgers|pizza|sliders|sandwiches|omelette|toast|stir fry|skewers|[fondue|tofu|tips|fingers|surprise]]
+
+$>ingredient
+[grain]
+[animal mod][animal]
+[animal mod][animal,#ing] [#ing,as part] {40%}
+[plant adj][fruit]
+[plant adj][veggies (ing)]
+[misc sweet filling]
+[cheese] {10%}
+[pepper|onion|rosemary|sage|thyme|tarragon|chives|basil|garlic|coriander|oregano|cardamon|nutmeg|allspice|paprika|ginger|cloves|cilantro|cinnamon|fennel|cumin|turmeric|anise|horseradish|parsley|mint] {40%}
+
+$compound ingredient
+[ingredient]
+[ingredient]-and-[ingredient] {50%}
+
+$served in
+, [with a squirt of|topped with|with a swirl of|with just a dab of|with a drizzle of|drizzled with|covered in|with a [saucer|little dish|cup|jar] of] [[gravy]|[gravy]|[gravy]|[booze]] {8%}
+[ ][wrapped |]in [banana|palm|birch|oak|applewood|maple|fig] leaves {5%}
+[ ][wrapped |]in [seaweed|cloth|napkins|straw|bamboo] {2%}
+[ ][served |][in|on] [crushed ice|fresh snow] {1%}
+[ ][served |]on [[mossy|gnarled|smooth] ||][birch|oak|applewood|maple] bark {2%}
+[ ][served |][in [[cloth|silk|wool|cotton|paper]-lined |][wicker |]baskets|on [[granite|stone|marble|iron] |][slates|slabs]|on [wooden|oak|maple|cedar] [boards|planks|slabs|plates]] {5%}
+[ ][spread across|spread all over|in little [bowls|plates|cups] [all over|around]] the [banquet table|table|tables] {1%}
+[ ][served |]in [an] [[large|huge|deep|big|enormous|gigantic|sizable] |][[[silver|gold]-[trimmed|studded]|gilded|[gem|diamond|pearl]-[encrusted|studded]|steel-studded|engraved|decadent|ornate|fancy|rustic|[animal]-shaped] ||||][[iron|cast iron|steel|stone|[granite|slate|marble]|wooden|[birchwood|oakwood|maple|cedarwood|palm wood]|porcelain|glass|golden|clay|tin|copper|bronze|silver|crystal] |][platter|plate|pot|dish|skillet|pan|cauldron|kettle|cup|chalice] {20%}
+
+$>food
+[meat]
+[meat] with [[misc dish]|[plant adj][veggies (plural)]] {30%}
+[bread] {40%}
+[bread] [and|[with|dipped in|on]] [gravy] {8%}
+[cheese] [wheels|slices|wedges|cubes] {12%}
+[bread] [and|with|[with melty|topped with|in]] [cheese] {8%}
+[food], [stuffed|filled|garnished] with [food] {5%}
+[plant adj][[fruit]|[veggies (single)]][s] {50%}
+
+$food amount
+[[various|several|multiple]|[mountains of|piles of|piles upon piles of|heaps of|mounds of]|[endless|countless|more than enough]|[an onslaught|an armada|an army|an avalanche|a never-ending stream|a smattering|an explosion|oodles] of|[a cart|a wheelbarrow|a trolley|a full table|a banquet table|a set|a number|a variety] of|[an] [sizable|generous|unreasonable|large] [portion|helping|serving] of|[enormous|large|unreasonable|vast|seemingly infinite] [amounts|numbers|servings] of][ ] {20%}
+[2-6][ ] {10%}
+[2-99][ ] {3%}
+[a dozen|a half-dozen|half a dozen|about a dozen][ ] {10%}
+[]
+
+$food line
+<p>â€¢ [food amount][food][served in]</p>
+<p>â€¢ [food amount][food] and [[food]|[misc dish]][served in]</p> {50%}
+<p>â€¢ [food amount][food] [with a side of|served with|with|accompanied by|on|resting on] [[food]|[misc dish]][served in]</p> {20%}
+<p>â€¢ [food amount][food] [and|on|resting on|on a bed of|topped with] [[food]|[food]|[gravy]] [with a side of|served with|with|accompanied by] [[food]|[misc dish]][served in]</p> {10%}
+<p>â€¢ [booze servings]</p> {50%}
+<p>â€¢ [food amount][plant adj][veggies (single)] [bowls|[bushels|barrels|crates]|plates|dishes][|| with [food]| with [[gravy]|[gravy]|[gravy]|[booze]]]</p> {50%}
+<p>â€¢ [misc dish][|| with [[gravy]|[gravy]|[gravy]|[booze]]][served in]</p> {20%}
+
+$>feast
+<h3>[Rejoice|[Steady|Brace] thy [stomachs|bellies|appetites]|[Blessed|Praised] be the gods|Kiss the cook|Make room|[Stock|Fire] the ovens|Get thy knives ready|Clear the tables[| and clean the pots]], for tonight we feast on...</h3>[food line,x5-10][||||<p>...[and for dessert|and if we still have room|and for those still hungry|oh, and also|and last but not least|and as a treat|and to finish off|and if you're in the mood|and as a digestive|and if available|and if supplies allow|and if we have time|and, why not|and if you've been good]: [food].</p>]
