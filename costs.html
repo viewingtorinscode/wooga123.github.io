@@ -606,6 +606,7 @@
                             getId("cardReward").style.display = "inline";
                             getId("gameScreen").style.display = "none";
                             let goldAmt = Math.round(Math.random()*20)+30;
+                            if(eliteBattle == true) {goldAmt += 40;}
                             getId("goldReward").innerHTML = goldAmt+" gold";
                             getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
                         }
