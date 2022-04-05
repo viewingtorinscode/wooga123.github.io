@@ -266,6 +266,7 @@
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
+                finalAmt -= hasBuff("Minus Strength");
                 
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(finalAmt - actor.hasBuff("Block") > 0) {
@@ -497,7 +498,7 @@
                     alert("Added "+newCards[ind].name+" to your deck.");
                     deck.push(newCards[ind]);
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
+                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
                 } else {
                 }
@@ -532,6 +533,12 @@
             let map = [
                 ["",            "",            "start",       "",            ""          ],
                 ["",            randomThing(), randomThing(), randomThing(), ""          ],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
@@ -582,12 +589,12 @@
                     {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)}
-                ])/*,
+                ]),
                 () => new Enemy("Lagavulin", 110, [
                     {intent: "blocking", desc: "block", effect: block(8)},
                     {intent: "attacking", desc: "deal [DAM13] damage", effect: attack(13)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
-                ])*/
+                    {intent: "nerfing", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ])
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -653,10 +660,12 @@
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
                         newI += hasBuff("Strength");
+                        newI -= hasBuff("Minus Strength");
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                         else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
                         let blockI = i;
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
+                        blockI -= hasBuff("Minus Dexterity");
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                         else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
                         
@@ -727,6 +736,7 @@
                         if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
                         newI += e.hasBuff("Strength");
+                        newI -= e.hasBuff("Minus Strength");
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                         else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
                         newDesc = newDesc.replace("[DAM"+i+"]", newI);
