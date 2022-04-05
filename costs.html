@@ -293,8 +293,10 @@
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
                 "Thorns": "When attacked, deal [AMT] damage back.",
                 "Ritual": "At end of turn, gain [AMT] Strength.",
-                "Frail": "Gain 25% less Block for [AMT] turns.",
-                "Enrage": "When you play a Skill, gains [AMT] Strength."
+                "Frail": "Gain 25% less Block for [AMT] turn[s].",
+                "Enrage": "When you play a Skill, gains [AMT] Strength.",
+                "Minus Strength": "Attacks deal [AMT] less damage.",
+                "Minus Dexterity": "Gain [AMT] less block from cards."
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -473,7 +475,7 @@
                 gainBuff("Dark Embrace", 1);
             }, ["exhausted"]);
             let disarm = () => new Card("Disarm", 1, "Skill", "Enemy gets -2 Strength. Exhaust.", function(enemy){
-                enemy.loseBuff("Strength", 2);
+                enemy.gainBuff("Minus Strength", 2);
             }, ["exhausted"]);
             let dropkick = () => new Card("Dropkick", 1, "Attack", "Deal [DAM5] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 5);
@@ -495,7 +497,7 @@
                     alert("Added "+newCards[ind].name+" to your deck.");
                     deck.push(newCards[ind]);
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>x.desc)[cardNames.indexOf(cardChoice.slice(5))]);
+                    alert(newCards.map(x=>x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
                 } else {
                 }
@@ -543,6 +545,7 @@
             let block = amt => function(me){ me.gainBuff("Block", amt); }
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
+            let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
             let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
             let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
             let attack_apply = (atk, what, amt) => function(me){ me.dealDamage(atk); gainBuff(what, amt); }
@@ -570,16 +573,21 @@
                     {intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Slimed", 1)},
                     {intent: "nerfing", desc: "apply a negative effect", effect: apply("Frail", 1)}
                 ]),
-                () => new Enemy("Gremlin", 50, [
-                    {intent: "attack-nerf 9", desc: "deal [DAM9] damage and apply a negative effect", effect: attack_apply(9, "Weak", 2)}
+                () => new Enemy("Gremlin", 25, [
+                    {intent: "attack-nerf 9", desc: "deal [DAM9] damage and apply a negative effect", effect: attack_apply(9, "Weak", 1)}
                 ])
             ];
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
-                    {intent: "buffing", desc: "gain a powerful buff", effect: buff("Enrage", 2)},
+                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)}
-                ])
+                ])/*,
+                () => new Enemy("Lagavulin", 110, [
+                    {intent: "blocking", desc: "block", effect: block(8)},
+                    {intent: "attacking", desc: "deal [DAM13] damage", effect: attack(13)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ])*/
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -604,6 +612,15 @@
             }
             function updateHtml() {
                 updateStatLine();
+                if(hasBuff("Strength") > 0 && hasBuff("Minus Strength") > 0) {
+                    if(hasBuff("Strength") >= hasBuff("Minus Strength")) {
+                        loseBuff("Strength", hasBuff("Minus Strength"));
+                        loseBuff("Minus Strength");
+                    } else {
+                        loseBuff("Minus Strength", hasBuff("Strength"));
+                        loseBuff("Strength");
+                    }
+                }
                 let energyElem = getId("energy");
                 energyElem.innerHTML = energy+"/"+maxEnergy+"<span class='txt'>Energy is used to play cards from your hand.</span>";
                 if(energy == 0) {energyElem.style.background = "#884";}
@@ -655,6 +672,15 @@
                 enemiesElem.innerHTML = "";
                 for(let eIndex in enemies) {
                     let e = enemies[eIndex];
+                    if(e.hasBuff("Strength") > 0 && e.hasBuff("Minus Strength") > 0) {
+                        if(e.hasBuff("Strength") >= e.hasBuff("Minus Strength")) {
+                            e.loseBuff("Strength", e.hasBuff("Minus Strength"));
+                            e.loseBuff("Minus Strength");
+                        } else {
+                            e.loseBuff("Minus Strength", e.hasBuff("Strength"));
+                            e.loseBuff("Strength");
+                        }
+                    }
                     if(e.hp <= 0) {
                         enemies.splice(enemies.indexOf(e), 1);
                         target = enemies[0];
