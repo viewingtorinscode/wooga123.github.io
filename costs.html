@@ -1,0 +1,706 @@
+<html>
+    <head>
+        <title>Inbox - tsolmer9183@student.pps.net</title>
+        <style>
+            html {
+                color: white;
+                background: #222;
+                font-family: monospace;
+            }
+            button {
+                border: 2px solid lime;
+                margin: 1px;
+                cursor: pointer;
+                color: lime;
+                background: black;
+                font-family: monospace;
+                transition: 0.3s ease;
+                border-radius: 2px;
+            }
+            .nonbutton {border: 2px solid green; color: green;}
+            .Attack {border: 2px solid red; color: red;}
+            .Skill {border: 2px solid skyblue; color: skyblue;}
+            .Power {border: 2px solid yellow; color: yellow;}
+            table {width: 100%;}
+            .tt {user-select: none;}
+            .txt {
+                position: absolute;
+                background: #777;
+                color: black;
+                display: none;
+                text-align: left;
+                border-radius: 5px;
+                margin-left: 10px;
+                padding: 5px;
+            }
+            .tt:hover > .txt {display: inline;}
+            #energy, #player {display: inline;}
+            #energy {
+                border: 2px solid black;
+                border-radius: 20px;
+                padding: 3px;
+                color: black;
+                background: yellow;
+            }
+            #playerTd {width: 50%;}
+            #rewardsScreen, #rewardsScreen > button, #restScreen, #restScreen > button {text-align: center;}
+            #mapScreen {margin-left: 42%; width: 58%;}
+            .attacking::before { content: url(StS/intent-attack.png); }
+            .blocking::before { content: url(StS/intent-block.png); }
+            .buffing::before { content: url(StS/intent-buff.png); }
+            .nerfing::before { content: url(StS/intent-nerf.png); }
+            .attack-block::before { content: url(StS/intent-attackblock.png); }
+            .block-buff::before { content: url(StS/intent-blockbuff.png); }
+            .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
+        </style>
+    </head>
+    <body>
+        <span id="statusLine"></span>
+        <br /><br />
+        <table id="gameScreen">
+            <tr>
+                <td id="playerTd">
+                    <div id="player"></div>
+                    <br />
+                    <span id="energy" class="tt"></span>&nbsp;&nbsp;&nbsp;<span id="hand"></span>
+                    <br /><br />
+                    <button onclick="alert(discardPile.map(x => x.name).join(', '))">View Discard Pile</button>
+                    <button onclick="alert(shuffle(drawPile.map(x => x.name).join(', ')))">View Draw Pile</button>
+                    <button onclick="alert(exhaustPile.map(x => x.name).join(', '))">View Exhaust Pile</button>
+                    | <button onclick="endTurn()">End Turn</button>
+                </td>
+                <td id="enemiesTd">
+                    <div id="enemies"></div>
+                </td>
+            </tr>
+        </table>
+        <div id="rewardsScreen" style="display: none">
+            You won! Rewards:<br />
+            <button id="goldReward"></button><br />
+            <button id="cardReward" onclick="addCard('random'); getId('cardReward').style.display = 'none';">Add a card to your deck</button><br />
+            <button id="closeRewards" onclick="showMap();">Continue</button>
+        </div>
+        <table id="mapScreen" style="display: none;"></table>
+        <div id="restScreen" style="display: none;">
+            <span>You are at a Rest Site. Choose an option below.</span>
+            <br />
+            <button onclick="hp = Math.min(maxHp, hp+0.3*maxHp); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP</span></button>
+        </div>
+        <script>
+            alert("Welcome to COSTS (Clone Of Slay The Spire)");
+            function shuffle(array) {
+                let currentIndex = array.length, randomIndex;
+                while(currentIndex != 0) {
+                    randomIndex = Math.floor(Math.random() * currentIndex);
+                    currentIndex--;
+                    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+                }
+                return array;
+            }
+            let getId = x => document.getElementById(x);
+            let choice = x => x[Math.floor(Math.random()*x.length)];
+            function choose(x, p) {
+                let c = "qwertyuiopasdfghjklzxcvbnm";
+                while(!x.includes(c) && x.length > 0) {
+                    c = prompt(p, "Options: "+x.join(", "));
+                }
+                return c;
+            }
+            let mousex = 0;
+            let mousey = 0;
+            document.onmousemove = function(e) {
+                let x = document.getElementsByClassName("txt");
+                mousex = e.clientX;
+                mousey = e.clientY;
+                for (t of x) {
+                    t.style.left = (mousex+10) + "px";
+                    t.style.top = (mousey+10+window.pageYOffset) + "px";
+                }
+            }
+            class Card {
+                /*
+                'effect' is a function that takes the current target, whether it is used or not.
+                */
+                constructor(name, cost, type, desc, effect, flags=[]) {
+                    this.name = name;
+                    this.cost = cost;
+                    this.type = type;
+                    this.desc = desc;
+                    this.use = effect;
+                    this.flags = flags;
+                    this.number = Math.random();
+                }
+                play() {
+                    let newCost = this.cost;
+                    if(this.flags.includes("blood4blood")) {
+                        newCost = Math.max(0, stats.timesLostHp);
+                    }
+                    if(energy >= newCost && !(this.flags.includes("unplayable"))) {
+                        energy -= newCost;
+                        this.use(target);
+                        hand.splice(hand.indexOf(this), 1);
+                        if(this.flags.includes("exhausted")) {
+                            exhaustPile.push(this);
+                            drawCard(hasBuff("Dark Embrace"));
+                        } else {
+                            discardPile.push(this);
+                        }
+                        updateHtml();
+                    }
+                    if(this.type == "Skill") {
+                        for(let e of enemies) {
+                            if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
+                        }
+                    }
+                }
+            }
+            
+            class Enemy {
+                /*
+                'attacks' is a list of objects. Each one has a 'desc' and an 'effect'.
+                The effect is a function that takes this object as a parameter (because it cannot use 'this').
+                */
+                constructor(name, hp, attacks) {
+                    this.name = name;
+                    this.number = Math.random();
+                    this.hp = hp;
+                    this.maxHp = hp;
+                    this.attacks = attacks;
+                    this.buffs = [];
+                    this.intent = choice(attacks);
+                }
+                attack() {
+                    this.intent.effect(this);
+                    this.intent = choice(this.attacks);
+                }
+                hasBuff(name) {
+                    for(let b of this.buffs) {
+                        if(b.name == name) {
+                            return b.amt;
+                        }
+                    }
+                    return 0;
+                }
+                gainBuff(name, amt) {
+                    for(let b of this.buffs) {
+                        if(b.name == name) {
+                            b.amt += amt;
+                            return;
+                        }
+                    }
+                    this.buffs.push({name: name, amt: amt});
+                }
+                loseBuff(name, amt=9999) {
+                    for(let b of this.buffs) {
+                        if(b.name == name) {
+                            if(amt >= b.amt) {
+                                this.buffs.splice(this.buffs.indexOf(b), 1);
+                            } else {
+                                b.amt -= amt;
+                            }
+                            return;
+                        }
+                    }
+                }
+                dealDamage(amt) {
+                    let finalAmt = amt;
+                    if(hasBuff("Vulnerable")) {finalAmt = Math.round(finalAmt * 1.5);}
+                    if(this.hasBuff("Weak")) {finalAmt = Math.round(finalAmt * 0.75);}
+                    finalAmt += this.hasBuff("Strength");
+                    
+                    hp -= Math.max(0, finalAmt - hasBuff("Block"));
+                    if(finalAmt - hasBuff("Block") > 0) {stats.timesLostHp++; dealDamage(this, hasBuff("Thorns"));}
+                    loseBuff("Block", finalAmt);
+                }
+            }
+            
+            function hasBuff(name) {
+                for(let b of buffs) {
+                    if(b.name == name) {
+                        return b.amt;
+                    }
+                }
+                return 0;
+            }
+            function gainBuff(name, amt) {
+                let newAmt = amt;
+                if(hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
+                for(let b of buffs) {
+                    if(b.name == name) {
+                        b.amt += newAmt;
+                        return;
+                    }
+                }
+                buffs.push({name: name, amt: newAmt});
+            }
+            function loseBuff(name, amt=9999) {
+                for(let b of buffs) {
+                    if(b.name == name) {
+                        if(amt >= b.amt) {
+                            buffs.splice(buffs.indexOf(b), 1);
+                        } else {
+                            b.amt -= amt;
+                        }
+                        return;
+                    }
+                }
+            }
+            function dealDamage(actor, amt) {
+                let finalAmt = amt;
+                if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
+                if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
+                finalAmt += hasBuff("Strength");
+                
+                actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
+                actor.loseBuff("Block", finalAmt);
+                
+                if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns"));}
+            }
+            let buffDesc = {
+                "Block": "Until next turn, prevents [AMT] damage.",
+                "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
+                "Weak": "Deal 25% less damage for [AMT] turn[s].",
+                "Strength": "Attacks deal [AMT] more damage.",
+                "Strength Down": "At the end of this turn, lose [AMT] Strength.",
+                "No Draw": "Cannot draw cards for [AMT] turn[s].",
+                "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to all enemies.",
+                "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
+                "Thorns": "When attacked, deal [AMT] damage back.",
+                "Ritual": "At end of turn, gain [AMT] Strength.",
+                "Frail": "Gain 25% less Block for [AMT] turns.",
+                "Enrage": "When you play a Skill, gains [AMT] Strength."
+            };
+            let statusCards = {
+                "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
+                "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
+                "Slimed": () => new Card("Slimed", 1, "Status", "Exhaust.", function(enemy){}, ["exhausted"])
+            };
+            
+            function showMap() {
+                getId("rewardsScreen").style.display = "none";
+                getId("restScreen").style.display = "none";
+                getId("mapScreen").style.display = "block";
+                getId("mapScreen").innerHTML = "Select your next room...";
+                for(let floor in map) {
+                    let floorElem = document.createElement("tr");
+                    for(let node in map[floor]) {
+                        let nodeElem = document.createElement("td");
+                        if(map[floor][node] != "") {
+                            let nodeButton = document.createElement("button");
+                            nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
+                                (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
+                                  ("Rest and heal some HP")
+                                )+"</span>";
+                            nodeButton.setAttribute("class", "tt mapButton");
+                            if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
+                                nodeButton.setAttribute("onclick", `gotoMap(${floor}, ${node});`);
+                            } else if(floor == mapY && node == mapX) {
+                                nodeButton.innerHTML = "(You)";
+                            } else {
+                                nodeButton.setAttribute("class", "nonbutton");
+                            }
+                            nodeElem.appendChild(nodeButton);
+                        }
+                        floorElem.appendChild(nodeElem);
+                    }
+                    getId("mapScreen").appendChild(floorElem);
+                }
+            }
+            function gotoMap(y, x) {
+                mapY = y;
+                mapX = x;
+                if(map[y][x] == "enemy") {
+                    getId("mapScreen").style.display = "none";
+                    getId("gameScreen").style.display = "block";
+                    let nme = () => choice(possibleEnemies.slice(0))();
+                    if(mapY >= 7) {enemies = [nme(), nme(), nme()]}
+                    else if(mapY >= 2) {enemies = [nme(), nme()]}
+                    else {enemies = [nme()]}
+                    eliteBattle = false;
+                    drawPile = shuffle(deck.slice(0)); // no shallow copy
+                    discardPile = [];
+                    exhaustPile = [];
+                    hand = [];
+                    buffs = [];
+                    stats = {timesLostHp: 0};
+                    target = enemies[0];
+                    startTurn();
+                } else if(map[y][x] == "elite") {
+                    getId("mapScreen").style.display = "none";
+                    getId("gameScreen").style.display = "block";
+                    let nme = () => choice(possibleElites.slice(0))();
+                    enemies = [nme()];
+                    eliteBattle = true;
+                    drawPile = shuffle(deck.slice(0)); // no shallow copy
+                    discardPile = [];
+                    exhaustPile = [];
+                    hand = [];
+                    buffs = [];
+                    stats = {timesLostHp: 0};
+                    target = enemies[0];
+                    startTurn();
+                } else if(map[y][x] == "rest&nbsp;") {
+                    getId("mapScreen").style.display = "none";
+                    getId("restScreen").style.display = "block";
+                }
+            }
+            
+            let strike = () => new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){
+                dealDamage(enemy, 600);
+            });
+            let defend = () => new Card("Defend", 1, "Skill", "Gain [BLK5] Block.", function(enemy){
+                gainBuff("Block", 5);
+            });
+            let bash = () => new Card("Bash", 2, "Attack", "Deal [DAM8] damage, apply 2 Vulnerable.", function(enemy){
+                dealDamage(enemy, 8); enemy.gainBuff("Vulnerable", 2);
+            });
+            let bodySlam = () => new Card("Body Slam", 1, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
+                dealDamage(enemy, hasBuff("Block"));
+            });
+            let clash = () => new Card("Clash", 0, "Attack", "Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
+                if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);}
+            });
+            let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
+                for(let e of enemies){dealDamage(e, 8);}
+            });
+            let clothesline = () => new Card("Clothesline", 2, "Attack", "Deal [DAM12] damage, apply 2 Weak.", function(enemy){
+                dealDamage(enemy, 12); enemy.gainBuff("Weak", 2);
+            });
+            let flex = () => new Card("Flex", 0, "Skill", "Gain 2 Strength. At the end of your turn, lose 2 Strength.", function(enemy){
+                gainBuff("Strength", 2); gainBuff("Strength Down", 2);
+            });
+            let headbutt = () => new Card("Headbutt", 1, "Attack", "Deal [DAM9] damage. Put a card from your discard pile on top of your draw pile.", function(enemy){
+                dealDamage(enemy, 9);
+                let chosen = choose(discardPile.map(x=>x.name), "Choose a card to put on top of your Draw Pile.");
+                for(let x of discardPile) {
+                    if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                        drawPile = [x, ...drawPile];
+                        discardPile.splice(discardPile.indexOf(x), 1);
+                        break;
+                    }
+                }
+            });
+            let heavyBlade = () => new Card("Heavy Blade", 2, "Attack", "Deal [HEAVYBLADE] damage. Strength affects the damage 3 times.", function(enemy){
+                dealDamage(enemy, 14 + 2 * hasBuff("Strength"));
+            });
+            let ironWave = () => new Card("Iron Wave", 1, "Attack", "Gain [BLK5] Block. Deal [DAM5] damage.", function(enemy){
+                dealDamage(enemy, 5); gainBuff("Block", 5);
+            });
+            let pommelStrike = () => new Card("Pommel Strike", 1, "Attack", "Deal [DAM9] damage. Draw a card.", function(enemy){
+                dealDamage(enemy, 9); drawCard();
+            });
+            let shrugItOff = () => new Card("Shrug it Off", 1, "Skill", "Gain [BLK8] Block. Draw a card.", function(enemy){
+                gainBuff("Block", 8); drawCard();
+            });
+            let swordBoomerang = () => new Card("Sword Boomerang", 1, "Attack", "Deal [DAM3] damage to a random enemy 3 times.", function(enemy){
+                dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3);
+            });
+            let thunderclap = () => new Card("Thunderclap", 1, "Attack", "Deal [DAM4] damage and apply 1 Vulnerable to ALL enemies.", function(enemy){
+                for(let e of enemies){dealDamage(e, 4); e.gainBuff("Vulnerable", 1);}
+            });
+            let trueGrit = () => new Card("True Grit", 1, "Skill", "Gain [BLK7] Block. Exhaust a random card in your hand.", function(enemy){
+                gainBuff("Block", 7); let c=choice(hand); hand.splice(hand.indexOf(c), 1); exhaustPile.push(c);
+            });
+            let twinStrike = () => new Card("Twin Strike", 1, "Attack", "Deal [DAM5] damage twice.", function(enemy){
+                dealDamage(enemy, 5); dealDamage(enemy, 5);
+            });
+            let wildStrike = () => new Card("Wild Strike", 1, "Attack", "Deal [DAM12] damage. Shuffle a Wound into your discard pile.", function(enemy){
+                dealDamage(enemy, 12); discardPile.push(statusCards["Wound"]());
+            });
+            let battleTrance = () => new Card("Battle Trance", 0, "Skill", "Draw 3 cards. You cannot draw additional cards this turn.", function(enemy){
+                drawCard(3); gainBuff("No Draw", 1);
+            });
+            let bloodForBlood = () => new Card("Blood for Blood", 4, "Attack", "Deal [DAM18] damage. -1 cost each time you lose HP. (Costs [BLOOD4BLOOD] energy)", function(enemy){
+                dealDamage(enemy, 18);
+            }, ["blood4blood"]);
+            let bloodletting = () => new Card("Bloodletting", 0, "Skill", "Lose 3 HP. Gain 2 energy.", function(enemy){
+                hp -= 3; energy += 2;
+            });
+            let burningPact = () => new Card("Burning Pact", 1, "Skill", "Exhaust 1 card. Draw 2 cards.", function(enemy){
+                let chosen = choose(hand.map(x=>x.name), "Choose a card to Exhaust.");
+                for(let x of hand) {
+                    if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                        hand.splice(hand.indexOf(x), 1);
+                        exhaustPile.push(x);
+                        break;
+                    }
+                }
+                drawCard(2);
+            });
+            let carnage = () => new Card("Carnage", 2, "Attack", "Ethereal. Deal [DAM20] damage.", function(enemy){
+                dealDamage(enemy, 20);
+            }, ["ethereal"]);
+            let combust = () => new Card("Combust", 1, "Power", "At the end of your turn, lose 1 HP and deal 5 damage to ALL enemies.", function(enemy){
+                gainBuff("Combust", 5);
+            }, ["exhausted"]);
+            let darkEmbrace = () => new Card("Dark Embrace", 2, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
+                gainBuff("Dark Embrace", 1);
+            }, ["exhausted"]);
+            let disarm = () => new Card("Disarm", 1, "Skill", "Enemy gets -2 Strength. Exhaust.", function(enemy){
+                enemy.loseBuff("Strength", 2);
+            }, ["exhausted"]);
+            let dropkick = () => new Card("Dropkick", 1, "Attack", "Deal [DAM5] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
+                dealDamage(enemy, 5);
+                if(enemy.hasBuff("Vulnerable") > 0) {
+                    energy++;
+                    drawCard();
+                }
+            });
+            
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick]);
+            function addCard(newCards="random") {
+                if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
+                let cardNames = newCards.map(x=>x.name.toLowerCase());
+                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\n"+newCards.map(x=>x.name).join(" | "));
+                if(!cardChoice) return;
+                let ind = cardNames.indexOf(cardChoice);
+                if(cardNames.includes(cardChoice)) {
+                    alert("Added "+newCards[ind].name+" to your deck.");
+                    deck.push(newCards[ind]);
+                } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
+                    alert(newCards.map(x=>x.desc)[cardNames.indexOf(cardChoice.slice(5))]);
+                    addCard(newCards);
+                } else {
+                }
+            }
+            
+            let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
+            let drawPile = shuffle(deck.slice(0)); // no shallow copy
+            let discardPile = [];
+            let exhaustPile = [];
+            let hand = [];
+            let energy = 3;
+            let maxEnergy = 3;
+            let hp = 70;
+            let maxHp = 70;
+            let buffs = [];
+            let stats = {timesLostHp: 0};
+            let gold = 0;
+            let mapX = 2;
+            let mapY = 0;
+            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "elite", "rest&nbsp;"]);
+            function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
+            let map = [
+                ["",            "",            "start",       "",            ""          ],
+                ["",            randomThing(), randomThing(), randomThing(), ""          ],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                ["",            randomThing(), randomThing(), randomThing(), ""          ],
+                ["",            "",            "enemy",       "",            ""          ]
+            ];
+            
+            // These make writing attacks *much* easier.
+            let attack = amt => function(me){ me.dealDamage(amt); }
+            let block = amt => function(me){ me.gainBuff("Block", amt); }
+            let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
+            let apply = (what, amt) => function(me){ gainBuff(what, amt); }
+            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
+            let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
+            let attack_apply = (atk, what, amt) => function(me){ me.dealDamage(atk); gainBuff(what, amt); }
+            let block_buff = (blk, what, amt) => function(me){ me.gainBuff("Block", blk); me.gainBuff(what, amt); }
+            let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} me.dealDamage(atk); }
+            
+            let possibleEnemies = [
+                () => new Enemy("Cultist", 50, [
+                    {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 2)}
+                ]),
+                () => new Enemy("Jaw Worm", 40, [
+                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                    {intent: "attack-block 5", desc: "deal [DAM5] damage and block", effect: attack_block(5, 5)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(6, "Strength", 2)}
+                ]),
+                () => new Enemy("Louse", 35, [
+                    {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)},
+                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 2)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Weak", 2)}
+                ]),
+                () => new Enemy("Spike Slime", 45, [
+                    {intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Slimed", 1)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Frail", 1)}
+                ]),
+                () => new Enemy("Gremlin", 50, [
+                    {intent: "attack-nerf 9", desc: "deal [DAM9] damage and apply a negative effect", effect: attack_apply(9, "Weak", 2)}
+                ])
+            ];
+            let possibleElites = [
+                () => new Enemy("Gremlin Nob", 85, [
+                    {intent: "buffing", desc: "gain a powerful buff", effect: buff("Enrage", 2)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)}
+                ])
+            ];
+            
+            let enemies = [choice(possibleEnemies.slice(0))()];
+            let eliteBattle = false;
+            let target = enemies[0];
+            
+            function updateStatLine() {
+                let statusElem = getId("statusLine");
+                statusElem.innerHTML = "HP: "+hp+"/"+maxHp+" | "+gold+" gold";
+                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
+            }
+            function updateHtml() {
+                updateStatLine();
+                let energyElem = getId("energy");
+                energyElem.innerHTML = energy+"/"+maxEnergy+"<span class='txt'>Energy is used to play cards from your hand.</span>";
+                if(energy == 0) {energyElem.style.background = "#884";}
+                else {energyElem.style.background = "yellow";}
+                
+                let playerElem = getId("player");
+                playerElem.innerHTML = "Your Hand: "+
+                    (buffs.length ? (" [ "+buffs.map(
+                        x => "<span class='tt'>"+x.name+" "+x.amt+"<span class='txt'>"+buffDesc[x.name]
+                        .replace("[AMT]", x.amt)
+                        .replace("[s]", (x.amt==1 ? "" : "s"))
+                        .replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>"
+                    ).join(", ")+" ]") : "");
+                
+                let handElem = getId("hand");
+                handElem.innerHTML = "";
+                for(let c of hand) {
+                    let cardElem = document.createElement("button");
+                    cardElem.setAttribute("onclick", `let card = hand[${hand.indexOf(c)}]; card.play(); updateHtml();`);
+                    cardElem.setAttribute("class", "tt "+c.type);
+                    cardElem.innerHTML = c.name;
+                    let cardTooltip = document.createElement("span");
+                    cardTooltip.setAttribute("class", "txt");
+                    
+                    let newDesc = c.desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
+                    .replace("[BLOOD4BLOOD]", 4 - stats.timesLostHp)
+                    .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]");
+                    for(let i=1; i<30; i++) {
+                        let newI = i;
+                        if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
+                        if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                        newI += hasBuff("Strength");
+                        if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
+                        else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
+                        let blockI = i;
+                        if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
+                        if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
+                        else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
+                        
+                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
+                    }
+                    cardTooltip.innerHTML = c.type+" | Cost: "+c.cost+"<br/>"+newDesc;
+                    
+                    cardElem.appendChild(cardTooltip);
+                    handElem.appendChild(cardElem);
+                }
+                
+                let enemiesElem = getId("enemies");
+                enemiesElem.innerHTML = "";
+                for(let eIndex in enemies) {
+                    let e = enemies[eIndex];
+                    if(e.hp <= 0) {
+                        enemies.splice(enemies.indexOf(e), 1);
+                        target = enemies[0];
+                        if(enemies.length == 0) {
+                            getId("rewardsScreen").style.display = "block";
+                            getId("goldReward").style.display = "inline";
+                            getId("cardReward").style.display = "inline";
+                            getId("gameScreen").style.display = "none";
+                            let goldAmt = Math.round(Math.random()*20)+30;
+                            getId("goldReward").innerHTML = goldAmt+" gold";
+                            getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
+                        }
+                    }
+                    let enemyElem = document.createElement("span");
+                    enemyElem.setAttribute("class", "tt");
+                    let enemyButton = document.createElement("button");
+                    enemyButton.setAttribute("onclick", `target = enemies[${eIndex}]; updateHtml();`);
+                    let intentType = e.intent.intent.split(" ")[0];
+                    let intentNumber = "";
+                    if(e.intent.intent.split(" ")[1]) {
+                        intentNumber = parseInt(e.intent.intent.split(" ")[1]);
+                        if(hasBuff("Vulnerable")) {intentNumber = Math.round(intentNumber*1.5);}
+                        if(e.hasBuff("Weak")) {intentNumber = Math.round(intentNumber*0.75);}
+                        intentNumber += e.hasBuff("Strength");
+                    }
+                    enemyButton.setAttribute("class", intentType);
+                    enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
+                    enemyElem.appendChild(enemyButton);
+                    enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                    if(target.number == e.number) { enemyElem.innerHTML += " (target)"; }
+                    let enemyTooltip = document.createElement("span");
+                    enemyTooltip.setAttribute("class", "txt");
+                    let newDesc = e.intent.desc;
+                    for(let i=1; i<30; i++) {
+                        let newI = i;
+                        if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
+                        if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                        newI += e.hasBuff("Strength");
+                        if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
+                        else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
+                        newDesc = newDesc.replace("[DAM"+i+"]", newI);
+                    }
+                    enemyTooltip.innerHTML = e.name+" intends to "+newDesc+".";
+                    enemyTooltip.innerHTML += e.buffs.length ? ("<br/>" + e.buffs.map(x => x.name+" "+x.amt+" ("+buffDesc[x.name].replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+")").join("<br/>")) : "";
+                    enemyElem.appendChild(enemyTooltip);
+                    enemiesElem.appendChild(enemyElem);
+                    enemiesElem.appendChild(document.createElement("br"));
+                }
+                if(hp <= 0) {alert("you died :(");}
+            }
+            
+            function drawCard(num=1) {
+                if(hasBuff("No Draw") > 0) {num=0;}
+                for(let x=0; x<num; x++) {
+                    if(drawPile.length <= 0) {
+                        drawPile = shuffle(discardPile);
+                        discardPile = [];
+                    }
+                    if(drawPile.length > 0) {
+                        let toDraw = drawPile.pop(0);
+                        hand.push(toDraw);
+                    } else {
+                        alert("Uh-oh, nothing to draw...");
+                    }
+                }
+            }
+            
+            function startTurn() {
+                drawCard(5);
+                energy = maxEnergy;
+                loseBuff("Block");
+                updateHtml();
+            }
+            
+            function endTurn() {
+                for(let c of hand) {
+                    if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
+                    else {discardPile.push(c);}
+                }
+                hand = [];
+                loseBuff("Vulnerable", 1);
+                loseBuff("Weak", 1);
+                loseBuff("Frail", 1);
+                gainBuff("Strength", hasBuff("Ritual"));
+                loseBuff("Strength", hasBuff("Strength Down"));
+                loseBuff("Strength Down");
+                loseBuff("No Draw", 1);
+                if(hasBuff("Combust") > 0) {
+                    hp -= 1;
+                    for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
+                }
+                for(let e of enemies) {
+                    e.loseBuff("Block");
+                    e.attack();
+                    e.loseBuff("Vulnerable", 1);
+                    e.loseBuff("Weak", 1);
+                    e.gainBuff("Strength", e.hasBuff("Ritual"));
+                    e.loseBuff("Strength", e.hasBuff("Strength Down"));
+                    e.loseBuff("Strength Down");
+                }
+                startTurn();
+            }
+            
+            startTurn();
+        </script>
+    </body>
+</html>
