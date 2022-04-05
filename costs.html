@@ -497,7 +497,7 @@
                     alert("Added "+newCards[ind].name+" to your deck.");
                     deck.push(newCards[ind]);
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
+                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
                 } else {
                 }
