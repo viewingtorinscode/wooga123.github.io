@@ -78,6 +78,7 @@
             You won! Rewards:<br />
             <button id="goldReward"></button><br />
             <button id="cardReward" onclick="addCard('random'); getId('cardReward').style.display = 'none';">Add a card to your deck</button><br />
+            <button id="relicReward"></button><br />
             <button id="closeRewards" onclick="showMap();">Continue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
@@ -209,8 +210,23 @@
                     finalAmt += this.hasBuff("Strength");
                     
                     hp -= Math.max(0, finalAmt - hasBuff("Block"));
-                    if(finalAmt - hasBuff("Block") > 0) {stats.timesLostHp++; dealDamage(this, hasBuff("Thorns"));}
+                    if(finalAmt - hasBuff("Block") > 0) {
+                        stats.timesLostHp++;
+                        dealDamage(this, hasBuff("Thorns"));
+                    }
                     loseBuff("Block", finalAmt);
+                }
+            }
+            
+            class Relic {
+                constructor(name, desc, trigger, effect) {
+                    this.name = name;
+                    this.desc = desc;
+                    this.trigger = trigger;
+                    this.use = effect;
+                }
+                effect() {
+                    this.use();
                 }
             }
             
@@ -252,6 +268,16 @@
                 finalAmt += hasBuff("Strength");
                 
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
+                if(finalAmt - actor.hasBuff("Block") > 0) {
+                    if(stats.hasAttacked == false) {
+                        stats.hasAttacked = true;
+                        for(let r of relics) {
+                            if(r.trigger == "first_attack") {
+                                r.effect();
+                            }
+                        }
+                    }
+                }
                 actor.loseBuff("Block", finalAmt);
                 
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns"));}
@@ -322,8 +348,13 @@
                     exhaustPile = [];
                     hand = [];
                     buffs = [];
-                    stats = {timesLostHp: 0};
+                    stats = {timesLostHp: 0, hasAttacked: false};
                     target = enemies[0];
+                    for(let r of relics) {
+                        if(r.trigger == "combat_start") {
+                            r.effect();
+                        }
+                    }
                     startTurn();
                 } else if(map[y][x] == "elite") {
                     getId("mapScreen").style.display = "none";
@@ -336,8 +367,13 @@
                     exhaustPile = [];
                     hand = [];
                     buffs = [];
-                    stats = {timesLostHp: 0};
+                    stats = {timesLostHp: 0, hasAttacked: false};
                     target = enemies[0];
+                    for(let relic of relics) {
+                        if(relic.trigger == "combat_start") {
+                            relic.effect();
+                        }
+                    }
                     startTurn();
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
@@ -448,10 +484,11 @@
             });
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick]);
+            
             function addCard(newCards="random") {
                 if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
                 let cardNames = newCards.map(x=>x.name.toLowerCase());
-                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\n"+newCards.map(x=>x.name).join(" | "));
+                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\n"+newCards.map(x=>x.name).join(" | ")).toLowerCase();
                 if(!cardChoice) return;
                 let ind = cardNames.indexOf(cardChoice);
                 if(cardNames.includes(cardChoice)) {
@@ -464,7 +501,17 @@
                 }
             }
             
+            function r_snakeRing() {drawCard(2);}
+            function r_akabeko() {dealDamage(8);}
+            function r_anchor() {gainBuff("Block", 10);}
+            let relicPool = [
+                () => new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing),
+                () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
+                () => new Relic("Ring of the Snake","Start each combat with 10 Block","combat_start",r_anchor)
+            ];
+            
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
+            let relics = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
             let discardPile = [];
             let exhaustPile = [];
@@ -474,11 +521,11 @@
             let hp = 70;
             let maxHp = 70;
             let buffs = [];
-            let stats = {timesLostHp: 0};
+            let stats = {timesLostHp: 0, hasAttacked: false};
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
-            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "rest&nbsp;"]);
+            let randomThing = () => choice(["enemy", "enemy", "enemy", "elite", "rest&nbsp;"]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map = [
                 ["",            "",            "start",       "",            ""          ],
@@ -488,7 +535,7 @@
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 ["",            randomThing(), randomThing(), randomThing(), ""          ],
-                ["",            "",            "enemy",       "",            ""          ]
+                ["",            "",            "elite",       "",            ""          ]
             ];
             
             // These make writing attacks *much* easier.
@@ -543,6 +590,17 @@
                 let statusElem = getId("statusLine");
                 statusElem.innerHTML = "HP: "+hp+"/"+maxHp+" | "+gold+" gold";
                 statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
+                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<span id='relics'>Relics: </span>";
+                for(let relic of relics) {
+                    let relicElem = document.createElement("span");
+                    relicElem.setAttribute("class", "tt");
+                    relicElem.innerHTML = relic.name;
+                    let relicTooltip = document.createElement("span");
+                    relicTooltip.setAttribute("class", "txt");
+                    relicTooltip.innerHTML = relic.desc;
+                    relicElem.appendChild(relicTooltip);
+                    getId("relics").appendChild(relicElem);
+                }
             }
             function updateHtml() {
                 updateStatLine();
@@ -606,9 +664,16 @@
                             getId("cardReward").style.display = "inline";
                             getId("gameScreen").style.display = "none";
                             let goldAmt = Math.round(Math.random()*20)+30;
-                            if(eliteBattle == true) {goldAmt += 40;}
                             getId("goldReward").innerHTML = goldAmt+" gold";
                             getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
+                            if(eliteBattle == true) {
+                                getId("relicReward").style.display = "inline";
+                                let newRelic = choice(relicPool)();
+                                getId("relicReward").innerHTML = newRelic.name;
+                                getId("relicReward").setAttribute("onclick", `relics.push(new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use})); updateStatLine(); getId('relicReward').style.display = 'none';`);
+                            } else {
+                                getId("relicReward").style.display = "none";
+                            }
                         }
                     }
                     let enemyElem = document.createElement("span");
@@ -666,6 +731,11 @@
             }
             
             function startTurn() {
+                for(let relic of relics) {
+                    if(relic.trigger == "turn_start") {
+                        relic.effect();
+                    }
+                }
                 drawCard(5);
                 energy = maxEnergy;
                 loseBuff("Block");
@@ -701,6 +771,11 @@
                 startTurn();
             }
             
+            for(let relic of relics) {
+                if(relic.trigger == "combat_start") {
+                    relic.effect();
+                }
+            }
             startTurn();
         </script>
     </body>
