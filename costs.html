@@ -317,7 +317,7 @@
                             let nodeButton = document.createElement("button");
                             nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
                                 (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
-                                  ("Rest and heal some HP")
+                                  (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : "Rest and heal some HP")
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt mapButton");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
