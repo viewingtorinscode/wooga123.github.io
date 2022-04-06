@@ -42,7 +42,7 @@
                 color: black;
                 background: yellow;
             }
-            #playerTd {width: 50%;}
+            #playerTd {width: 60%;}
             #rewardsScreen, #rewardsScreen > button, #restScreen, #restScreen > button {text-align: center;}
             #mapScreen {margin-left: 42%; width: 58%;}
             .attacking::before { content: url(StS/intent-attack.png); }
@@ -81,7 +81,7 @@
             You won! Rewards:<br />
             <button id="goldReward"></button><br />
             <button id="cardReward" onclick="addCard('random'); getId('cardReward').style.display = 'none';">Add a card to your deck</button><br />
-            <button id="relicReward"></button><br />
+            <button id="relicReward" class="tt"></button><br />
             <button id="closeRewards" onclick="showMap();">Continue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
@@ -161,7 +161,7 @@
                             if(this.flags.includes("exhausted")) {
                                 exhaustPile.push(this);
                                 drawCard(hasBuff("Dark Embrace"));
-                                gainBuff("Block", hasBuff("Feel No Pain"));
+                                if(hasBuff("Feel No Pain")>0) {gainBuff("Block", hasBuff("Feel No Pain"));}
                             } else {
                                 discardPile.push(this);
                             }
@@ -175,7 +175,13 @@
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
-                        gainBuff("Block", hasBuff("Rage"));
+                        if(hasBuff("Rage")>0) {gainBuff("Block", hasBuff("Rage"));}
+                        if(hasBuff("Double Tap")>0) {
+                            loseBuff("Double Tap", 1);
+                            hand.push(this);
+                            discardPile.splice(discardPile.indexOf(this), 1);
+                            this.play();
+                        }
                         for(let r of relics) {
                             if(r.trigger == "on_attack") {
                                 r.effect();
@@ -350,7 +356,9 @@
                 "Rage": "For each Attack you play this turn, gain [AMT] Block.",
                 "Rampage": "Increase Rampage's damage by [AMT].",
                 "Barricade": "Block is not removed at the start of your turn.",
-                "Energize": "Gain [AMT] more energy each turn."
+                "Energize": "Gain [AMT] more energy each turn.",
+                "Brutality": "At the start of your turn, lose [AMT] HP and draw [AMT] card[s].",
+                "Double Tap": "Duplicate the next [AMT] Attack[s] you play."
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -540,12 +548,12 @@
                 for(let x of hand.filter(x=>["Attack","Power"].includes(x.type))) {
                     if(chosen.toLowerCase() == x.name.toLowerCase()) {
                         hand.push(x);
-                        x.number = Math.random(); // theyve gotta be different
+                        x.number = Math.random(); // they've gotta be different
                     }
                 }
             });
             let entrench = () => new Card("Entrench", 2, "Skill", "Double your Block.", function(enemy){
-                gainBuff("Block", hasBuff("Block"));
+                if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
             });
             let evolve = () => new Card("Evolve", 1, "Power", "Whenever you draw a Status card, draw another card.", function(enemy){
                 gainBuff("Evolve", 1);
@@ -633,11 +641,27 @@
             let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
                 dealDamage(enemy, 32);
             });
+            let brutality = () => new Card("Brutality", 0, "Power", "At the start of your turn, lose 1 HP and draw 1 more card.", function(enemy){
+                gainBuff("Brutality", 1);
+            }, ["exhausted"]);
+            let demonForm = () => new Card("Demonic Ritual", 3, "Power", "At the end of your turn, gain 2 Strength.", function(enemy){
+                gainBuff("Ritual", 2);
+            }, ["exhausted"]);
+            let doubleTap = () => new Card("Double Tap", 1, "Skill", "Your next Attack is played twice.", function(enemy){
+                gainBuff("Double Tap");
+            }, ["exhausted"]);
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
+            let randRareCard = () => choice([randCard(), choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap])]);
             
             function addCard(newCards="random") {
-                if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
+                if(newCards == "random") {
+                    if(eliteBattle == true) {
+                        newCards = [randRareCard()(), randRareCard()(), randRareCard()()];
+                    } else {
+                        newCards = [randCard()(), randCard()(), randCard()()];
+                    }
+                }
                 let cardNames = newCards.map(x=>x.name.toLowerCase());
                 let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\n"+newCards.map(x=>x.name).join(" | ")).toLowerCase();
                 if(!cardChoice) return;
@@ -855,7 +879,7 @@
                     .replace("[BLOOD4BLOOD]", 4 - stats.timesLostHp)
                     .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
                     .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]");
-                    for(let i=1; i<30; i++) {
+                    for(let i=1; i<50; i++) {
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
@@ -904,7 +928,7 @@
                             if(eliteBattle == true) {
                                 getId("relicReward").style.display = "inline";
                                 let newRelic = choice(relicPool)();
-                                getId("relicReward").innerHTML = newRelic.name;
+                                getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
                                 getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
                             } else {
                                 getId("relicReward").style.display = "none";
@@ -939,7 +963,7 @@
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
-                    for(let i=1; i<30; i++) {
+                    for(let i=1; i<50; i++) {
                         let newI = i;
                         if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
@@ -957,6 +981,11 @@
                 }
                 if(hp <= 0) {
                     while(alert("you died :("));
+                }
+                let x = document.getElementsByClassName("txt");
+                for (t of x) {
+                    t.style.left = (mousex+10) + "px";
+                    t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
             
@@ -1008,6 +1037,7 @@
                 stats.attacksThisTurn = 0;
                 if(hasBuff("Barricade")==0){loseBuff("Block");}
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
+                if(hasBuff("Brutality")>0){hp -= 1; drawCard();}
                 updateHtml();
             }
             
