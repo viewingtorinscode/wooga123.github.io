@@ -463,7 +463,7 @@
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
-                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>"+offer.desc+"</span>";
+                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>"+offer.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")+"</span>";
                         nameElem.setAttribute("class", "tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
 gold -= ${cardCost};
