@@ -135,13 +135,11 @@
                     this.number = Math.random();
                 }
                 play() {
-                    let newCost = this.cost;
-                    if(this.flags.includes("blood4blood")) {
-                        newCost = Math.max(0, stats.timesLostHp);
-                    }
-                    if(energy >= newCost && !(this.flags.includes("unplayable"))) {
-                        energy -= newCost;
-                        this.use(target);
+                    if(this.cost == "X") {
+                        for(let x=0; x<energy; x++) {
+                            this.use(target);
+                        }
+                        energy = 0;
                         hand.splice(hand.indexOf(this), 1);
                         if(this.flags.includes("exhausted")) {
                             exhaustPile.push(this);
@@ -151,6 +149,24 @@
                             discardPile.push(this);
                         }
                         updateHtml();
+                    } else {
+                        let newCost = this.cost;
+                        if(this.flags.includes("blood4blood")) {
+                            newCost = Math.max(0, stats.timesLostHp);
+                        }
+                        if(energy >= newCost && !(this.flags.includes("unplayable"))) {
+                            energy -= newCost;
+                            this.use(target);
+                            hand.splice(hand.indexOf(this), 1);
+                            if(this.flags.includes("exhausted")) {
+                                exhaustPile.push(this);
+                                drawCard(hasBuff("Dark Embrace"));
+                                gainBuff("Block", hasBuff("Feel No Pain"));
+                            } else {
+                                discardPile.push(this);
+                            }
+                            updateHtml();
+                        }
                     }
                     if(this.type == "Skill") {
                         for(let e of enemies) {
@@ -159,6 +175,7 @@
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
+                        gainBuff("Block", hasBuff("Rage"));
                         for(let r of relics) {
                             if(r.trigger == "on_attack") {
                                 r.effect();
@@ -328,7 +345,12 @@
                 "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
                 "Pen Nib": "When you get 10 Pen Nib, deal 10 damage.",
                 "Feel No Pain": "When a card is Exausted, gain [AMT] Block.",
-                "Fire Breathing": "Whenever you draw a Status card, deal [AMT] damage to ALL enemies."
+                "Fire Breathing": "Whenever you draw a Status card, deal [AMT] damage to ALL enemies.",
+                "Metallicize": "Start each turn with [AMT] Block.",
+                "Rage": "For each Attack you play this turn, gain [AMT] Block.",
+                "Rampage": "Increase Rampage's damage by [AMT].",
+                "Barricade": "Block is not removed at the start of your turn.",
+                "Energize": "Gain [AMT] more energy each turn."
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -424,7 +446,7 @@
             let bodySlam = () => new Card("Body Slam", 1, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
                 dealDamage(enemy, hasBuff("Block"));
             });
-            let clash = () => new Card("Clash", 0, "Attack", "Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
+            let clash = () => new Card("Clash",0,"Attack","Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
                 if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);}
             });
             let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
@@ -540,11 +562,79 @@
             let ghostlyArmor = () => new Card("Ghostly Armor", 1, "Skill", "Ethereal. Gain [BLK10] Block.", function(enemy){
                 gainBuff("Block", 10);
             }, ["ethereal"]);
-            let hemokinesis = () => new Card("Hemokinesis", 1, "Attack", "Lose 2 HP. Deal [BLK15] damage.", function(enemy){
+            let hemokinesis = () => new Card("Hemokinesis", 1, "Attack", "Lose 2 HP. Deal [DAM15] damage.", function(enemy){
                 hp -= 2; dealDamage(enemy, 15);
             });
+            let infernalBlade = () => new Card("Infernal Blade", 0, "Skill", "Add a random Attack to your hand.", function(enemy){
+                let extraCard = randCard()(); // looks weird ik
+                while(!extraCard.type == "Attack") {extraCard = randCard()();}
+                hand.push(extraCard);
+            }, ["exhausted"]);
+            let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength. Exhaust.", function(enemy){
+                gainBuff("Strength", 2);
+            }, ["exhausted"]);
+            let intimidate = () => new Card("Intimidate", 0, "Skill", "Apply 1 Weak to ALL enemies. Exhaust.", function(enemy){
+                for(let e of enemies) {e.gainBuff("Weak", 1);}
+            }, ["exhausted"]);
+            let metallicize = () => new Card("Metallicize", 1, "Power", "Start each turn with [BLK3] Block.", function(enemy){
+                gainBuff("Metallicize", 3);
+            }, ["exhausted"]);
+            let powerThrough = () => new Card("Power Through",1,"Skill","Add 2 Wounds to your hand. Gain [BLK15] Block.",function(enemy){
+                hand.push(statusCards["Wound"]()); hand.push(statusCards["Wound"]()); gainBuff("Block", 15);
+            });
+            let pummel = () => new Card("Pummel", 2, "Attack", "Deal [ATK2] damage 6 times.", function(enemy){
+                dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);
+            });
+            let rage = () => new Card("Rage", 0, "Skill", "For each Attack you play this turn, gain [BLK3] Block.", function(enemy){
+                gainBuff("Rage", 3);
+            });
+            let rampage = () => new Card("Rampage", 1, "Attack", "Deal [RAMPAGE] damage. This card deals 5 more damage this combat.", function(enemy){
+                dealDamage(enemy, 8 + hasBuff("Rampage")); gainBuff("Rampage", 5);
+            });
+            let recklessCharge = () => new Card("Reckless Charge",0,"Attack","Deal [DAM7] damage. Get a Dazed card.",function(enemy){
+                dealDamage(enemy, 7); discardPile.push(statusCards["Dazed"]());
+            });
+            let secondWind = () => new Card("Second Wind", 1, "Skill", "Exhaust all non-Attack cards in your hand. Gain [BLK5] Block for each card Exhausted.", function(enemy){
+                for(let card of hand) {
+                    if(!card.type == "Attack") {
+                        exhaustPile.push(card);
+                        hand.splice(hand.indexOf(card), 1);
+                        gainBuff("Block", 5);
+                    }
+                }
+            });
+            let seeingRed = () => new Card("Seeing Red", 0, "Skill", "Gain 1 energy. Exhaust.", function(enemy){
+                energy += 1;
+            }, ["exhausted"]);
+            let severSoul = () => new Card("Sever Soul", 2, "Attack", "Exhaust all non-Attack cards in your hand. Deal [DAM16] damage.", function(enemy){
+                for(let card of hand) {
+                    if(!card.type == "Attack") {
+                        exhaustPile.push(card);
+                        hand.splice(hand.indexOf(card), 1);
+                    }
+                }
+                dealDamage(enemy, 16);
+            });
+            let spotWeakness = () => new Card("Spot Weakness", 1, "Skill", "If the enemy intends to attack, gain 3 Strength.", function(enemy){
+                if(enemy.intent.intent.includes("attack")) {gainBuff("Strength", 3);}
+            });
+            let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", function(enemy){
+                dealDamage(enemy, 13); enemy.gainBuff("Weak", 1); enemy.gainBuff("Vulnerable", 1);
+            });
+            let whirlwind = () => new Card("Whirlwind", "X", "Attack", "Deal [DAM5] damage to ALL enemies X times.", function(enemy){
+                for(let e of enemies){dealDamage(e, 5);}
+            });
+            let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", function(enemy){
+                gainBuff("Barricade", 1);
+            }, ["exhausted"]);
+            let berserk = () => new Card("Berserk", 0, "Power", "Gain 2 Vulnerable, but gain 1 more energy each turn.", function(enemy){
+                gainBuff("Vulnerable", 2); gainBuff("Energize", 1);
+            }, ["exhausted"]);
+            let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
+                dealDamage(enemy, 32);
+            });
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
@@ -763,7 +853,8 @@
                     
                     let newDesc = c.desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
                     .replace("[BLOOD4BLOOD]", 4 - stats.timesLostHp)
-                    .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]");
+                    .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
+                    .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]");
                     for(let i=1; i<30; i++) {
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
@@ -893,7 +984,7 @@
             
             function startTurn() {
                 drawCard(5);
-                if(energy < maxEnergy) {energy = maxEnergy;}
+                if(energy < maxEnergy) {energy = maxEnergy + hasBuff("Energize");}
                 if(stats.attacksThisTurn == 0) {
                     for(let relic of relics) {
                         if(relic.trigger == "no_attacks") {
@@ -915,7 +1006,8 @@
                     }
                 }
                 stats.attacksThisTurn = 0;
-                loseBuff("Block");
+                if(hasBuff("Barricade")==0){loseBuff("Block");}
+                if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
                 updateHtml();
             }
             
@@ -933,16 +1025,18 @@
                 loseBuff("Vulnerable", 1);
                 loseBuff("Weak", 1);
                 loseBuff("Frail", 1);
+                loseBuff("No Draw", 1);
+                loseBuff("Rage");
                 gainBuff("Strength", hasBuff("Ritual"));
                 loseBuff("Strength", hasBuff("Strength Down"));
                 loseBuff("Strength Down");
-                loseBuff("No Draw", 1);
                 if(hasBuff("Combust") > 0) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
                 for(let e of enemies) {
-                    e.loseBuff("Block");
+                    if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
+                    if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
                     e.attack();
                     e.loseBuff("Vulnerable", 1);
                     e.loseBuff("Weak", 1);
