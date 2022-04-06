@@ -449,15 +449,17 @@
                     getId("merchantScreen").innerHTML = "";
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
-                        let cardCost = Math.round(Math.random()*40 + 40); // cost: 40g ~ 80g
+                        let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
+                        if(i==0) {cardCost = Math.round(cardCost * 0.45);}
+                        if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
                         let cardElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
-                        nameElem.innerHTML = offer.name;
+                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>"+offer.desc+"</span>";
+                        nameElem.setAttribute("class", "tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
-alert("Buying for "+${cardCost}+" gold...");
 gold -= ${cardCost};
 deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.effect}, ${JSON.stringify(offer.flags)}));
 getId("cardElem_${i}").style.display = "none";
@@ -471,11 +473,42 @@ updateStatLine();
                         cardElem.appendChild(costElem);
                         getId("merchantScreen").appendChild(cardElem);
                     }
+                    for(let i=0; i<3; i++) {
+                        let offer = choice(relicPool)();
+                        let relicCost = Math.round(Math.random()*14 + 143); // cost: 143g to 157g
+                        let relicElem = document.createElement("tr");
+                        let nameWrapper = document.createElement("td");
+                        let nameElem = document.createElement("button");
+                        let costElem = document.createElement("td");
+                        relicElem.setAttribute("id", `relicElem_${i}`);
+                        nameElem.innerHTML = offer.name+"<span class='txt'>"+
+                            offer.desc.replace("[DAM", "")
+                            .replace("[BLK", "")
+                            .replace("[HEAVYBLADE", "14")
+                            .replace("[RAMPAGE", "8")
+                            .replace("[BLOOD4BLOOD", "4")
+                            .replace("]", "")
+                            +"</span>";
+                        nameElem.setAttribute("class", "tt");
+                        nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
+gold -= ${relicCost};
+relics.push(new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use}));
+getId("relicElem_${i}").style.display = "none";
+updateStatLine();
+}
+                        `);
+                        costElem.innerHTML = "Cost: $"+relicCost;
+                        
+                        nameWrapper.appendChild(nameElem);
+                        relicElem.appendChild(nameWrapper);
+                        relicElem.appendChild(costElem);
+                        getId("merchantScreen").appendChild(relicElem);
+                    }
                     let continueElem = document.createElement("tr");
                     let continueWrapper = document.createElement("td");
                     let continueBtn = document.createElement("button");
                     continueBtn.innerHTML = "Continue";
-                    continueBtn.setAttribute("onclick", "getId('merchantScreen').style.display='none'; getId('mapScreen').style.display='block';");
+                    continueBtn.setAttribute("onclick", "showMap();");
                     continueWrapper.appendChild(continueBtn);
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
