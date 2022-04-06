@@ -365,7 +365,9 @@
                 "Energize": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose [AMT] HP and draw [AMT] card[s].",
                 "Double Tap": "Duplicate the next [AMT] Attack[s] you play.",
-                "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy."
+                "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
+                "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
+                "Dexterity Down": "At end of turn, lose [AMT] Dexterity."
                 
             };
             let statusCards = {
@@ -682,7 +684,7 @@ updateStatLine();
             });
             let secondWind = () => new Card("Second Wind", 1, "Skill", "Exhaust all non-Attack cards in your hand. Gain [BLK5] Block for each card Exhausted.", function(enemy){
                 for(let card of hand) {
-                    if(!card.type == "Attack") {
+                    if(card.type != "Attack") {
                         exhaustPile.push(card);
                         hand.splice(hand.indexOf(card), 1);
                         gainBuff("Block", 5);
@@ -694,7 +696,7 @@ updateStatLine();
             }, ["exhausted"]);
             let severSoul = () => new Card("Sever Soul", 2, "Attack", "Exhaust all non-Attack cards in your hand. Deal [DAM16] damage.", function(enemy){
                 for(let card of hand) {
-                    if(!card.type == "Attack") {
+                    if(card.type != "Attack") {
                         exhaustPile.push(card);
                         hand.splice(hand.indexOf(card), 1);
                     }
@@ -781,7 +783,7 @@ updateStatLine();
                         }
                     }
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
+                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
                 }
             }
@@ -825,9 +827,20 @@ updateStatLine();
             
             let potionPool = [
                 {name: "Block", desc: "Gain 12 Block.", effect: "gainBuff('Block', 12)"},
+                {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: "hp = Math.min(maxHp, hp + 0.2 * maxHp)"},
                 {name: "Cultist", desc: "Gain 1 Ritual.", effect: "gainBuff('Ritual', 1)"},
                 {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: "gainBuff('Dexterity', 2)"},
-                {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"}
+                {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"},
+                {name: "Iron", desc: "Gain 3 Metallicize.", effect: "gainBuff('Metallicize', 3)"},
+                {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: "for(let e of enemies){dealDamage(e, 10);}"},
+                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: "tgt.gainBuff('Vulnerable', 3)"},
+                {name: "Fire", desc: "Deal 20 damage to target.", effect: "dealDamage(tgt, 20)"},
+                {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: "gainBuff('Strength', 5); gainBuff('Strength Down', 5)"},
+                {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: "maxHp += 5; hp += 5"},
+                {name: "Steel", desc: "Gain 5 Metallicize.", effect: "gainBuff('Metallicize', 5)"},
+                {name: "Bronze", desc: "Gain 3 Thorns.", effect: "gainBuff('Thorns', 3)"},
+                {name: "Regen", desc: "Gain 5 Regen.", effect: "gainBuff('Regen', 5)"},
+                {name: "Flex", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
@@ -947,7 +960,7 @@ updateStatLine();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(enemy) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -1202,10 +1215,14 @@ updateStatLine();
                 loseBuff("Weak", 1);
                 loseBuff("Frail", 1);
                 loseBuff("No Draw", 1);
+                hp = Math.min(maxHp, hp + hasBuff("Regen"));
+                loseBuff("Regen", 1);
                 loseBuff("Rage");
                 gainBuff("Strength", hasBuff("Ritual"));
                 loseBuff("Strength", hasBuff("Strength Down"));
                 loseBuff("Strength Down");
+                loseBuff("Dexterity", hasBuff("Dexterity Down"));
+                loseBuff("Dexterity Down");
                 if(hasBuff("Combust") > 0) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
@@ -1216,9 +1233,13 @@ updateStatLine();
                     e.attack();
                     e.loseBuff("Vulnerable", 1);
                     e.loseBuff("Weak", 1);
+                    e.hp = Math.min(e.maxHp, e.hp + e.hasBuff("Regen"));
+                    e.loseBuff("Regen", 1);
                     e.gainBuff("Strength", e.hasBuff("Ritual"));
                     e.loseBuff("Strength", e.hasBuff("Strength Down"));
                     e.loseBuff("Strength Down");
+                    e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
+                    e.loseBuff("Dexterity Down");
                 }
                 startTurn();
             }
