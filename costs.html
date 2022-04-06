@@ -46,9 +46,12 @@
             #rewardsScreen, #rewardsScreen > button, #restScreen, #restScreen > button {text-align: center;}
             #mapScreen {margin-left: 42%; width: 58%;}
             .attacking::before { content: url(StS/intent-attack.png); }
+            .bigattack::before { content: url(StS/intent-bigattack.png); }
             .blocking::before { content: url(StS/intent-block.png); }
             .buffing::before { content: url(StS/intent-buff.png); }
             .nerfing::before { content: url(StS/intent-nerf.png); }
+            .meganerf::before { content: url(StS/intent-meganerf.png); }
+            .unknown::before { content: url(StS/intent-unknown.png); }
             .attack-block::before { content: url(StS/intent-attackblock.png); }
             .block-buff::before { content: url(StS/intent-blockbuff.png); }
             .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
@@ -340,7 +343,8 @@
                             let nodeButton = document.createElement("button");
                             nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
                                 (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
-                                  (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : "Rest and heal some HP")
+                                  (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : 
+                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : "Fight the final boss of this game."))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt mapButton");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
@@ -389,10 +393,16 @@
                     enemies = [nme()];
                     eliteBattle = true;
                     readyBattle();
+                } else if(map[y][x] == "<b style='color:red;'>BOSS&nbsp;</b>") {
+                    let nme = () => choice(possibleBosses.slice(0))();
+                    enemies = [nme()];
+                    eliteBattle = true;
+                    readyBattle();
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
                 }
+                
             }
             
             let strike = () => new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){
@@ -573,8 +583,10 @@
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                ["",            randomThing(), randomThing(), randomThing(), ""          ],
-                ["",            "",            "elite",       "",            ""          ]
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
+                ["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ],
+                ["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]
             ];
             
             // These make writing attacks *much* easier.
@@ -619,10 +631,17 @@
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
-                    {intent: "attacking 13", desc: "deal [DAM13] damage", effect: attack(13)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "blocking", desc: "block", effect: block(8)},
-                    {intent: "attacking 13", desc: "deal [DAM13] damage", effect: attack(13)},
-                    {intent: "nerfing +", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ])
+            ];
+            let possibleBosses = [
+                () => new Enemy("Slime Boss", 140, [
+                    {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
+                    {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
+                    {intent: "attacking 25", desc: "deal [DAM25] damage", effect: attack(23)}
                 ])
             ];
             
@@ -634,11 +653,11 @@
                 let statusElem = getId("statusLine");
                 statusElem.innerHTML = "HP: "+hp+"/"+maxHp+" | "+gold+" gold";
                 statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
-                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<span id='relics'>Relics: </span>";
+                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<span id='relics'>Relics:</span>";
                 for(let relic of relics) {
                     let relicElem = document.createElement("span");
                     relicElem.setAttribute("class", "tt");
-                    relicElem.innerHTML = "| "+relic.name;
+                    relicElem.innerHTML = " | "+relic.name;
                     let relicTooltip = document.createElement("span");
                     relicTooltip.setAttribute("class", "txt");
                     relicTooltip.innerHTML = relic.desc;
@@ -753,6 +772,9 @@
                             if(e.hasBuff("Weak")) {intentNumber = Math.round(intentNumber*0.75);}
                             intentNumber += e.hasBuff("Strength");
                             intentNumber -= e.hasBuff("Minus Strength");
+                            if(intentNumber >= 20) {
+                                intentType = "bigattack";
+                            }
                         } else {
                             intentNumber = e.intent.intent.split(" ")[1];
                         }
