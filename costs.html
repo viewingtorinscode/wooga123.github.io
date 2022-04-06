@@ -42,7 +42,7 @@
                 color: black;
                 background: yellow;
             }
-            #playerTd {width: 60%;}
+            #playerTd {width: 750px;}
             #rewardsScreen {text-align: center; width: 100%;}
             #rewardsScreen > button {text-align: center; width: 100%; border: none;}
             #mapScreen {margin-left: 42%; width: 58%;}
@@ -152,6 +152,7 @@
                         } else {
                             discardPile.push(this);
                         }
+                        play_success();
                         updateHtml();
                     } else {
                         let newCost = this.cost;
@@ -169,9 +170,12 @@
                             } else {
                                 discardPile.push(this);
                             }
+                            this.play_success();
                             updateHtml();
                         }
                     }
+                }
+                play_success() {
                     if(this.type == "Skill") {
                         for(let e of enemies) {
                             if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
@@ -179,8 +183,8 @@
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
-                        if(hasBuff("Rage")>0) {gainBuff("Block", hasBuff("Rage"));}
-                        if(hasBuff("Double Tap")>0) {
+                        if(hasBuff("Rage") > 0) {gainBuff("Block", hasBuff("Rage"));}
+                        if(hasBuff("Double Tap") > 0) {
                             loseBuff("Double Tap", 1);
                             hand.push(this);
                             discardPile.splice(discardPile.indexOf(this), 1);
@@ -463,7 +467,7 @@
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
-                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>"+offer.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")+"</span>";
+                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+offer.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")+"</span>";
                         nameElem.setAttribute("class", "tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
 gold -= ${cardCost};
@@ -704,7 +708,11 @@ updateStatLine();
                 dealDamage(enemy, 16);
             });
             let spotWeakness = () => new Card("Spot Weakness", 1, "Skill", "If the enemy intends to attack, gain 3 Strength.", function(enemy){
-                if(enemy.intent.intent.includes("attack")) {gainBuff("Strength", 3);}
+                if(enemy.intent.intent.includes("attack")) {
+                    gainBuff("Strength", 3);
+                } else {
+                    alert("That enemy does not intend to attack.");
+                }
             });
             let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", function(enemy){
                 dealDamage(enemy, 13); enemy.gainBuff("Weak", 1); enemy.gainBuff("Vulnerable", 1);
@@ -918,6 +926,8 @@ updateStatLine();
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
                     {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
                 ], ["no-repeat"]),
@@ -1033,6 +1043,7 @@ updateStatLine();
                         else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
                         let blockI = i;
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
+                        blockI += hasBuff("Dexterity");
                         blockI -= hasBuff("Minus Dexterity");
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                         else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
@@ -1077,6 +1088,7 @@ updateStatLine();
                             } else if(potions.length >= 3) {
                                 getId("potionReward").style.display = "block";
                                 getId("potionReward").innerHTML = "Potion slots full!";
+                                getId("potionReward").removeAttribute("onclick");
                             } else {
                                 getId("potionReward").style.display = "none";
                             }
@@ -1138,10 +1150,10 @@ updateStatLine();
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
                 }
-                if(hp <= 0) {
+                /*if(hp <= 0) {
                     alert("You died! D:");
                     getId("gameScreen").style.display = "none";
-                }
+                }*/
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
                     t.style.left = (mousex+10) + "px";
