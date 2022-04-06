@@ -153,6 +153,14 @@
                             if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
                         }
                     }
+                    if(this.type == "Attack") {
+                        stats.attacksThisTurn += 1;
+                        for(let r of relics) {
+                            if(r.trigger == "on_attack") {
+                                r.effect();
+                            }
+                        }
+                    }
                 }
             }
             
@@ -161,18 +169,32 @@
                 'attacks' is a list of objects. Each one has a 'desc' and an 'effect'.
                 The effect is a function that takes this object as a parameter (because it cannot use 'this').
                 */
-                constructor(name, hp, attacks) {
+                constructor(name, hp, attacks, flags=[]) {
                     this.name = name;
                     this.number = Math.random();
                     this.hp = hp;
                     this.maxHp = hp;
                     this.attacks = attacks;
+                    this.flags = flags;
                     this.buffs = [];
-                    this.intent = choice(attacks);
+                    this.intent = (this.flags.includes("randomize") ? choice(attacks) : attacks[0]);
                 }
                 attack() {
                     this.intent.effect(this);
-                    this.intent = choice(this.attacks);
+                    if(this.flags.includes("randomize")) {
+                        // We need to change attacks each time.
+                        let newIntent = choice(this.attacks);
+                        while(newIntent == this.intent) {
+                            newIntent = choice(this.attacks);
+                        }
+                        this.intent = newIntent;
+                    } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
+                        // Repeat is allowed and we are at the end: restart.
+                        this.intent = this.attacks[0];
+                    } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
+                        // Else if we have something to go to: go to it.
+                        this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
+                    }
                 }
                 hasBuff(name) {
                     for(let b of this.buffs) {
@@ -338,20 +360,15 @@
             function gotoMap(y, x) {
                 mapY = y;
                 mapX = x;
-                if(map[y][x] == "enemy") {
+                function readyBattle() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
-                    let nme = () => choice(possibleEnemies.slice(0))();
-                    if(mapY >= 7) {enemies = [nme(), nme(), nme()]}
-                    else if(mapY >= 2) {enemies = [nme(), nme()]}
-                    else {enemies = [nme()]}
-                    eliteBattle = false;
                     drawPile = shuffle(deck.slice(0)); // no shallow copy
                     discardPile = [];
                     exhaustPile = [];
                     hand = [];
                     buffs = [];
-                    stats = {timesLostHp: 0, hasAttacked: false};
+                    stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: null, rested: stats.rested};
                     target = enemies[0];
                     for(let r of relics) {
                         if(r.trigger == "combat_start") {
@@ -359,25 +376,19 @@
                         }
                     }
                     startTurn();
+                }
+                if(map[y][x] == "enemy") {
+                    let nme = () => choice(possibleEnemies.slice(0))();
+                    if(mapY >= 7) {enemies = [nme(), nme(), nme()]}
+                    else if(mapY >= 2) {enemies = [nme(), nme()]}
+                    else {enemies = [nme()]}
+                    eliteBattle = false;
+                    readyBattle();
                 } else if(map[y][x] == "elite") {
-                    getId("mapScreen").style.display = "none";
-                    getId("gameScreen").style.display = "block";
                     let nme = () => choice(possibleElites.slice(0))();
                     enemies = [nme()];
                     eliteBattle = true;
-                    drawPile = shuffle(deck.slice(0)); // no shallow copy
-                    discardPile = [];
-                    exhaustPile = [];
-                    hand = [];
-                    buffs = [];
-                    stats = {timesLostHp: 0, hasAttacked: false};
-                    target = enemies[0];
-                    for(let relic of relics) {
-                        if(relic.trigger == "combat_start") {
-                            relic.effect();
-                        }
-                    }
-                    startTurn();
+                    readyBattle();
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
@@ -497,6 +508,11 @@
                 if(cardNames.includes(cardChoice)) {
                     alert("Added "+newCards[ind].name+" to your deck.");
                     deck.push(newCards[ind]);
+                    for(let r of relics) {
+                        if(r.trigger == "add_card") {
+                            r.effect();
+                        }
+                    }
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
                     alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
@@ -507,14 +523,28 @@
             function r_snakeRing() {drawCard(2);}
             function r_akabeko() {dealDamage(8);}
             function r_anchor() {gainBuff("Block", 10);}
+            function r_tea() {energy += 2;}
+            function r_artOfWar() {energy += 1;}
+            function r_bagOfMarbles() {for(let x of enemies){x.gainBuff("Vulnerable",1);}}
+            function r_bloodVial() {hp = Math.min(maxHp, hp+2);}
+            function r_bronzeScales() {gainBuff("Thorns", 3);}
+            function r_ceramicFish() {gold += 9;}
+            function r_nunchaku() {if(Math.random()<0.1){energy += 1;}}
             let relicPool = [
-                () => new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing),
                 () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
-                () => new Relic("Ring of the Snake","Start each combat with 10 Block","combat_start",r_anchor)
+                () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
+                () => new Relic("Ancient Tea Set","When you enter a Rest Site, start the next combat with 2 more energy.","rest",r_tea),
+                () => new Relic("Art of War","If you play no attacks in a turn, gain 1 energy next turn.","no_attacks",r_artOfWar),
+                () => new Relic("Bag of Marbles","All enemies start combat with 1 Vulnerable.","combat_start",r_bagOfMarbles),
+                () => new Relic("Blood Vial","At start of combat, heal 2 HP.","combat_start",r_bloodVial),
+                () => new Relic("Bronze Scales","When you take damage, deal 3 damage back.","combat_start",r_bronzeScales),
+                () => new Relic("Ceramic Fish","When you add a card to your deck, gain 9 gold.","add_card",r_ceramicFish),
+                () => new Relic("Lantern","Gain 1 energy at the start of each combat.","combat_start",r_artOfWar),
+                () => new Relic("Nunchaku","When you play an Attack, 10% chance to gain 1 energy.","on_attack",r_nunchaku)
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
-            let relics = [];
+            let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
             let discardPile = [];
             let exhaustPile = [];
@@ -524,7 +554,7 @@
             let hp = 70;
             let maxHp = 70;
             let buffs = [];
-            let stats = {timesLostHp: 0, hasAttacked: false};
+            let stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: null, rested: false};
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
@@ -561,21 +591,19 @@
             
             let possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
-                    {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 2)}
-                ]),
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
+                    {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                ], ["no-repeat"]),
                 () => new Enemy("Jaw Worm", 40, [
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "attack-block 5", desc: "deal [DAM5] damage and block", effect: attack_block(5, 5)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(6, "Strength", 2)}
-                ]),
+                ], ["randomize"]),
                 () => new Enemy("Louse", 35, [
-                    {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)},
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 2)},
                     {intent: "nerfing", desc: "apply a negative effect", effect: apply("Weak", 2)}
-                ]),
+                ], ["randomize"]),
                 () => new Enemy("Spike Slime", 45, [
                     {intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Slimed", 1)},
                     {intent: "nerfing", desc: "apply a negative effect", effect: apply("Frail", 1)}
@@ -586,14 +614,14 @@
             ];
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
-                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
+                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)}
                 ]),
                 () => new Enemy("Lagavulin", 110, [
                     {intent: "blocking", desc: "block", effect: block(8)},
                     {intent: "attacking", desc: "deal [DAM13] damage", effect: attack(13)},
-                    {intent: "nerfing", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                    {intent: "nerfing +", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
                 ])
             ];
             
@@ -718,10 +746,15 @@
                     let intentType = e.intent.intent.split(" ")[0];
                     let intentNumber = "";
                     if(e.intent.intent.split(" ")[1]) {
-                        intentNumber = parseInt(e.intent.intent.split(" ")[1]);
-                        if(hasBuff("Vulnerable")) {intentNumber = Math.round(intentNumber*1.5);}
-                        if(e.hasBuff("Weak")) {intentNumber = Math.round(intentNumber*0.75);}
-                        intentNumber += e.hasBuff("Strength");
+                        if(parseInt(e.intent.intent.split(" ")[1])) {
+                            intentNumber = parseInt(e.intent.intent.split(" ")[1]);
+                            if(hasBuff("Vulnerable")) {intentNumber = Math.round(intentNumber*1.5);}
+                            if(e.hasBuff("Weak")) {intentNumber = Math.round(intentNumber*0.75);}
+                            intentNumber += e.hasBuff("Strength");
+                            intentNumber -= e.hasBuff("Minus Strength");
+                        } else {
+                            intentNumber = e.intent.intent.split(" ")[1];
+                        }
                     }
                     enemyButton.setAttribute("class", intentType);
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
@@ -767,13 +800,29 @@
             }
             
             function startTurn() {
+                drawCard(5);
+                if(energy < maxEnergy) {energy = maxEnergy;}
+                if(stats.attacksThisTurn == 0) {
+                    for(let relic of relics) {
+                        if(relic.trigger == "no_attacks") {
+                            relic.effect();
+                        }
+                    }
+                }
+                if(stats.rested == true) {
+                    stats.rested = false;
+                    for(let relic of relics) {
+                        if(relic.trigger == "rest") {
+                            relic.effect();
+                        }
+                    }
+                }
                 for(let relic of relics) {
                     if(relic.trigger == "turn_start") {
                         relic.effect();
                     }
                 }
-                drawCard(5);
-                energy = maxEnergy;
+                stats.attacksThisTurn = 0;
                 loseBuff("Block");
                 updateHtml();
             }
