@@ -77,7 +77,7 @@
                 </td>
             </tr>
         </table>
-        <div id="rewardsScreen" style="display: none">
+        <div id="rewardsScreen" style="display: none;">
             You won! Rewards:<br />
             <button id="goldReward"></button><br />
             <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button><br />
@@ -90,6 +90,8 @@
             <br />
             <button onclick="hp = Math.min(maxHp, hp+0.3*maxHp); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP</span></button>
         </div>
+        <table id="merchantScreen" style="display: none;">
+        </table>
         <script>
             alert("Welcome to COSTS (Clone Of Slay The Spire)");
             function shuffle(array) {
@@ -373,6 +375,7 @@
                 updateStatLine();
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
+                getId("merchantScreen").style.display = "none";
                 getId("mapScreen").style.display = "block";
                 getId("mapScreen").innerHTML = "Select your next room...";
                 for(let floor in map) {
@@ -440,6 +443,42 @@
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
+                } else if(map[y][x] == "shop&nbsp;") {
+                    getId("mapScreen").style.display = "none";
+                    getId("merchantScreen").style.display = "block";
+                    getId("merchantScreen").innerHTML = "";
+                    for(let i=0; i<6; i++) {
+                        let offer = randCard()();
+                        let cardCost = Math.round(Math.random()*40 + 40); // cost: 40g ~ 80g
+                        let cardElem = document.createElement("tr");
+                        let nameWrapper = document.createElement("td");
+                        let nameElem = document.createElement("button");
+                        let costElem = document.createElement("td");
+                        cardElem.setAttribute("id", `cardElem_${i}`);
+                        nameElem.innerHTML = offer.name;
+                        nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
+alert("Buying for "+${cardCost}+" gold...");
+gold -= ${cardCost};
+deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.effect}, ${JSON.stringify(offer.flags)}));
+getId("cardElem_${i}").style.display = "none";
+updateStatLine();
+}
+                        `);
+                        costElem.innerHTML = "Cost: $"+cardCost;
+                        
+                        nameWrapper.appendChild(nameElem);
+                        cardElem.appendChild(nameWrapper);
+                        cardElem.appendChild(costElem);
+                        getId("merchantScreen").appendChild(cardElem);
+                    }
+                    let continueElem = document.createElement("tr");
+                    let continueWrapper = document.createElement("td");
+                    let continueBtn = document.createElement("button");
+                    continueBtn.innerHTML = "Continue";
+                    continueBtn.setAttribute("onclick", "getId('merchantScreen').style.display='none'; getId('mapScreen').style.display='block';");
+                    continueWrapper.appendChild(continueBtn);
+                    continueElem.appendChild(continueWrapper);
+                    getId("merchantScreen").appendChild(continueElem);
                 }
                 
             }
@@ -671,9 +710,18 @@
             let juggernaut = () => new Card("Juggernaut", 2, "Power", "Whenever you gain Block, deal [DAM5] damage to a random enemy.", function(enemy){
                 gainBuff("Juggernaut", 5);
             }, ["exhausted"]);
+            let limitBreak = () => new Card("Limit Break", 1, "Skill", "Double your Strength. Exhaust.", function(enemy){
+                if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
+            }, ["exhausted"]);
+            let offering = () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.", function(enemy){
+                hp -= 6; energy += 2; drawCard(3);
+            }, ["exhausted"]);
+            let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal 8 HP. Exhaust.", function(enemy){
+                dealDamage(enemy, 8); hp = Math.min(maxHp, hp + 8);
+            }, ["exhausted"]);
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
-            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut]);
+            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
@@ -753,7 +801,7 @@
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
-            let randomThing = () => choice(["enemy", "enemy", "enemy", "elite", "rest&nbsp;"]);
+            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map = [
                 ["",            "",            "start",       "",            ""          ],
@@ -942,7 +990,7 @@
                             getId("goldReward").style.display = "inline";
                             getId("cardReward").style.display = "inline";
                             getId("gameScreen").style.display = "none";
-                            let goldAmt = Math.round(Math.random()*20)+30;
+                            let goldAmt = Math.round(Math.random()*10)+25;
                             getId("goldReward").innerHTML = goldAmt+" gold";
                             getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
                             if(eliteBattle == true) {
