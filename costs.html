@@ -313,6 +313,7 @@
                 "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
                 "Weak": "Deal 25% less damage for [AMT] turn[s].",
                 "Strength": "Attacks deal [AMT] more damage.",
+                "Dexterity": "Cards gain you [AMT] more Block.",
                 "Strength Down": "At the end of this turn, lose [AMT] Strength.",
                 "No Draw": "Cannot draw cards for [AMT] turn[s].",
                 "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to all enemies.",
@@ -322,7 +323,9 @@
                 "Frail": "Gain 25% less Block for [AMT] turn[s].",
                 "Enrage": "When you play a Skill, gains [AMT] Strength.",
                 "Minus Strength": "Attacks deal [AMT] less damage.",
-                "Minus Dexterity": "Gain [AMT] less block from cards."
+                "Minus Dexterity": "Gain [AMT] less block from cards.",
+                "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
+                "Pen Nib": "When you get 10 Pen Nib, deal 10 damage."
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -331,6 +334,7 @@
             };
             
             function showMap() {
+                updateStatLine();
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("mapScreen").style.display = "block";
@@ -506,8 +510,23 @@
                     drawCard();
                 }
             });
+            let dualWield = () => new Card("Dual Wield", 1, "Skill", "Copy an Attack or Power card in your hand.", function(enemy){
+                let chosen = choose(hand.filter(x=>["Attack","Power"].includes(x.type)).map(x=>x.name), "Choose a card to copy.");
+                for(let x of hand.filter(x=>["Attack","Power"].includes(x.type))) {
+                    if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                        hand.push(x);
+                        x.number = Math.random(); // theyve gotta be different
+                    }
+                }
+            });
+            let entrench = () => new Card("Entrench", 2, "Skill", "Double your Block.", function(enemy){
+                gainBuff("Block", hasBuff("Block"));
+            });
+            let evolve = () => new Card("Evolve", 1, "Power", "Whenever you draw a Status card, draw another card.", function(enemy){
+                gainBuff("Evolve", 1);
+            });
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
@@ -540,6 +559,13 @@
             function r_bronzeScales() {gainBuff("Thorns", 3);}
             function r_ceramicFish() {gold += 9;}
             function r_nunchaku() {if(Math.random()<0.1){energy += 1;}}
+            function r_smoothStone() {gainBuff("Dexterity", 1);}
+            function r_orichalcum() {if(hasBuff("Block")==0){gainBuff("Block", 6);}}
+            function r_penNib() {gainBuff("Pen Nib", 1); if(hasBuff("Pen Nib") >= 10) {loseBuff("Pen Nib"); dealDamage(target, 10);}}
+            function r_preservedInsect() {if(eliteBattle==true){dealDamage(target,Math.round(0.25*target.hp));}}
+            function r_regalPillow() {hp = Math.min(maxHp, hp+15);}
+            function r_strawberry() {maxHp += 7; hp += 7;}
+            function r_vajra() {gainBuff("Strength", 1);}
             let relicPool = [
                 () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
                 () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
@@ -550,7 +576,14 @@
                 () => new Relic("Bronze Scales","When you take damage, deal 3 damage back.","combat_start",r_bronzeScales),
                 () => new Relic("Ceramic Fish","When you add a card to your deck, gain 9 gold.","add_card",r_ceramicFish),
                 () => new Relic("Lantern","Gain 1 energy at the start of each combat.","combat_start",r_artOfWar),
-                () => new Relic("Nunchaku","When you play an Attack, 10% chance to gain 1 energy.","on_attack",r_nunchaku)
+                () => new Relic("Nunchaku","When you play an Attack, 10% chance to gain 1 energy.","on_attack",r_nunchaku),
+                () => new Relic("Oddly Smooth Stone","Start each combat with 1 Dexterity.","combat_start",r_smoothStone),
+                () => new Relic("Orichalcum","When you end your turn without Block, gain 6 Block.","turn_end",r_orichalcum),
+                () => new Relic("Pen Nib","Every 10th Attack you play deals 10 more damage.","on_attack",r_penNib),
+                () => new Relic("Preserved Insect","Elites have 25% less HP.","combat_start",r_preservedInsect),
+                () => new Relic("Regal Pillow","When you leave a Rest Site, heal 15 HP.","rest",r_regalPillow),
+                () => new Relic("Strawberry","Raise your max HP by 7 and heal 7 HP.","on_pickup",r_strawberry),
+                () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra)
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
@@ -651,7 +684,8 @@
             
             function updateStatLine() {
                 let statusElem = getId("statusLine");
-                statusElem.innerHTML = "HP: "+hp+"/"+maxHp+" | "+gold+" gold";
+                statusElem.innerHTML = (hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
+                statusElem.innerHTML+= " | "+gold+" gold";
                 statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
                 statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<span id='relics'>Relics:</span>";
                 for(let relic of relics) {
@@ -674,6 +708,15 @@
                     } else {
                         loseBuff("Minus Strength", hasBuff("Strength"));
                         loseBuff("Strength");
+                    }
+                }
+                if(hasBuff("Dexterity") > 0 && hasBuff("Minus Dexterity") > 0) {
+                    if(hasBuff("Dexterity") >= hasBuff("Minus Dexterity")) {
+                        loseBuff("Dexterity", hasBuff("Minus Dexterity"));
+                        loseBuff("Minus Dexterity");
+                    } else {
+                        loseBuff("Minus Dexterity", hasBuff("Dexterity"));
+                        loseBuff("Dexterity");
                     }
                 }
                 let energyElem = getId("energy");
@@ -753,7 +796,7 @@
                                 getId("relicReward").style.display = "inline";
                                 let newRelic = choice(relicPool)();
                                 getId("relicReward").innerHTML = newRelic.name;
-                                getId("relicReward").setAttribute("onclick", `relics.push(new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use})); updateStatLine(); getId('relicReward').style.display = 'none';`);
+                                getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
                             } else {
                                 getId("relicReward").style.display = "none";
                             }
@@ -803,7 +846,9 @@
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
                 }
-                if(hp <= 0) {alert("you died :(");}
+                if(hp <= 0) {
+                    while(alert("you died :("));
+                }
             }
             
             function drawCard(num=1) {
@@ -816,6 +861,9 @@
                     if(drawPile.length > 0) {
                         let toDraw = drawPile.pop(0);
                         hand.push(toDraw);
+                        if(toDraw.type == "Status") {
+                            drawCard(hasBuff("Evolve"));
+                        }
                     } else {
                         alert("Uh-oh, nothing to draw...");
                     }
@@ -854,6 +902,11 @@
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
+                }
+                for(let relic of relics) {
+                    if(relic.trigger == "turn_end") {
+                        relic.effect();
+                    }
                 }
                 hand = [];
                 loseBuff("Vulnerable", 1);
