@@ -182,6 +182,7 @@
                             loseBuff("Double Tap", 1);
                             hand.push(this);
                             discardPile.splice(discardPile.indexOf(this), 1);
+                            if(this.cost != "X") {energy += this.cost;}
                             this.play();
                         }
                         for(let r of relics) {
@@ -387,7 +388,8 @@
                             nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
                                 (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
                                   (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : 
-                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : "Fight the final boss of this game."))
+                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : 
+                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $150 for a relic." : "Fight the final boss of this game.")))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt mapButton");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
