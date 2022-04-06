@@ -948,7 +948,7 @@ updateStatLine();
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
                     potionElem.setAttribute("onclick", `let x = function(enemy) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
-                    potionElem.innerHTML = "Potion "+potions.indexOf(potion)+" - "+potion.effect;
+                    potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
                     potionTooltip.innerHTML = potion.desc;
