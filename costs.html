@@ -1139,7 +1139,8 @@ updateStatLine();
                     enemiesElem.appendChild(document.createElement("br"));
                 }
                 if(hp <= 0) {
-                    while(alert("you died :("));
+                    alert("You died! D:");
+                    getId("gameScreen").style.display = "none";
                 }
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
