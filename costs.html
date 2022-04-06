@@ -80,7 +80,7 @@
         <div id="rewardsScreen" style="display: none">
             You won! Rewards:<br />
             <button id="goldReward"></button><br />
-            <button id="cardReward" onclick="addCard('random'); getId('cardReward').style.display = 'none';">Add a card to your deck</button><br />
+            <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button><br />
             <button id="relicReward" class="tt"></button><br />
             <button id="closeRewards" onclick="showMap();">Continue</button>
         </div>
@@ -290,6 +290,7 @@
             function gainBuff(name, amt) {
                 let newAmt = amt;
                 if(hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
+                if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 for(let b of buffs) {
                     if(b.name == name) {
                         b.amt += newAmt;
@@ -358,7 +359,9 @@
                 "Barricade": "Block is not removed at the start of your turn.",
                 "Energize": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose [AMT] HP and draw [AMT] card[s].",
-                "Double Tap": "Duplicate the next [AMT] Attack[s] you play."
+                "Double Tap": "Duplicate the next [AMT] Attack[s] you play.",
+                "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy."
+                
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -420,8 +423,7 @@
                 }
                 if(map[y][x] == "enemy") {
                     let nme = () => choice(possibleEnemies.slice(0))();
-                    if(mapY >= 7) {enemies = [nme(), nme(), nme()]}
-                    else if(mapY >= 2) {enemies = [nme(), nme()]}
+                    if(mapY >= 2) {enemies = [nme(), nme()]}
                     else {enemies = [nme()]}
                     eliteBattle = false;
                     readyBattle();
@@ -650,9 +652,28 @@
             let doubleTap = () => new Card("Double Tap", 1, "Skill", "Your next Attack is played twice.", function(enemy){
                 gainBuff("Double Tap");
             }, ["exhausted"]);
+            let exhume = () => new Card("Exhume", 1, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", function(enemy){
+                let chosen = choose(exhaustPile.map(x=>x.name), "Choose a card to put into your hand.");
+                for(let x of exhaustPile) {
+                    if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                        hand.push(x);
+                        exhaustPile.splice(exhaustPile.indexOf(x));
+                    }
+                }
+            });
+            let feed = () => new Card("Feed", 1, "Attack", "Enemy loses 10 HP. If they die from it, gain 3 Max HP. Exhaust.", function(enemy){
+                if(enemy.hp <= 10) {maxHp += 3; hp += 3;}
+                enemy.hp -= 10;
+            }, ["exhausted"]);
+            let impervious = () => new Card("Impervious", 2, "Skill", "Gain [BLK30] block. Exhaust.", function(enemy){
+                gainBuff("Block", 30);
+            }, ["exhausted"]);
+            let juggernaut = () => new Card("Juggernaut", 2, "Power", "Whenever you gain Block, deal [DAM5] damage to a random enemy.", function(enemy){
+                gainBuff("Juggernaut", 5);
+            }, ["exhausted"]);
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
-            let randRareCard = () => choice([randCard(), choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap])]);
+            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
@@ -677,7 +698,6 @@
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
                     alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
-                } else {
                 }
             }
             
