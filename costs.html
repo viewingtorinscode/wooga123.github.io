@@ -146,6 +146,7 @@
                         if(this.flags.includes("exhausted")) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
+                            gainBuff("Block", hasBuff("Feel No Pain"));
                         } else {
                             discardPile.push(this);
                         }
@@ -316,7 +317,7 @@
                 "Dexterity": "Cards gain you [AMT] more Block.",
                 "Strength Down": "At the end of this turn, lose [AMT] Strength.",
                 "No Draw": "Cannot draw cards for [AMT] turn[s].",
-                "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to all enemies.",
+                "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to ALL enemies.",
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
                 "Thorns": "When attacked, deal [AMT] damage back.",
                 "Ritual": "At end of turn, gain [AMT] Strength.",
@@ -325,7 +326,9 @@
                 "Minus Strength": "Attacks deal [AMT] less damage.",
                 "Minus Dexterity": "Gain [AMT] less block from cards.",
                 "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
-                "Pen Nib": "When you get 10 Pen Nib, deal 10 damage."
+                "Pen Nib": "When you get 10 Pen Nib, deal 10 damage.",
+                "Feel No Pain": "When a card is Exausted, gain [AMT] Block.",
+                "Fire Breathing": "Whenever you draw a Status card, deal [AMT] damage to ALL enemies."
             };
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -525,8 +528,23 @@
             let evolve = () => new Card("Evolve", 1, "Power", "Whenever you draw a Status card, draw another card.", function(enemy){
                 gainBuff("Evolve", 1);
             }, ["exhausted"]);
+            let feelNoPain = () => new Card("Feel No Pain", 1, "Power", "When a card is Exhausted, gain [BLK3] Block.", function(enemy){
+                gainBuff("Feel No Pain", 3);
+            }, ["exhausted"]);
+            let fireBreathing = () => new Card("Fire Breathing", 1, "Power", "Whenever you draw a Status card, deal 6 damage to ALL enemies", function(enemy){
+                gainBuff("Fire Breathing", 6);
+            }, ["exhausted"]);
+            let flameBarrier = () => new Card("Flame Barrier", 2, "Skill", "Gain [BLK12] Block and 2 Thorns.", function(enemy){
+                gainBuff("Block", 12); gainBuff("Thorns", 2);
+            });
+            let ghostlyArmor = () => new Card("Ghostly Armor", 1, "Skill", "Ethereal. Gain [BLK10] Block.", function(enemy){
+                gainBuff("Block", 10);
+            }, ["ethereal"]);
+            let hemokinesis = () => new Card("Hemokinesis", 1, "Attack", "Lose 2 HP. Deal [BLK15] damage.", function(enemy){
+                hp -= 2; dealDamage(enemy, 15);
+            });
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {newCards = [randCard()(), randCard()(), randCard()()];} // that looks weird
@@ -863,6 +881,9 @@
                         hand.push(toDraw);
                         if(toDraw.type == "Status") {
                             drawCard(hasBuff("Evolve"));
+                            for(let e of enemies) {
+                                dealDamage(e, hasBuff("Fire Breathing"));
+                            }
                         }
                     } else {
                         alert("Uh-oh, nothing to draw...");
