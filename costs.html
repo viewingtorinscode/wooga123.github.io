@@ -615,12 +615,13 @@
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
                     {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)}
-                ]),
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
+                    {intent: "attacking 13", desc: "deal [DAM13] damage", effect: attack(13)},
                     {intent: "blocking", desc: "block", effect: block(8)},
-                    {intent: "attacking", desc: "deal [DAM13] damage", effect: attack(13)},
+                    {intent: "attacking 13", desc: "deal [DAM13] damage", effect: attack(13)},
                     {intent: "nerfing +", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
                 ])
             ];
