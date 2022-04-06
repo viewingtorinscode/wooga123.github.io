@@ -43,7 +43,8 @@
                 background: yellow;
             }
             #playerTd {width: 60%;}
-            #rewardsScreen, #rewardsScreen > button, #restScreen, #restScreen > button {text-align: center;}
+            #rewardsScreen {text-align: center; width: 100%;}
+            #rewardsScreen > button {text-align: center; width: 100%; border: none;}
             #mapScreen {margin-left: 42%; width: 58%;}
             .attacking::before { content: url(StS/intent-attack.png); }
             .bigattack::before { content: url(StS/intent-bigattack.png); }
@@ -79,9 +80,10 @@
         </table>
         <div id="rewardsScreen" style="display: none;">
             You won! Rewards:<br />
-            <button id="goldReward"></button><br />
-            <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button><br />
-            <button id="relicReward" class="tt"></button><br />
+            <button id="goldReward"></button>
+            <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button>
+            <button id="potionReward"></button>
+            <button id="relicReward" class="tt"></button>
             <button id="closeRewards" onclick="showMap();">Continue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
@@ -821,8 +823,16 @@ updateStatLine();
                 () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra)
             ];
             
+            let potionPool = [
+                {name: "Block", desc: "Gain 12 Block.", effect: "gainBuff('Block', 12)"},
+                {name: "Cultist", desc: "Gain 1 Ritual.", effect: "gainBuff('Ritual', 1)"},
+                {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: "gainBuff('Dexterity', 2)"},
+                {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"}
+            ];
+            
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
             let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
+            let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
             let discardPile = [];
             let exhaustPile = [];
@@ -919,19 +929,37 @@ updateStatLine();
             
             function updateStatLine() {
                 let statusElem = getId("statusLine");
-                statusElem.innerHTML = (hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
-                statusElem.innerHTML+= " | "+gold+" gold";
-                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
-                statusElem.innerHTML+= "&nbsp;&nbsp;&nbsp;<span id='relics'>Relics:</span>";
+                statusElem.innerHTML=(hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
+                statusElem.innerHTML+=" | "+gold+" gold";
+                statusElem.innerHTML+="&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
+                statusElem.innerHTML+="&nbsp;&nbsp;&nbsp;<span id='relics'><b>Relics: </b></span>";
                 for(let relic of relics) {
                     let relicElem = document.createElement("span");
                     relicElem.setAttribute("class", "tt");
-                    relicElem.innerHTML = " | "+relic.name;
+                    relicElem.innerHTML = relic.name+", ";
                     let relicTooltip = document.createElement("span");
                     relicTooltip.setAttribute("class", "txt");
                     relicTooltip.innerHTML = relic.desc;
                     relicElem.appendChild(relicTooltip);
                     getId("relics").appendChild(relicElem);
+                }
+                statusElem.innerHTML+= "<span id='potions'><b>Potions: </b></span>";
+                for(let potion of potions) {
+                    let potionElem = document.createElement("button");
+                    potionElem.setAttribute("class", "tt");
+                    potionElem.setAttribute("onclick", `let x = function(enemy) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.innerHTML = "Potion "+potions.indexOf(potion)+" - "+potion.effect;
+                    let potionTooltip = document.createElement("span");
+                    potionTooltip.setAttribute("class", "txt");
+                    potionTooltip.innerHTML = potion.desc;
+                    potionElem.appendChild(potionTooltip);
+                    getId("potions").appendChild(potionElem);
+                }
+                for(let i=0; i<(3-potions.length); i++) {
+                    let potionElem = document.createElement("button");
+                    potionElem.setAttribute("class", "nonbutton");
+                    potionElem.innerHTML = "Empty Slot";
+                    getId("potions").appendChild(potionElem);
                 }
             }
             function updateHtml() {
@@ -1022,14 +1050,25 @@ updateStatLine();
                         target = enemies[0];
                         if(enemies.length == 0) {
                             getId("rewardsScreen").style.display = "block";
-                            getId("goldReward").style.display = "inline";
-                            getId("cardReward").style.display = "inline";
+                            getId("goldReward").style.display = "block";
+                            getId("cardReward").style.display = "block";
                             getId("gameScreen").style.display = "none";
                             let goldAmt = Math.round(Math.random()*10)+25;
                             getId("goldReward").innerHTML = goldAmt+" gold";
                             getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
+                            if(Math.random() < 0.5 && potions.length < 3) { // set to 1 (always drop) for testing
+                                getId("potionReward").style.display = "block";
+                                let potionDrop = choice(potionPool);
+                                getId("potionReward").innerHTML = potionDrop.name+" Potion";
+                                getId("potionReward").setAttribute("onclick", `potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: "${potionDrop.effect}"}); updateStatLine(); getId('potionReward').style.display = 'none';`);
+                            } else if(potions.length >= 3) {
+                                getId("potionReward").style.display = "block";
+                                getId("potionReward").innerHTML = "Potion slots full!";
+                            } else {
+                                getId("potionReward").style.display = "none";
+                            }
                             if(eliteBattle == true) {
-                                getId("relicReward").style.display = "inline";
+                                getId("relicReward").style.display = "block";
                                 let newRelic = choice(relicPool)();
                                 getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
                                 getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
@@ -1061,7 +1100,11 @@ updateStatLine();
                     enemyButton.setAttribute("class", intentType);
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     enemyElem.appendChild(enemyButton);
-                    enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                    if(e.hasBuff("Block") > 0) {
+                        enemyElem.innerHTML += " HP: "+e.hp+" (<img src='StS/intent-block.png'>"+e.hasBuff("Block")+") / "+e.maxHp;
+                    } else {
+                        enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                    }
                     if(target.number == e.number) { enemyElem.innerHTML += " (target)"; }
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
