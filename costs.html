@@ -678,7 +678,7 @@ updateStatLine();
             let powerThrough = () => new Card("Power Through",1,"Skill","Add 2 Wounds to your hand. Gain [BLK15] Block.",function(enemy){
                 hand.push(statusCards["Wound"]()); hand.push(statusCards["Wound"]()); gainBuff("Block", 15);
             });
-            let pummel = () => new Card("Pummel", 2, "Attack", "Deal [ATK2] damage 6 times.", function(enemy){
+            let pummel = () => new Card("Pummel", 2, "Attack", "Deal [DAM2] damage 6 times.", function(enemy){
                 dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);dealDamage(enemy,2);
             });
             let rage = () => new Card("Rage", 0, "Skill", "For each Attack you play this turn, gain [BLK3] Block.", function(enemy){
@@ -894,7 +894,7 @@ updateStatLine();
                     gainBuff("Metallicize", 4);
                 }, ["exhausted"]), "Power Through": () => new Card("Power Through+", 1, "Skill", "Add 2 Wounds to your hand. Gain [BLK20] Block.", function(enemy){
                     hand.push(statusCards["Wound"]()); hand.push(statusCards["Wound"]()); gainBuff("Block", 20);
-                }), "Pummel": () => new Card("Pummel+", 2, "Attack", "Deal [ATK2] damage 8 times.", function(enemy){
+                }), "Pummel": () => new Card("Pummel+", 2, "Attack", "Deal [DAM2] damage 8 times.", function(enemy){
                     dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2);
                 }), "Rage": () => new Card("Rage+", 0, "Skill", "For each Attack you play this turn, gain [BLK5] Block.", function(enemy){
                     gainBuff("Rage", 5);
