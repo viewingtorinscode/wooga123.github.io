@@ -90,7 +90,13 @@
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="hp = Math.min(maxHp, hp+0.3*maxHp); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP</span></button>
+            <button onclick="hp = Math.min(maxHp, hp+0.3*maxHp); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP.</span></button>
+            <button onclick="upgradeDialog();" class="tt">Smith<span class="txt">Upgrade a card in your deck.</span></button>
+            <div id="upgradeDialog" style="display: none;">
+                <p id="oldCard"></p>
+                <p id="newCard"></p>
+                <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();">Confirm</button>
+            </div>
         </div>
         <table id="merchantScreen" style="display: none;">
         </table>
@@ -109,7 +115,8 @@
             let choice = x => x[Math.floor(Math.random()*x.length)];
             function choose(x, p) {
                 let c = "qwertyuiopasdfghjklzxcvbnm";
-                while(!x.includes(c) && x.length > 0) {
+                let newX = x.map(e=>e.toLowerCase());
+                while(!newX.includes(c) && x.length > 0) {
                     c = prompt(p, "Options: "+x.join(", "));
                 }
                 return c;
@@ -124,6 +131,9 @@
                     t.style.left = (mousex+10) + "px";
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
+            }
+            function unformat(desc) {
+                return desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")
             }
             class Card {
                 /*
@@ -467,7 +477,7 @@
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
-                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+offer.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")+"</span>";
+                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+unformat(offer.desc)+"</span>";
                         nameElem.setAttribute("class", "tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
 gold -= ${cardCost};
@@ -491,14 +501,7 @@ updateStatLine();
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         relicElem.setAttribute("id", `relicElem_${i}`);
-                        nameElem.innerHTML = offer.name+"<span class='txt'>"+
-                            offer.desc.replace("[DAM", "")
-                            .replace("[BLK", "")
-                            .replace("[HEAVYBLADE", "14")
-                            .replace("[RAMPAGE", "8")
-                            .replace("[BLOOD4BLOOD", "4")
-                            .replace("]", "")
-                            +"</span>";
+                        nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
                         nameElem.setAttribute("class", "tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
@@ -633,6 +636,7 @@ updateStatLine();
                     if(chosen.toLowerCase() == x.name.toLowerCase()) {
                         hand.push(x);
                         x.number = Math.random(); // they've gotta be different
+                        break;
                     }
                 }
             });
@@ -659,7 +663,7 @@ updateStatLine();
             });
             let infernalBlade = () => new Card("Infernal Blade", 0, "Skill", "Add a random Attack to your hand.", function(enemy){
                 let extraCard = randCard()(); // looks weird ik
-                while(!extraCard.type == "Attack") {extraCard = randCard()();}
+                while(extraCard.type != "Attack") {extraCard = randCard()();}
                 hand.push(extraCard);
             }, ["exhausted"]);
             let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength. Exhaust.", function(enemy){
@@ -744,6 +748,7 @@ updateStatLine();
                     if(chosen.toLowerCase() == x.name.toLowerCase()) {
                         hand.push(x);
                         exhaustPile.splice(exhaustPile.indexOf(x));
+                        break;
                     }
                 }
             });
@@ -766,6 +771,235 @@ updateStatLine();
             let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal 8 HP. Exhaust.", function(enemy){
                 dealDamage(enemy, 8); hp = Math.min(maxHp, hp + 8);
             }, ["exhausted"]);
+            
+            let upgradedCards = {
+                "Strike": () => new Card("Strike+", 1, "Attack", "Deal [DAM9] damage.", function(enemy){
+                    dealDamage(enemy, 9);
+                }), "Defend": () => new Card("Defend+", 1, "Skill", "Gain [BLK8] Block.", function(enemy){
+                    gainBuff("Block", 8);
+                }), "Bash": () => new Card("Bash+", 2, "Attack", "Deal [DAM10] damage, apply 3 Vulnerable.", function(enemy){
+                    dealDamage(enemy, 10); enemy.gainBuff("Vulnerable", 3);
+                }), "Body Slam": () => new Card("Body Slam+", 0, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
+                    dealDamage(enemy, hasBuff("Block"));
+                }), "Clash": () => new Card("Clash+", 0, "Attack","Deal [DAM18] damage if all cards in your hand are Attacks.", function(enemy){
+                    if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 18);}
+                }), "Cleave": () => new Card("Cleave+", 1, "Attack", "Deal [DAM11] damage to ALL enemies.", function(enemy){
+                    for(let e of enemies){dealDamage(e, 11);}
+                }), "Clothesline": () => new Card("Clothesline+", 2, "Attack", "Deal [DAM14] damage, apply 3 Weak.", function(enemy){
+                    dealDamage(enemy, 14); enemy.gainBuff("Weak", 3);
+                }), "Flex": () => new Card("Flex+", 0, "Skill", "Gain 4 Strength. At the end of your turn, lose 4 Strength.", function(enemy){
+                    gainBuff("Strength", 4); gainBuff("Strength Down", 4);
+                }), "Headbutt": () => new Card("Headbutt", 1, "Attack", "Deal [DAM12] damage. Put a card from your discard pile on top of your draw pile.", function(enemy){
+                    dealDamage(enemy, 12);
+                    let chosen = choose(discardPile.map(x=>x.name), "Choose a card to put on top of your Draw Pile.");
+                    for(let x of discardPile) {
+                        if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                            drawPile = [x, ...drawPile];
+                            discardPile.splice(discardPile.indexOf(x), 1);
+                            break;
+                        }
+                    }
+                }), "Heavy Blade": () => new Card("Heavy Blade+", 2, "Attack", "Deal [HEAVYBLADE+] damage. Strength affects the damage 5 times.", function(enemy){
+                    dealDamage(enemy, 14 + 4 * hasBuff("Strength"));
+                }), "Iron Wave": () => new Card("Iron Wave+", 1, "Attack", "Gain [BLK7] Block. Deal [DAM7] damage.", function(enemy){
+                    dealDamage(enemy, 7); gainBuff("Block", 7);
+                }), "Pommel Strike": () => new Card("Pommel Strike+", 1, "Attack", "Deal [DAM10] damage. Draw 2 cards.", function(enemy){
+                    dealDamage(enemy, 10); drawCard(2);
+                }), "Shrug it Off": () => new Card("Shrug it Off+", 1, "Skill", "Gain [BLK11] Block. Draw a card.", function(enemy){
+                    gainBuff("Block", 11); drawCard();
+                }), "Sword Boomerang": () => new Card("Sword Boomerang+", 1, "Attack", "Deal [DAM3] damage to a random enemy 4 times.", function(enemy){
+                    dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3);
+                }), "Thunderclap": () => new Card("Thunderclap+", 1, "Attack", "Deal [DAM7] damage and apply 1 Vulnerable to ALL enemies.", function(enemy){
+                    for(let e of enemies){dealDamage(e, 7); e.gainBuff("Vulnerable", 1);}
+                }), "True Grit": () => new Card("True Grit+", 1, "Skill", "Gain [BLK7] Block. Exhaust a card in your hand.", function(enemy){
+                    gainBuff("Block", 7);
+                    let chosen = choose(hand.map(x=>x.name), "Choose a card to Exhaust.");
+                    for(let x of hand) {
+                        if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                            hand.splice(hand.indexOf(x), 1);
+                            exhaustPile.push(x);
+                            break;
+                        }
+                    }
+                }), "Twin Strike": () => new Card("Twin Strike+", 1, "Attack", "Deal [DAM7] damage twice.", function(enemy){
+                    dealDamage(enemy, 7); dealDamage(enemy, 7);
+                }), "Wild Strike": () => new Card("Wild Strike+", 1, "Attack", "Deal [DAM17] damage. Shuffle a Wound into your discard pile.", function(enemy){
+                    dealDamage(enemy, 17); discardPile.push(statusCards["Wound"]());
+                }), "Battle Trance": () => new Card("Battle Trance+", 0, "Skill", "Draw 4 cards. You cannot draw additional cards this turn.", function(enemy){
+                    drawCard(4); gainBuff("No Draw", 1);
+                }), "Blood for Blood": () => new Card("Blood for Blood+", 4, "Attack", "Deal [DAM26] damage. -1 cost each time you lose HP. (Costs [BLOOD4BLOOD] energy)", function(enemy){
+                    dealDamage(enemy, 26);
+                }, ["blood4blood"]), "Bloodletting": () => new Card("Bloodletting+", 0, "Skill", "Lose 3 HP. Gain 3 energy.", function(enemy){
+                    hp -= 3; energy += 3;
+                }), "Burning Pact": () => new Card("Burning Pact+", 1, "Skill", "Exhaust 1 card. Draw 3 cards.", function(enemy){
+                    let chosen = choose(hand.map(x=>x.name), "Choose a card to Exhaust.");
+                    for(let x of hand) {
+                        if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                            hand.splice(hand.indexOf(x), 1);
+                            exhaustPile.push(x);
+                            break;
+                        }
+                    }
+                    drawCard(3);
+                }), "Carnage": () => new Card("Carnage+", 2, "Attack", "Ethereal. Deal [DAM28] damage.", function(enemy){
+                    dealDamage(enemy, 28);
+                }, ["ethereal"]), "Combust": () => new Card("Combust+", 1, "Power", "At the end of your turn, lose 1 HP and deal 7 damage to ALL enemies.", function(enemy){
+                    gainBuff("Combust", 7);
+                }, ["exhausted"]), "Dark Embrace+": () => new Card("Dark Embrace+", 1, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
+                    gainBuff("Dark Embrace", 1);
+                }, ["exhausted"]), "Disarm": () => new Card("Disarm+", 1, "Skill", "Enemy gets -3 Strength. Exhaust.", function(enemy){
+                    enemy.gainBuff("Minus Strength", 3);
+                }, ["exhausted"]), "Dropkick": () => new Card("Dropkick+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
+                    dealDamage(enemy, 8);
+                    if(enemy.hasBuff("Vulnerable") > 0) {
+                        energy++;
+                        drawCard();
+                    }
+                }), "Dual Wield": () => new Card("Dual Wield+", 1, "Skill", "Create 2 copies of an Attack or Power card in your hand.", function(enemy){
+                    let chosen = choose(hand.filter(x=>["Attack","Power"].includes(x.type)).map(x=>x.name), "Choose a card to copy.");
+                    for(let x of hand.filter(x=>["Attack","Power"].includes(x.type))) {
+                        if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                            let new1 = {...x}; let new2 = {...x};
+                            new1.number = Math.random(); new2.number = Math.random(); // they've gotta be different
+                            hand.push(new1); hand.push(new2);
+                            break;
+                        }
+                    }
+                }), "Entrench": () => new Card("Entrench+", 1, "Skill", "Double your Block.", function(enemy){
+                    if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
+                }), "Evolve": () => new Card("Evolve+", 1, "Power", "Whenever you draw a Status card, draw 2 more cards.", function(enemy){
+                    gainBuff("Evolve", 2);
+                }, ["exhausted"]), "Feel No Pain": () => new Card("Feel No Pain+", 1, "Power", "When a card is Exhausted, gain [BLK4] Block.", function(enemy){
+                    gainBuff("Feel No Pain", 4);
+                }, ["exhausted"]), "Fire Breathing": () => new Card("Fire Breathing+", 1, "Power", "Whenever you draw a Status card, deal 10 damage to ALL enemies", function(enemy){
+                    gainBuff("Fire Breathing", 10);
+                }, ["exhausted"]), "Flame Barrier": () => new Card("Flame Barrier+", 2, "Skill", "Gain [BLK16] Block and 3 Thorns.", function(enemy){
+                    gainBuff("Block", 16); gainBuff("Thorns", 3);
+                }), "Ghostly Armor": () => new Card("Ghostly Armor+", 1, "Skill", "Ethereal. Gain [BLK13] Block.", function(enemy){
+                    gainBuff("Block", 13);
+                }, ["ethereal"]), "Hemokinesis": () => new Card("Hemokinesis+", 1, "Attack", "Lose 2 HP. Deal [DAM20] damage.", function(enemy){
+                    hp -= 2; dealDamage(enemy, 20);
+                }), "Infernal Blade": () => new Card("Infernal Blade+", 0, "Skill", "Add 2 random Attacks to your hand.", function(enemy){
+                    let extraCard = randCard()(); // looks weird ik
+                    while(extraCard.type != "Attack") {extraCard = randCard()();}
+                    hand.push(extraCard);
+                    let extraCard2 = randCard()(); // looks weird ik
+                    while(extraCard2.type != "Attack") {extraCard2 = randCard()();}
+                    hand.push(extraCard2);
+                }, ["exhausted"]), "Enflame": () => new Card("Enflame+", 1, "Power", "Gain 3 Strength. Exhaust.", function(enemy){
+                    gainBuff("Strength", 3);
+                }, ["exhausted"]), "Intimidate": () => new Card("Intimidate+", 0, "Skill", "Apply 2 Weak to ALL enemies. Exhaust.", function(enemy){
+                    for(let e of enemies) {e.gainBuff("Weak", 2);}
+                }, ["exhausted"]), "Metallicize": () => new Card("Metallicize+", 1, "Power", "Start each turn with [BLK4] Block.", function(enemy){
+                    gainBuff("Metallicize", 4);
+                }, ["exhausted"]), "Power Through": () => new Card("Power Through+", 1, "Skill", "Add 2 Wounds to your hand. Gain [BLK20] Block.", function(enemy){
+                    hand.push(statusCards["Wound"]()); hand.push(statusCards["Wound"]()); gainBuff("Block", 20);
+                }), "Pummel": () => new Card("Pummel+", 2, "Attack", "Deal [ATK2] damage 8 times.", function(enemy){
+                    dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2); dealDamage(enemy,2);
+                }), "Rage": () => new Card("Rage+", 0, "Skill", "For each Attack you play this turn, gain [BLK5] Block.", function(enemy){
+                    gainBuff("Rage", 5);
+                }), "Rampage": () => new Card("Rampage+", 1, "Attack", "Deal [RAMPAGE] damage. This card deals 8 more damage this combat.", function(enemy){
+                    dealDamage(enemy, 8 + hasBuff("Rampage")); gainBuff("Rampage", 8);
+                }), "Reckless Charge": () => new Card("Reckless Charge+", 0, "Attack","Deal [DAM10] damage. Get a Dazed card.", function(enemy){
+                    dealDamage(enemy, 10); discardPile.push(statusCards["Dazed"]());
+                }), "Second Wind": () => new Card("Second Wind+", 1, "Skill", "Exhaust all non-Attack cards in your hand. Gain [BLK7] Block for each card Exhausted.", function(enemy){
+                    for(let card of hand) {
+                        if(card.type != "Attack") {
+                            exhaustPile.push(card);
+                            hand.splice(hand.indexOf(card), 1);
+                            gainBuff("Block", 7);
+                        }
+                    }
+                }), "Seeing Red": () => new Card("Seeing Red+", 0, "Skill", "Gain 2 energy. Exhaust.", function(enemy){
+                    energy += 2;
+                }, ["exhausted"]), "Sever Soul": () => new Card("Sever Soul+", 2, "Attack", "Exhaust all non-Attack cards in your hand. Deal [DAM22] damage.", function(enemy){
+                    for(let card of hand) {
+                        if(card.type != "Attack") {
+                            exhaustPile.push(card);
+                            hand.splice(hand.indexOf(card), 1);
+                        }
+                    }
+                    dealDamage(enemy, 22);
+                }), "Spot Weakness": () => new Card("Spot Weakness", 1, "Skill", "If the enemy intends to attack, gain 4 Strength.", function(enemy){
+                    if(enemy.intent.intent.includes("attack")) {
+                        gainBuff("Strength", 4);
+                    } else {
+                        alert("That enemy does not intend to attack.");
+                    }
+                }), "Uppercut": () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 2 Weak and Vulnerable.", function(enemy){
+                    dealDamage(enemy, 13); enemy.gainBuff("Weak", 2); enemy.gainBuff("Vulnerable", 2);
+                }), "Whirlwind": () => new Card("Whirlwind", "X", "Attack", "Deal [DAM8] damage to ALL enemies X times.", function(enemy){
+                    for(let e of enemies){dealDamage(e, 8);}
+                })
+            };
+            /*let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", function(enemy){
+                    gainBuff("Barricade", 1);
+                }, ["exhausted"]),
+            let berserk = () => new Card("Berserk", 0, "Power", "Gain 2 Vulnerable, but gain 1 more energy each turn.", function(enemy){
+                    gainBuff("Vulnerable", 2); gainBuff("Energize", 1);
+                }, ["exhausted"]),
+            let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
+                    dealDamage(enemy, 32);
+                }),
+            let brutality = () => new Card("Brutality", 0, "Power", "At the start of your turn, lose 1 HP and draw 1 more card.", function(enemy){
+                    gainBuff("Brutality", 1);
+                }, ["exhausted"]),
+            let demonForm = () => new Card("Demonic Ritual", 3, "Power", "At the end of your turn, gain 2 Strength.", function(enemy){
+                    gainBuff("Ritual", 2);
+                }, ["exhausted"]),
+            let doubleTap = () => new Card("Double Tap", 1, "Skill", "Your next Attack is played twice.", function(enemy){
+                    gainBuff("Double Tap");
+                }, ["exhausted"]),
+            let exhume = () => new Card("Exhume", 1, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", function(enemy){
+                    let chosen = choose(exhaustPile.map(x=>x.name), "Choose a card to put into your hand.");
+                    for(let x of exhaustPile) {
+                        if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                            hand.push(x);
+                            exhaustPile.splice(exhaustPile.indexOf(x));
+                        }
+                    }
+                }),
+            let feed = () => new Card("Feed", 1, "Attack", "Enemy loses 10 HP. If they die from it, gain 3 Max HP. Exhaust.", function(enemy){
+                    if(enemy.hp <= 10) {maxHp += 3; hp += 3;}
+                    enemy.hp -= 10;
+                }, ["exhausted"]),
+            let impervious = () => new Card("Impervious", 2, "Skill", "Gain [BLK30] block. Exhaust.", function(enemy){
+                    gainBuff("Block", 30);
+                }, ["exhausted"]),
+            let juggernaut = () => new Card("Juggernaut", 2, "Power", "Whenever you gain Block, deal [DAM5] damage to a random enemy.", function(enemy){
+                    gainBuff("Juggernaut", 5);
+                }, ["exhausted"]),
+            let limitBreak = () => new Card("Limit Break", 1, "Skill", "Double your Strength. Exhaust.", function(enemy){
+                    if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
+                }, ["exhausted"]),
+            let offering = () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.", function(enemy){
+                    hp -= 6; energy += 2; drawCard(3);
+                }, ["exhausted"]),
+            let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal 8 HP. Exhaust.", function(enemy){
+                    dealDamage(enemy, 8); hp = Math.min(maxHp, hp + 8);
+                }, ["exhausted"])
+            };*/
+            function upgradeCard(c) {
+                let newCard = upgradedCards[c.name];
+                deck.splice(deck.indexOf(c), 1);
+                deck.push(newCard());
+            }
+            let cardToUpgrade;
+            function upgradeDialog() {
+                let chosen = choose(deck.map(x=>x.name), "Choose a card to upgrade.");
+                for(let x of hand) {
+                    if(chosen.toLowerCase() == x.name.toLowerCase()) {
+                        cardToUpgrade = x;
+                    }
+                }
+                getId("upgradeDialog").style.display = "block";
+                getId("oldCard").innerHTML = "<b>"+cardToUpgrade.name+":</b><br/>Cost: "+cardToUpgrade.cost+" | Effect: "+unformat(cardToUpgrade.desc);
+                if(!(upgradedCards[cardToUpgrade.name])) {
+                    getId("newCard").innerHTML = "<br/>That card is not currently upgradable. The rest of the upgrades will be added soon.";
+                } else {
+                    getId("newCard").innerHTML = "<br/><b>"+cardToUpgrade.name+"+:</b><br/>Cost: "+upgradedCards[cardToUpgrade.name]().cost+" | Effect: "+unformat(upgradedCards[cardToUpgrade.name]().desc);
+                }
+            }
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
             let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper]);
@@ -791,7 +1025,7 @@ updateStatLine();
                         }
                     }
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+x.desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", ""))[cardNames.indexOf(cardChoice.slice(5))]);
+                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+unformat(x.desc))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
                 }
             }
@@ -1032,6 +1266,7 @@ updateStatLine();
                     let newDesc = c.desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
                     .replace("[BLOOD4BLOOD]", 4 - stats.timesLostHp)
                     .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
+                    .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
                     .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]");
                     for(let i=1; i<50; i++) {
                         let newI = i;
