@@ -445,6 +445,7 @@
                 if(mapY >= 15) {
                     mapY = 0;
                     hp = maxHp;
+                    mapGen();
                     maxEnergy += 1;
                     if(actNum == 1) {
                         actNum = 2;
@@ -1210,7 +1211,9 @@ updateStatLine();
             let actNum = 1;
             let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
-            let map = [
+            let map;
+            function mapGen() {
+                map = [
                 ["",            "",            "start",       "",            ""          ],
                 ["",            randomThing(), randomThing(), randomThing(), ""          ],
                 [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
@@ -1228,6 +1231,8 @@ updateStatLine();
                 ["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ],
                 ["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]
             ];
+            }
+            mapGen();
             
             // These make writing attacks *much* easier.
             let attack = amt => function(me){ me.dealDamage(amt); }
