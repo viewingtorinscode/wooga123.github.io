@@ -1088,8 +1088,7 @@ updateStatLine();
                     }
                 }
                 let cardNames = newCards.map(x=>x.name.toLowerCase());
-                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\n"+newCards.map(x=>x.name).join(" | ")).toLowerCase();
-                if(!cardChoice) return;
+                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\nType 'skip' to decline.\n"+newCards.map(x=>x.name).join(" | ")).toLowerCase();
                 let ind = cardNames.indexOf(cardChoice);
                 if(cardNames.includes(cardChoice)) {
                     alert("Added "+newCards[ind].name+" to your deck.");
@@ -1102,12 +1101,14 @@ updateStatLine();
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
                     alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+unformat(x.desc))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
-                } else if(!cardChoice || cardChoice.includes("skip") || cardChoice == "") {
+                } else if(cardChoice == null || cardChoice.includes("skip") || cardChoice == "") {
                     for(let r of relics) {
                         if(r.trigger == "no_card") {
                             r.effect();
                         }
                     }
+                } else {
+                    addCard(newCards);
                 }
             }
             
