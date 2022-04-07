@@ -270,13 +270,17 @@
                     return 0;
                 }
                 gainBuff(name, amt) {
+                    let newAmt = amt;
+                    if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
+                    if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
+                    if(this.hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Minus Dexterity");}
                     for(let b of this.buffs) {
                         if(b.name == name) {
-                            b.amt += amt;
+                            b.amt += newAmt;
                             return;
                         }
                     }
-                    this.buffs.push({name: name, amt: amt});
+                    this.buffs.push({name: name, amt: newAmt});
                 }
                 loseBuff(name, amt=9999) {
                     for(let b of this.buffs) {
@@ -328,6 +332,7 @@
             function gainBuff(name, amt) {
                 let newAmt = amt;
                 if(hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
+                if(hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Dexterity");}
                 if(hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Minus Dexterity");}
                 if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 for(let b of buffs) {
