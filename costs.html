@@ -747,8 +747,8 @@ updateStatLine();
             let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", function(enemy){
                 gainBuff("Barricade", 1);
             }, ["exhausted"]);
-            let berserk = () => new Card("Berserk", 0, "Power", "Gain 2 Vulnerable, but gain 1 more energy each turn.", function(enemy){
-                gainBuff("Vulnerable", 2); gainBuff("Energize", 1);
+            let berserk = () => new Card("Berserk", 0, "Power", "Gain Vulnerable for 2 turns, but gain 1 more energy each turn.", function(enemy){
+                gainBuff("Vulnerable", 3); gainBuff("Energize", 1);
             }, ["exhausted"]);
             let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
                 dealDamage(enemy, 32);
@@ -760,7 +760,7 @@ updateStatLine();
                 gainBuff("Ritual", 2);
             }, ["exhausted"]);
             let doubleTap = () => new Card("Double Tap", 1, "Skill", "Your next Attack is played twice.", function(enemy){
-                gainBuff("Double Tap");
+                gainBuff("Double Tap", 1);
             }, ["exhausted"]);
             let exhume = () => new Card("Exhume", 1, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", function(enemy){
                 let chosen = choose(exhaustPile.map(x=>x.name), "Choose a card to put into your hand.");
@@ -950,27 +950,19 @@ updateStatLine();
                     dealDamage(enemy, 13); enemy.gainBuff("Weak", 2); enemy.gainBuff("Vulnerable", 2);
                 }), "Whirlwind": () => new Card("Whirlwind", "X", "Attack", "Deal [DAM8] damage to ALL enemies X times.", function(enemy){
                     for(let e of enemies){dealDamage(e, 8);}
-                })
-            };
-            /*let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", function(enemy){
+                }), "Barricade": () => new Card("Barricade+", 2, "Power", "Block is not removed at the start of your turn.", function(enemy){
                     gainBuff("Barricade", 1);
-                }, ["exhausted"]),
-            let berserk = () => new Card("Berserk", 0, "Power", "Gain 2 Vulnerable, but gain 1 more energy each turn.", function(enemy){
+                }, ["exhausted"]), "Berserk": () => new Card("Berserk+", 0, "Power", "Gain Vulnerable for 1 turn, but gain 1 more energy each turn.", function(enemy){
                     gainBuff("Vulnerable", 2); gainBuff("Energize", 1);
-                }, ["exhausted"]),
-            let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
-                    dealDamage(enemy, 32);
-                }),
-            let brutality = () => new Card("Brutality", 0, "Power", "At the start of your turn, lose 1 HP and draw 1 more card.", function(enemy){
+                }, ["exhausted"]), "Bludgeon": () => new Card("Bludgeon+", 3, "Attack", "Deal [DAM42] damage.", function(enemy){
+                    dealDamage(enemy, 42);
+                }), "Brutality": new Card("Brutality+", 0, "Power", "Innate. At the start of your turn, lose 1 HP and draw 1 more card.", function(enemy){
                     gainBuff("Brutality", 1);
-                }, ["exhausted"]),
-            let demonForm = () => new Card("Demonic Ritual", 3, "Power", "At the end of your turn, gain 2 Strength.", function(enemy){
-                    gainBuff("Ritual", 2);
-                }, ["exhausted"]),
-            let doubleTap = () => new Card("Double Tap", 1, "Skill", "Your next Attack is played twice.", function(enemy){
-                    gainBuff("Double Tap");
-                }, ["exhausted"]),
-            let exhume = () => new Card("Exhume", 1, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", function(enemy){
+                }, ["exhausted", "innate"]), "Demonic Ritual": () => new Card("Demonic Ritual+", 3, "Power", "At the end of your turn, gain 3 Strength.", function(enemy){
+                    gainBuff("Ritual", 3);
+                }, ["exhausted"]), "Double Tap": () => new Card("Double Tap+", 1, "Skill", "Your next 2 Attacks are played twice.", function(enemy){
+                    gainBuff("Double Tap", 2);
+                }, ["exhausted"]), "Exhume": () => new Card("Exhume+", 0, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", function(enemy){
                     let chosen = choose(exhaustPile.map(x=>x.name), "Choose a card to put into your hand.");
                     for(let x of exhaustPile) {
                         if(chosen.toLowerCase() == x.name.toLowerCase()) {
@@ -978,27 +970,21 @@ updateStatLine();
                             exhaustPile.splice(exhaustPile.indexOf(x));
                         }
                     }
-                }),
-            let feed = () => new Card("Feed", 1, "Attack", "Enemy loses 10 HP. If they die from it, gain 3 Max HP. Exhaust.", function(enemy){
-                    if(enemy.hp <= 10) {maxHp += 3; hp += 3;}
-                    enemy.hp -= 10;
-                }, ["exhausted"]),
-            let impervious = () => new Card("Impervious", 2, "Skill", "Gain [BLK30] block. Exhaust.", function(enemy){
-                    gainBuff("Block", 30);
-                }, ["exhausted"]),
-            let juggernaut = () => new Card("Juggernaut", 2, "Power", "Whenever you gain Block, deal [DAM5] damage to a random enemy.", function(enemy){
-                    gainBuff("Juggernaut", 5);
-                }, ["exhausted"]),
-            let limitBreak = () => new Card("Limit Break", 1, "Skill", "Double your Strength. Exhaust.", function(enemy){
+                }), "Feed": () => new Card("Feed+", 1, "Attack", "Enemy loses 12 HP. If they die from it, gain 4 Max HP. Exhaust.", function(enemy){
+                    if(enemy.hp <= 12) {maxHp += 4; hp += 4;}
+                    enemy.hp -= 12;
+                }, ["exhausted"]), "Impervious": () => new Card("Impervious+", 2, "Skill", "Gain [BLK40] block. Exhaust.", function(enemy){
+                    gainBuff("Block", 40);
+                }, ["exhausted"]), "Juggernaut": () => new Card("Juggernaut+", 2, "Power", "Whenever you gain Block, deal [DAM7] damage to a random enemy.", function(enemy){
+                    gainBuff("Juggernaut", 7);
+                }, ["exhausted"]), "Limit Break": () => new Card("Limit Break+", 1, "Skill", "Double your Strength.", function(enemy){
                     if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
-                }, ["exhausted"]),
-            let offering = () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.", function(enemy){
-                    hp -= 6; energy += 2; drawCard(3);
-                }, ["exhausted"]),
-            let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal 8 HP. Exhaust.", function(enemy){
-                    dealDamage(enemy, 8); hp = Math.min(maxHp, hp + 8);
+                }), "Offering": () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.", function(enemy){
+                    hp -= 6; energy += 2; drawCard(5);
+                }, ["exhausted"]), "Reaper": () => new Card("Reaper", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
+                    dealDamage(enemy, 10); hp = Math.min(maxHp, hp + 10);
                 }, ["exhausted"])
-            };*/
+            };
             function upgradeCard(c) {
                 let newCard = upgradedCards[c.name];
                 deck.splice(deck.indexOf(c), 1);
@@ -1014,11 +1000,7 @@ updateStatLine();
                 }
                 getId("upgradeDialog").style.display = "block";
                 getId("oldCard").innerHTML = "<b>"+cardToUpgrade.name+":</b><br/>Cost: "+cardToUpgrade.cost+" | Effect: "+unformat(cardToUpgrade.desc);
-                if(!(upgradedCards[cardToUpgrade.name])) {
-                    getId("newCard").innerHTML = "<br/>That card is not currently upgradable. The rest of the upgrades will be added soon.";
-                } else {
-                    getId("newCard").innerHTML = "<br/><b>"+cardToUpgrade.name+"+:</b><br/>Cost: "+upgradedCards[cardToUpgrade.name]().cost+" | Effect: "+unformat(upgradedCards[cardToUpgrade.name]().desc);
-                }
+                getId("newCard").innerHTML = "<br/><b>"+cardToUpgrade.name+"+:</b><br/>Cost: "+upgradedCards[cardToUpgrade.name]().cost+" | Effect: "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
@@ -1546,6 +1528,12 @@ updateStatLine();
             for(let relic of relics) {
                 if(relic.trigger == "combat_start") {
                     relic.effect();
+                }
+            }
+            for(let card of drawPile) {
+                if(card.flags.includes("innate")) {
+                    drawPile.splice(drawPile.indexOf(card), 1);
+                    hand.push(card);
                 }
             }
             startTurn();
