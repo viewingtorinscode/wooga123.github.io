@@ -328,6 +328,7 @@
             function gainBuff(name, amt) {
                 let newAmt = amt;
                 if(hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
+                if(hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Minus Dexterity");}
                 if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 for(let b of buffs) {
                     if(b.name == name) {
