@@ -117,7 +117,7 @@
                 let c = "qwertyuiopasdfghjklzxcvbnm";
                 let newX = x.map(e=>e.toLowerCase());
                 while(!newX.includes(c) && x.length > 0) {
-                    c = prompt(p, "Options: "+x.join(", "));
+                    c = prompt(p, "Options: "+x.join(", ")).toLowerCase();
                 }
                 return c;
             }
@@ -541,7 +541,7 @@ updateStatLine();
             let bodySlam = () => new Card("Body Slam", 1, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
                 dealDamage(enemy, hasBuff("Block"));
             });
-            let clash = () => new Card("Clash",0,"Attack","Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
+            let clash = () => new Card("Clash", 0, "Attack","Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
                 if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);}
             });
             let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
@@ -987,7 +987,7 @@ updateStatLine();
             let cardToUpgrade;
             function upgradeDialog() {
                 let chosen = choose(deck.map(x=>x.name), "Choose a card to upgrade.");
-                for(let x of hand) {
+                for(let x of deck) {
                     if(chosen.toLowerCase() == x.name.toLowerCase()) {
                         cardToUpgrade = x;
                     }
