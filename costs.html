@@ -1,4 +1,4 @@
-<html>
+<html id="html">
     <head>
         <title>Inbox - tsolmer9183@student.pps.net</title>
         <style>
@@ -21,6 +21,10 @@
             .Attack {border: 2px solid red; color: red;}
             .Skill {border: 2px solid skyblue; color: skyblue;}
             .Power {border: 2px solid yellow; color: yellow;}
+            .Status {border: 2px solid lightgreen; color: lightgreen;}
+            .unplayable {border: 2px solid #555; color: #555;}
+            button:hover:not(.unplayable):not(.notbig):not(.nonbutton) {padding: 3px 9px 3px 9px; font-size: 15px;}
+            button:hover > span {font-size: 13px;}
             table {width: 100%;}
             .tt {user-select: none;}
             .txt {
@@ -56,6 +60,7 @@
             .attack-block::before { content: url(StS/intent-attackblock.png); }
             .block-buff::before { content: url(StS/intent-blockbuff.png); }
             .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
+            .attack-buff::before { content: url(StS/intent-attackbuff.png); }
         </style>
     </head>
     <body>
@@ -133,7 +138,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace("[DAM", "").replace("[BLK", "").replace("]", "")
+                return desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace("[BLOCK]", 0).replace("[DAM", "").replace("[BLK", "").replace("]", "")
             }
             class Card {
                 /*
@@ -226,6 +231,11 @@
                             }
                         }
                     }
+                    if(this.type != "Attack") {
+                        if(hasBuff("Hex") > 0) {
+                            for(let i=0; i<hasBuff("Hex"); i++) {discardPile.push(statusCards["Dazed"]());}
+                        }
+                    }
                 }
             }
             
@@ -270,6 +280,7 @@
                     return 0;
                 }
                 gainBuff(name, amt) {
+                    if(debuffs.includes[name] && this.hasBuff("Artifact") > 0) {this.loseBuff("Artifact", 1); return;}
                     let newAmt = amt;
                     if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                     if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
@@ -304,6 +315,15 @@
                     if(finalAmt - hasBuff("Block") > 0) {
                         stats.timesLostHp++;
                         dealDamage(this, hasBuff("Thorns"));
+                        getId("html").style.background = "red";
+                        let normalColor1 = function(){getId("html").style.background = "#c11";}
+                        let normalColor2 = function(){getId("html").style.background = "#911";}
+                        let normalColor3 = function(){getId("html").style.background = "#522";}
+                        let normalColor4 = function(){getId("html").style.background = "#222";}
+                        setTimeout(normalColor1, 40);
+                        setTimeout(normalColor2, 80);
+                        setTimeout(normalColor3, 120);
+                        setTimeout(normalColor4, 160);
                     }
                     loseBuff("Block", finalAmt);
                 }
@@ -330,6 +350,7 @@
                 return 0;
             }
             function gainBuff(name, amt) {
+                if(debuffs.includes[name] && hasBuff("Artifact") > 0) {loseBuff("Artifact", 1); return;}
                 let newAmt = amt;
                 if(hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                 if(hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Dexterity");}
@@ -406,9 +427,11 @@
                 "Double Tap": "Duplicate the next [AMT] Attack[s] you play.",
                 "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
                 "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
-                "Dexterity Down": "At end of turn, lose [AMT] Dexterity."
-                
+                "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
+                "Artifact": "Negates the next [AMT] debuff[s].",
+                "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile."
             };
+            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex"];
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -416,6 +439,14 @@
             };
             
             function showMap() {
+                if(mapY >= 15) {
+                    mapY = 0;
+                    maxEnergy += 1;
+                    if(actNum == 1) {
+                        actNum = 2;
+                        alert("Congratulations! You completed Act I! That's half the game (for now...)");
+                    }
+                }
                 updateStatLine();
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
@@ -432,9 +463,9 @@
                                 (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
                                   (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : 
                                     (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : 
-                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $150 for a relic." : "Fight the final boss of this game.")))
+                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $150 for a relic." : "Fight a Boss. Cool stuff if you win.")))
                                 )+"</span>";
-                            nodeButton.setAttribute("class", "tt mapButton");
+                            nodeButton.setAttribute("class", "tt notbig");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
                                 nodeButton.setAttribute("onclick", `gotoMap(${floor}, ${node});`);
                             } else if(floor == mapY && node == mapX) {
@@ -470,21 +501,38 @@
                     startTurn();
                 }
                 if(map[y][x] == "enemy") {
-                    let nme = () => choice(possibleEnemies.slice(0))();
+                    let nme;
+                    if(actNum == 1) {
+                        nme = () => choice(possibleEnemies.slice(0))();
+                    } else {
+                        nme = () => choice(possibleEnemies_act2.slice(0))();
+                    }
                     if(mapY >= 2) {enemies = [nme(), nme()]}
                     else {enemies = [nme()]}
                     eliteBattle = false;
+                    bossBattle = false;
                     readyBattle();
                 } else if(map[y][x] == "elite") {
-                    let nme = () => choice(possibleElites.slice(0))();
+                    let nme;
+                    if(actNum == 1) {
+                        nme = () => choice(possibleElites.slice(0))();
+                    } else {
+                        nme = () => choice(possibleElites_act2.slice(0))();
+                    }
                     enemies = [nme()];
                     eliteBattle = true;
+                    bossBattle = false;
                     readyBattle();
-                } else if(map[y][x] == "<b style='color:red;'>BOSS&nbsp;</b>") {
-                    alert("Bossfight time!");
-                    let nme = () => choice(possibleBosses.slice(0))();
+                } else if(map[y][x].includes("BOSS")) {
+                    let nme;
+                    if(actNum == 1) {
+                        nme = () => choice(possibleBosses.slice(0))();
+                    } else {
+                        nme = () => choice(possibleBosses_act2.slice(0))();
+                    }
                     enemies = [nme()];
-                    eliteBattle = true;
+                    eliteBattle = false;
+                    bossBattle = true;
                     readyBattle();
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
@@ -1014,7 +1062,7 @@ updateStatLine();
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
-                    if(eliteBattle == true) {
+                    if(eliteBattle == true || bossBattle == true) {
                         newCards = [randRareCard()(), randRareCard()(), randRareCard()()];
                     } else {
                         newCards = [randCard()(), randCard()(), randCard()()];
@@ -1035,7 +1083,7 @@ updateStatLine();
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
                     alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+unformat(x.desc))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
-                } else {
+                } else if(!cardChoice || cardChoice.includes("skip") || cardChoice == "") {
                     for(let r of relics) {
                         if(r.trigger == "no_card") {
                             r.effect();
@@ -1123,7 +1171,7 @@ updateStatLine();
                 {name: "Flex", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
             ];
             
-            let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
+            let deck = [strike(), combust(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
             let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -1139,6 +1187,7 @@ updateStatLine();
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
+            let actNum = 1;
             let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map = [
@@ -1165,12 +1214,15 @@ updateStatLine();
             let block = amt => function(me){ me.gainBuff("Block", amt); }
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
-            let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
             let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
+            let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
+            let multi_buff = (lst) => function(me){ for(let x of lst){me.gainBuff(x[0], x[1]);} }
             let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
             let attack_apply = (atk, what, amt) => function(me){ me.dealDamage(atk); gainBuff(what, amt); }
+            let attack_buff = (atk, what, amt) => function(me){ me.dealDamage(atk); me.gainBuff(what, amt); }
             let block_buff = (blk, what, amt) => function(me){ me.gainBuff("Block", blk); me.gainBuff(what, amt); }
             let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} me.dealDamage(atk); }
+            let buff_apply = (b, bamt, n, namt) => function(me){ me.gainBuff(b, bamt); gainBuff(n, namt); }
             
             let possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
@@ -1217,9 +1269,49 @@ updateStatLine();
                     {intent: "attacking 25", desc: "deal [DAM25] damage", effect: attack(23)}
                 ])
             ];
+            let possibleEnemies_act2 = [
+                () => new Enemy("Spheric Guardian", 60, [
+                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
+                    {intent: "attack-nerf 10", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Frail", 5)},
+                    {intent: "attack-block 15", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
+                ], ["no-repeat"]),
+                () => new Enemy("The Chosen", 95, [
+                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
+                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                    {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)},
+                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                    {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)}
+                ]),
+                () => new Enemy("Shelled Parasite", 70, [
+                    {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
+                    {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
+                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and apply a negative effect", effect: attack_apply(12, "Frail", 2)}
+                ])
+            ];
+            let possibleElites_act2 = [
+                () => new Enemy("Book of Stabbing", 160, [
+                    {intent: "attack 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)},
+                    {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)}
+                ])
+            ];
+            let possibleBosses_act2 = [
+                () => new Enemy("The Champ", 420, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 2)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
+                    {intent: "meganerf", desc: "apply a <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 4], ["Weak", 3], ["Frail", 2]])},
+                    {intent: "attacking 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack(8)}
+                ], ["randomize"])
+            ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
             let eliteBattle = false;
+            let bossBattle = false;
             let target = enemies[0];
             
             function updateStatLine() {
@@ -1296,7 +1388,8 @@ updateStatLine();
                 for(let c of hand) {
                     let cardElem = document.createElement("button");
                     cardElem.setAttribute("onclick", `let card = hand[${hand.indexOf(c)}]; card.play(); updateHtml();`);
-                    cardElem.setAttribute("class", "tt "+c.type);
+                    if(c.flags.includes("unplayable") || energy < c.cost) {cardElem.setAttribute("class", "tt unplayable "+c.type);}
+                    else {cardElem.setAttribute("class", "tt "+c.type);}
                     cardElem.innerHTML = c.name;
                     let cardTooltip = document.createElement("span");
                     cardTooltip.setAttribute("class", "txt");
@@ -1370,13 +1463,17 @@ updateStatLine();
                                 let newRelic = choice(relicPool)();
                                 getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
                                 getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
+                            } else if(bossBattle == true) {
+                                getId("relicReward").style.display = "block";
+                                let newRelic = choice(relicPool)();
+                                getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
+                                getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
                             } else {
                                 getId("relicReward").style.display = "none";
                             }
                         }
                     }
                     let enemyElem = document.createElement("span");
-                    enemyElem.setAttribute("class", "tt");
                     let enemyButton = document.createElement("button");
                     enemyButton.setAttribute("onclick", `target = enemies[${eIndex}]; updateHtml();`);
                     let intentType = e.intent.intent.split(" ")[0];
@@ -1395,7 +1492,11 @@ updateStatLine();
                             intentNumber = e.intent.intent.split(" ")[1];
                         }
                     }
-                    enemyButton.setAttribute("class", intentType);
+                    if(e.number == target.number) {
+                        enemyButton.setAttribute("class", intentType);
+                    } else {
+                        enemyButton.setAttribute("class", intentType+" nonbutton");
+                    }
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     enemyElem.appendChild(enemyButton);
                     if(e.hasBuff("Block") > 0) {
@@ -1403,7 +1504,6 @@ updateStatLine();
                     } else {
                         enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
                     }
-                    if(target.number == e.number) { enemyElem.innerHTML += " (target)"; }
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
@@ -1423,10 +1523,10 @@ updateStatLine();
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
                 }
-                /*if(hp <= 0) {
+                if(hp <= 0) {
                     alert("You died! D:");
                     getId("gameScreen").style.display = "none";
-                }*/
+                }
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
                     t.style.left = (mousex+10) + "px";
@@ -1514,6 +1614,7 @@ updateStatLine();
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
+                updateHtml();
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
                     if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
