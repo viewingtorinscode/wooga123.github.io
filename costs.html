@@ -187,8 +187,17 @@
                 }
                 play_success() {
                     if(this.type == "Skill") {
+                        stats.skillsThisTurn += 1;
                         for(let e of enemies) {
                             if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
+                        }
+                        for(let r of relics) {
+                            if(r.trigger == "on_skill") {
+                                r.effect();
+                            }
+                            if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {
+                                r.effect();
+                            }
                         }
                     }
                     if(this.type == "Attack") {
@@ -203,6 +212,16 @@
                         }
                         for(let r of relics) {
                             if(r.trigger == "on_attack") {
+                                r.effect();
+                            }
+                            if(r.trigger == "3_attacks" && stats.attacksThisTurn % 3 == 0) {
+                                r.effect();
+                            }
+                        }
+                    }
+                    if(this.name.toLowerCase().includes("strike")) {
+                        for(let r of relics) {
+                            if(r.trigger == "strike") {
                                 r.effect();
                             }
                         }
@@ -435,7 +454,7 @@
                     exhaustPile = [];
                     hand = [];
                     buffs = [];
-                    stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: null, rested: stats.rested};
+                    stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested};
                     target = enemies[0];
                     for(let r of relics) {
                         if(r.trigger == "combat_start") {
@@ -456,6 +475,7 @@
                     eliteBattle = true;
                     readyBattle();
                 } else if(map[y][x] == "<b style='color:red;'>BOSS&nbsp;</b>") {
+                    alert("Bossfight time!");
                     let nme = () => choice(possibleBosses.slice(0))();
                     enemies = [nme()];
                     eliteBattle = true;
@@ -1027,6 +1047,12 @@ updateStatLine();
                 } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
                     alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+unformat(x.desc))[cardNames.indexOf(cardChoice.slice(5))]);
                     addCard(newCards);
+                } else {
+                    for(let r of relics) {
+                        if(r.trigger == "no_card") {
+                            r.effect();
+                        }
+                    }
                 }
             }
             
@@ -1047,6 +1073,17 @@ updateStatLine();
             function r_regalPillow() {hp = Math.min(maxHp, hp+15);}
             function r_strawberry() {maxHp += 7; hp += 7;}
             function r_vajra() {gainBuff("Strength", 1);}
+            function r_feather() {hp = Math.min(maxHp, hp+Math.round(0.5*deck.length));}
+            function r_frozenEgg() {if(deck[deck.length-1].type=="Power"){upgradeCard(deck[deck.length-1]);}}
+            function r_letterOpener() {for(let x of enemies){dealDamage(x, 5);}}
+            function r_meatBone() {if(hp/maxHp <= 0.5) {hp = Math.min(maxHp, hp+12);}}
+            function r_mercuryHourglass() {for(let x of enemies){dealDamage(x, 3);}}
+            function r_moltenEgg() {if(deck[deck.length-1].type=="Attack"){upgradeCard(deck[deck.length-1]);}}
+            function r_ornamentalFan() {gainBuff("Block", 4);}
+            function r_pear() {maxHp += 10; hp += 10;}
+            function r_singingBowl() {maxHp += 2; hp += 2;}
+            function r_strikeDummy() {dealDamage(target, 3);}
+            function r_toxicEgg() {if(deck[deck.length-1].type=="Skill"){upgradeCard(deck[deck.length-1]);}}
             let relicPool = [
                 () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
                 () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
@@ -1064,7 +1101,20 @@ updateStatLine();
                 () => new Relic("Preserved Insect","Elites have 25% less HP.","combat_start",r_preservedInsect),
                 () => new Relic("Regal Pillow","When you leave a Rest Site, heal 15 HP.","rest",r_regalPillow),
                 () => new Relic("Strawberry","Raise your max HP by 7 and heal 7 HP.","on_pickup",r_strawberry),
-                () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra)
+                () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra),
+                () => new Relic("Eternal Feather","When you rest, heal 1 HP for each 2 cards in your deck.","rest",r_feather),
+                () => new Relic("Frozen Egg","When you add a Power to your deck, it is upgraded.","add_card",r_frozenEgg),
+                () => new Relic("Kunai","When you play 3 Attacks in a single turn, gain 1 Dexterity.","3_attacks",r_smoothStone),
+                () => new Relic("Letter Opener","When you play 3 Skills in a single turn, deal 5 damage to ALL enemies.","3_skills",r_letterOpener),
+                () => new Relic("Meat on the Bone","When you start combat with under 50% HP, heal 12 HP.","combat_start",r_meatBone),
+                () => new Relic("Mercury Hourglass","At start of turn, deal 3 damage to ALL enemies.","turn_start",r_mercuryHourglass),
+                () => new Relic("Molten Egg","When you add an Attack to your deck, it is upgraded.","add_card",r_moltenEgg),
+                () => new Relic("Ornamental Fan","When you play 3 Attacks in a single turn, gain 4 Block.","3_attacks",r_ornamentalFan),
+                () => new Relic("Pear","Raise your max HP by 10 and heal 10 HP.","on_pickup",r_pear),
+                () => new Relic("Shuriken","When you play 3 Attacks in a single turn, gain 1 Strength.","3_attacks",r_vajra),
+                () => new Relic("Singing Bowl","When you view but decline the card reward, gain 2 Max HP.","no_card",r_singingBowl),
+                () => new Relic("Strike Dummy","Cards containing 'Strike' deal 3 more damage.","strike",r_strikeDummy),
+                () => new Relic("Toxic Egg","When you add a Skill to your deck, it is upgraded.","add_card",r_toxicEgg)
             ];
             
             let potionPool = [
@@ -1097,7 +1147,7 @@ updateStatLine();
             let hp = 70;
             let maxHp = 70;
             let buffs = [];
-            let stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: null, rested: false};
+            let stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: false};
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
@@ -1442,6 +1492,7 @@ updateStatLine();
                     }
                 }
                 stats.attacksThisTurn = 0;
+                stats.skillsThisTurn = 0;
                 if(hasBuff("Barricade")==0){loseBuff("Block");}
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard();}
