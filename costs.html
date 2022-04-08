@@ -62,9 +62,47 @@
             .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
             .attack-buff::before { content: url(StS/intent-attackbuff.png); }
             .block-nerf::before { content: url(StS/intent-blocknerf.png); }
+            #combatLog {
+                overflow: scroll;
+                width: 600px;
+                height: 400px;
+            }
+            #cardModal {
+                position: fixed;
+                z-index: 1;
+                left: 0;
+                top: 0;
+                width: 100%;
+                height: 100%;
+                overflow: auto;
+                background-color: rgba(0,0,0,0.4);
+            }
+            #cardModalContent {
+                background-color: #555;
+                margin: 15% auto;
+                padding: 20px;
+                width: 80%;
+            }
         </style>
     </head>
     <body>
+        <div id="cardModal" style="display: none;">
+            <div id="cardModalContent">
+                <p>Choose a card to add to your deck:</p>
+                <button id="modalCard1" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(0);"></button>
+                <button id="modalCard2" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(1);"></button>
+                <button id="modalCard3" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(2);"></button>
+                <button id="modalSkipCard" class="Skill" onclick="getId('cardModal').style.display = 'none'; finishAddCard(-1);">Skip</button>
+            </div>
+        </div>
+        <div id="bossModal" style="display: none;">
+            <div id="bossModalContent">
+                <p>Choose a Rare Relic to obtain:</p>
+                <button id="modalRelic1" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(0);"></button>
+                <button id="modalRelic2" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(1);"></button>
+                <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
+            </div>
+        </div>
         <span id="statusLine"></span>
         <br /><br />
         <table id="gameScreen">
@@ -82,6 +120,14 @@
                 <td id="enemiesTd">
                     <div id="enemies"></div>
                 </td>
+            </tr>
+            <tr>
+                <td>
+                    <br /><br /><br />
+                    <h3>Combat log</h3>
+                    <pre id="combatLog"></pre>
+                </td>
+                <td></td>
             </tr>
         </table>
         <div id="rewardsScreen" style="display: none;">
@@ -141,6 +187,13 @@
             }
             function unformat(desc) {
                 return desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace("[BLOCK]", 0).replace("[DAM", "").replace("[BLK", "").replace("]", "")
+            }
+            function log(message, color="white") {
+                getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
+            }
+            function addCircle(char) {
+                let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
+                return "<b>"+circles[char]+"</b>";
             }
             class Card {
                 /*
@@ -313,15 +366,18 @@
                             }
                         }
                     }
+                    if(amt > 0) {log(this.name+" gained "+amt+" "+name);}
                 }
                 loseBuff(name, amt=9999) {
                     for(let b of this.buffs) {
                         if(b.name == name) {
+                            let prevAmt = b.amt;
                             if(amt >= b.amt) {
                                 this.buffs.splice(this.buffs.indexOf(b), 1);
                             } else {
                                 b.amt -= amt;
                             }
+                            if(amt > 0) {log(this.name+" lost "+Math.min(amt, prevAmt)+" "+name);}
                             return;
                         }
                     }
@@ -333,19 +389,23 @@
                     finalAmt += this.hasBuff("Strength");
                     if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = 0; loseBuff("Buffer", 1);}
                     
+                    if(finalAmt > 0){log(this.name+" dealt "+Math.max(0, finalAmt-hasBuff("Block"))+" damage"+(
+                        hasBuff("Block")>0 ? " (+ "+Math.min(hasBuff("Block"), finalAmt)+" blocked)" : ""
+                    ));}
+                    
                     hp -= Math.max(0, finalAmt - hasBuff("Block"));
                     if(finalAmt - hasBuff("Block") > 0) {
                         stats.timesLostHp++;
-                        dealDamage(this, hasBuff("Thorns"));
+                        if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns"));}
                         for(let r of relics) {
                             if(r.trigger == "lose_hp") {
                                 r.effect();
                             }
                         }
-                        getId("html").style.background = "#a00";
-                        let normalColor1 = function(){getId("html").style.background = "#811";}
-                        let normalColor2 = function(){getId("html").style.background = "#611";}
-                        let normalColor3 = function(){getId("html").style.background = "#422";}
+                        getId("html").style.background = "#600";
+                        let normalColor1 = function(){getId("html").style.background = "#511";}
+                        let normalColor2 = function(){getId("html").style.background = "#411";}
+                        let normalColor3 = function(){getId("html").style.background = "#322";}
                         let normalColor4 = function(){getId("html").style.background = "#222";}
                         setTimeout(normalColor1, 40);
                         setTimeout(normalColor2, 80);
@@ -390,15 +450,18 @@
                     }
                 }
                 buffs.push({name: name, amt: newAmt});
+                if(amt > 0) {log("You gained "+amt+" "+name);}
             }
             function loseBuff(name, amt=9999) {
                 for(let b of buffs) {
                     if(b.name == name) {
+                        let prevAmt = b.amt;
                         if(amt >= b.amt) {
                             buffs.splice(buffs.indexOf(b), 1);
                         } else {
                             b.amt -= amt;
                         }
+                        if(amt > 0) {log("You lost "+Math.min(amt, prevAmt)+" "+name);}
                         return;
                     }
                 }
@@ -409,6 +472,10 @@
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
                 finalAmt -= hasBuff("Minus Strength");
+                
+                if(finalAmt > 0) {log("You dealt "+Math.max(0, finalAmt-actor.hasBuff("Block"))+" damage"+(
+                    actor.hasBuff("Block")>0 ? " (+ "+Math.min(actor.hasBuff("Block"), finalAmt)+" blocked)" : ""
+                )+" to "+actor.name);}
                 
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(finalAmt - actor.hasBuff("Block") > 0) {
@@ -422,7 +489,6 @@
                     }
                 }
                 actor.loseBuff("Block", finalAmt);
-                
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns"));}
             }
             let buffDesc = {
@@ -523,7 +589,7 @@
             function gotoMap(y, x) {
                 mapY = y;
                 mapX = x;
-                function readyBattle() {
+                let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
                     drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -538,6 +604,13 @@
                             r.effect();
                         }
                     }
+                    for(let card of drawPile) {
+                        if(card.flags.includes("innate")) {
+                            drawPile.splice(drawPile.indexOf(card), 1);
+                            hand.push(card);
+                        }
+                    }
+                    getId("combatLog").innerHTML = "";
                     startTurn();
                 }
                 if(map[y][x] == "enemy") {
@@ -587,7 +660,7 @@
                     getId("mapScreen").style.display = "none";
                     getId("merchantScreen").style.display = "block";
                     getId("merchantScreen").innerHTML = "";
-                    let offers = [];
+                    offers = [];
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
                         let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
@@ -599,7 +672,7 @@
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
-                        nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+unformat(offer.desc)+"</span>";
+                        nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+" | "+unformat(offer.desc)+"</span>";
                         if(gold >= cardCost) {
                             if(i==0) {
                                 nameElem.setAttribute("class", "Skill tt");
@@ -666,7 +739,7 @@ updateShopScreen();
                     getId("merchantScreen").appendChild(continueElem);
                 }
             }
-            function updateShopScreen(offers) {
+            function updateShopScreen() {
                 for(let i of offers) {
                     if(i.offer >= 10) {
                         let relicElem = getId("relicElem_"+(i.offer-10));
@@ -1153,49 +1226,65 @@ updateShopScreen();
                         newCards = [randCard()(), randCard()(), randCard()()];
                     }
                 }
-                let cardNames = newCards.map(x=>x.name.toLowerCase());
-                let cardChoice = prompt("Choose a card to add to your deck, or\ntype 'info cardname' to see the effect.\nType 'skip' to decline.\n"+newCards.map(x=>x.name).join(" | ")).toLowerCase();
-                let ind = cardNames.indexOf(cardChoice);
+                possibleCards = newCards;
+                getId("cardModal").style.display = "block";
+                for(let x=0; x<3; x++) {
+                    let cardTooltip = document.createElement("span");
+                    let modalCard = getId("modalCard"+(x+1));
+                    modalCard.innerHTML = newCards[x].name;
+                    cardTooltip.innerHTML = addCircle(newCards[x].cost.toString())+" "+newCards[x].type+" | "+unformat(newCards[x].desc);
+                    cardTooltip.setAttribute("class", "txt");
+                    modalCard.appendChild(cardTooltip);
+                }
+            };
+            function finishAddCard(cardNumber) {
+                let cardNames = possibleCards.map(x=>x.name.toLowerCase());
+                let ind = cardNumber;
+                let cardChoice = cardNames[cardNumber];
                 if(cardNames.includes(cardChoice)) {
-                    alert("Added "+newCards[ind].name+" to your deck.");
-                    deck.push(newCards[ind]);
+                    deck.push(possibleCards[ind]);
+                    updateStatLine();
                     for(let r of relics) {
                         if(r.trigger == "add_card") {
                             r.effect();
                         }
                     }
-                } else if(cardChoice.slice(0, 4)=="info" && cardNames.includes(cardChoice.slice(5))) {
-                    alert(newCards.map(x=>"Cost: "+x.cost+" | Effect: "+unformat(x.desc))[cardNames.indexOf(cardChoice.slice(5))]);
-                    addCard(newCards);
-                } else if(cardChoice == null || cardChoice.includes("skip") || cardChoice == "") {
+                } else if(cardNumber == -1) {
                     for(let r of relics) {
                         if(r.trigger == "no_card") {
                             r.effect();
                         }
                     }
                 } else {
-                    addCard(newCards);
+                    addCard(possibleCards); // impossible... probably
                 }
             }
-            function addBossRelic(newRelics="random") {
-                if(newRelics == "random") {
-                    newRelics = [choice(rareRelicPool)(), choice(rareRelicPool)(), choice(rareRelicPool)()];
+            
+            function addBossRelic(newCards="random") {
+                if(newCards == "random") {
+                    newCards = [choice(rareRelicPool)(), choice(rareRelicPool)(), choice(rareRelicPool)()];
                 }
-                let relicNames = newRelics.map(x=>x.name.toLowerCase());
-                let relicChoice = prompt("Choose a relic to add to your deck, or\ntype 'info relicname' to see the effect.\nType 'skip' to decline.\n"+newRelics.map(x=>x.name).join(" | ")).toLowerCase();
-                let ind = relicNames.indexOf(relicChoice);
-                if(relicNames.includes(relicChoice)) {
-                    alert("You obtained the "+newRelics[ind].name+".");
-                    relics.push(newRelics[ind]);
-                } else if(relicChoice.slice(0, 4)=="info" && relicNames.includes(relicChoice.slice(5))) {
-                    alert(newRelics.map(x=>x.desc)[relicNames.indexOf(relicChoice.slice(5))]);
-                    addBossRelic(newRelics);
-                } else if(relicChoice == null || relicChoice.includes("skip") || relicChoice == "") {
-                    // "no_card" doesn't trigger on relics
+                possibleCards = newCards;
+                getId("bossModal").style.display = "block";
+                for(let x=0; x<3; x++) {
+                    let modalCard = getId("modalRelic"+(x+1));
+                    modalCard.innerHTML = newCards[x].name;
+                }
+            };
+            function finishAddRelic(cardNumber) {
+                let cardNames = possibleCards.map(x=>x.name.toLowerCase());
+                let ind = cardNumber;
+                let cardChoice = cardNames[cardNumber];
+                if(cardNames.includes(cardChoice)) {
+                    relics.push(possibleCards[ind]);
+                    updateStatLine();
                 } else {
-                    addBossRelic(newRelics);
+                    addBossRelic(possibleCards); // impossible... probably
                 }
             }
+            
+            let offers = [];
+            let possibleCards = [];
             
             function r_snakeRing() {drawCard(2);}
             function r_akabeko() {dealDamage(8);}
@@ -1344,7 +1433,7 @@ updateShopScreen();
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
-            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
+            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]()); log(me.name+" generated a "+what);} }
             let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
             let multi_buff = (lst) => function(me){ for(let x of lst){me.gainBuff(x[0], x[1]);} }
             let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
@@ -1352,7 +1441,7 @@ updateShopScreen();
             let attack_buff = (atk, what, amt) => function(me){ me.dealDamage(atk); me.gainBuff(what, amt); }
             let block_buff = (blk, what, amt) => function(me){ me.gainBuff("Block", blk); me.gainBuff(what, amt); }
             let block_multinerf = (blk, lst) => function(me){ me.gainBuff("Block", blk); for(let x of lst){gainBuff(x[0], x[1]);}}
-            let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} me.dealDamage(atk); }
+            let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]()); log(me.name+" generated a "+what);} me.dealDamage(atk); }
             let buff_apply = (b, bamt, n, namt) => function(me){ me.gainBuff(b, bamt); gainBuff(n, namt); }
             
             let possibleEnemies = [
@@ -1613,7 +1702,7 @@ updateShopScreen();
                         
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                     }
-                    cardTooltip.innerHTML = c.type+" | Cost: "+c.cost+"<br/>"+newDesc;
+                    cardTooltip.innerHTML = addCircle(c.cost.toString())+" "+c.type+"<br/>"+newDesc;
                     
                     cardElem.appendChild(cardTooltip);
                     handElem.appendChild(cardElem);
@@ -1633,6 +1722,7 @@ updateShopScreen();
                         }
                     }
                     if(e.hp <= 0) {
+                        log(e.name+" died", "lightred");
                         enemies.splice(enemies.indexOf(e), 1);
                         target = enemies[0];
                         if(enemies.length == 0) {
@@ -1757,6 +1847,7 @@ updateShopScreen();
             }
             
             function startTurn() {
+                log("Player turn ========", "#666");
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
@@ -1792,6 +1883,7 @@ updateShopScreen();
             }
             
             function endTurn() {
+                log("Enemy turn =========", "#666");
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
@@ -1848,6 +1940,7 @@ updateShopScreen();
                     hand.push(card);
                 }
             }
+            getId("combatLog").innerHTML = "";
             startTurn();
         </script>
     </body>
