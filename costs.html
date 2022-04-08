@@ -23,7 +23,7 @@
             .Power {border: 2px solid yellow; color: yellow;}
             .Status {border: 2px solid lightgreen; color: lightgreen;}
             .unplayable {border: 2px solid #555; color: #555;}
-            button:hover:not(.unplayable):not(.notbig) {padding: 3px 9px 3px 9px; font-size: 15px;}
+            button:hover:not(.unplayable) {background: #444;}
             button:hover > span {font-size: 13px;}
             table {width: 100%;}
             .tt {user-select: none;}
@@ -154,7 +154,8 @@
         <table id="merchantScreen" style="display: none;">
         </table>
         <script>
-            alert("Welcome to COSTS (Clone Of Slay The Spire)");
+            alert("Welcome to COSTS (Clone Of Slay The Spire). Your time starts when you click 'OK'.");
+            let startTime = Date.now();
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
                 while(currentIndex != 0) {
@@ -199,21 +200,37 @@
                 /*
                 'effect' is a function that takes the current target, whether it is used or not.
                 */
-                constructor(name, cost, type, desc, effect, flags=[]) {
+                constructor(name, cost, type, desc, use, flags=[]) {
                     this.name = name;
                     this.cost = cost;
                     this.type = type;
                     this.desc = desc;
-                    this.use = effect;
+                    this.use = use;
                     this.flags = flags;
                     this.number = Math.random();
                 }
                 play() {
+                    log("playing [" + this.name + "]");
+                    let played = false;
                     if(this.cost == "X") {
                         for(let x=0; x<energy; x++) {
                             this.use(target);
                         }
                         energy = 0;
+                        played = true;
+                    } else {
+                        let newCost = this.cost;
+                        if(this.flags.includes("blood4blood")) {
+                            newCost = Math.max(0, stats.timesLostHp);
+                        }
+                        if(energy >= newCost && !(this.flags.includes("unplayable"))) {
+                            energy -= newCost;
+                            if(!this.use) {alert("Uh oh! Seems like that card has no `use` function");}
+                            this.use(target);
+                            played = true;
+                        }
+                    }
+                    if(played) {
                         hand.splice(hand.indexOf(this), 1);
                         if(this.flags.includes("exhausted")) {
                             exhaustPile.push(this);
@@ -227,27 +244,11 @@
                         } else {
                             discardPile.push(this);
                         }
-                        play_success();
+                        this.play_success();
                         updateHtml();
+                        log("finished playing [" + this.name + "]");
                     } else {
-                        let newCost = this.cost;
-                        if(this.flags.includes("blood4blood")) {
-                            newCost = Math.max(0, stats.timesLostHp);
-                        }
-                        if(energy >= newCost && !(this.flags.includes("unplayable"))) {
-                            energy -= newCost;
-                            this.use(target);
-                            hand.splice(hand.indexOf(this), 1);
-                            if(this.flags.includes("exhausted")) {
-                                exhaustPile.push(this);
-                                drawCard(hasBuff("Dark Embrace"));
-                                if(hasBuff("Feel No Pain")>0) {gainBuff("Block", hasBuff("Feel No Pain"));}
-                            } else {
-                                discardPile.push(this);
-                            }
-                            this.play_success();
-                            updateHtml();
-                        }
+                        log("didn't successfully play [" + this.name + "]");
                     }
                 }
                 play_success() {
@@ -468,7 +469,6 @@
             }
             function dealDamage(actor, amt) {
                 let finalAmt = amt;
-                if(!actor) { alert("that's strange, there is no actor in dealDamage"); }
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
@@ -477,6 +477,9 @@
                 if(finalAmt > 0) {log("You dealt "+Math.max(0, finalAmt-actor.hasBuff("Block"))+" damage"+(
                     actor.hasBuff("Block")>0 ? " (+ "+Math.min(actor.hasBuff("Block"), finalAmt)+" blocked)" : ""
                 )+" to "+actor.name);}
+                else {
+                    log("Not dealing any damage.");
+                }
                 
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(finalAmt - actor.hasBuff("Block") > 0) {
@@ -518,7 +521,7 @@
                 "Barricade": "Block is not removed at the start of your turn.",
                 "Energize": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
-                "Double Tap": "Duplicate the next [AMT] Attack[s] you play.",
+                "Double Tap": "The next Attack you play is played [AMT] more time[s]",
                 "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
                 "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
                 "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
@@ -570,7 +573,7 @@
                                 (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
                                   (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : 
                                     (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : 
-                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $150 for a relic." : "Fight a Boss. Cool stuff if you win.")))
+                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $200 for a relic." : "Fight a Boss. Cool stuff if you win.")))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt notbig");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
@@ -619,7 +622,7 @@
                     if(actNum == 1) {
                         nme = () => choice(possibleEnemies.slice(0))();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleElites_act2.slice(0))();
+                        nme = () => choice(possibleEnemies.slice(0))();
                     } else {
                         nme = () => choice(possibleEnemies_act3.slice(0))();
                     }
@@ -673,11 +676,12 @@
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
+                        nameElem.setAttribute("id", `cardName_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+" | "+unformat(offer.desc)+"</span>";
                         if(gold >= cardCost) {
                             if(i==0) {
                                 nameElem.setAttribute("class", "Skill tt");
-                            } else if(i==6) {
+                            } else if(i==5) {
                                 nameElem.setAttribute("class", "Power tt");
                             } else {
                                 nameElem.setAttribute("class", "tt");
@@ -687,7 +691,7 @@
                         }
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
 gold -= ${cardCost};
-deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.effect}, ${JSON.stringify(offer.flags)}));
+deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.use}, ${JSON.stringify(offer.flags)}));
 getId("cardElem_${i}").style.display = "none";
 updateStatLine();
 updateShopScreen();
@@ -702,13 +706,14 @@ updateShopScreen();
                     }
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool)();
-                        let relicCost = Math.round(Math.random()*14 + 143); // cost: 143g to 157g
-                        offers.push({offer: i+10, cost: relicCost});
+                        let relicCost = Math.round(Math.random()*119 + 143);
+                        offers.push({offer: i+100, cost: relicCost});
                         let relicElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
                         let costElem = document.createElement("td");
                         relicElem.setAttribute("id", `relicElem_${i}`);
+                        nameElem.setAttribute("id", `relicName_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
                         if(gold >= relicCost) {
                             nameElem.setAttribute("class", "Status tt");
@@ -742,18 +747,20 @@ updateShopScreen();
             }
             function updateShopScreen() {
                 for(let i of offers) {
-                    if(i.offer >= 10) {
-                        let relicElem = getId("relicElem_"+(i.offer-10));
-                        if(gold >= relicCost) {
+                    if(i.offer >= 100) {
+                        let relicElem = getId("relicName_"+(i.offer-100));
+                        if(gold >= i.cost) {
                             relicElem.setAttribute("class", "Status tt");
                         } else {
-                            relicElem.setAttribute("class", "Status tt unplayable");
+                            relicElem.setAttribute("class", "tt unplayable");
                         }
                     } else {
-                        let cardElem = getId("cardElem_"+i.offer);
-                        if(i.offer==0) {
+                        let cardElem = getId("cardName_"+i.offer);
+                        if(gold < i.cost) {
+                            cardElem.setAttribute("class", "unplayable tt");
+                        } else if(i.offer==0) {
                             cardElem.setAttribute("class", "Skill tt");
-                        } else if(i.offer==6) {
+                        } else if(i.offer==5) {
                             cardElem.setAttribute("class", "Power tt");
                         } else {
                             cardElem.setAttribute("class", "tt");
@@ -905,12 +912,12 @@ updateShopScreen();
             let hemokinesis = () => new Card("Hemokinesis", 1, "Attack", "Lose 2 HP. Deal [DAM15] damage.", function(enemy){
                 hp -= 2; dealDamage(enemy, 15);
             });
-            let infernalBlade = () => new Card("Infernal Blade", 0, "Skill", "Add a random Attack to your hand.", function(enemy){
+            let infernalBlade = () => new Card("Infernal Blade", 0, "Skill", "Add a random Attack to your hand. Exhaust.", function(enemy){
                 let extraCard = randCard()(); // looks weird ik
                 while(extraCard.type != "Attack") {extraCard = randCard()();}
                 hand.push(extraCard);
             }, ["exhausted"]);
-            let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength. Exhaust.", function(enemy){
+            let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength.", function(enemy){
                 gainBuff("Strength", 2);
             }, ["exhausted"]);
             let intimidate = () => new Card("Intimidate", 0, "Skill", "Apply 1 Weak to ALL enemies. Exhaust.", function(enemy){
@@ -1127,14 +1134,14 @@ updateShopScreen();
                     gainBuff("Block", 13);
                 }, ["ethereal"]), "Hemokinesis": () => new Card("Hemokinesis+", 1, "Attack", "Lose 2 HP. Deal [DAM20] damage.", function(enemy){
                     hp -= 2; dealDamage(enemy, 20);
-                }), "Infernal Blade": () => new Card("Infernal Blade+", 0, "Skill", "Add 2 random Attacks to your hand.", function(enemy){
+                }), "Infernal Blade": () => new Card("Infernal Blade+", 0, "Skill", "Add 2 random Attacks to your hand. Exhaust", function(enemy){
                     let extraCard = randCard()(); // looks weird ik
                     while(extraCard.type != "Attack") {extraCard = randCard()();}
                     hand.push(extraCard);
                     let extraCard2 = randCard()(); // looks weird ik
                     while(extraCard2.type != "Attack") {extraCard2 = randCard()();}
                     hand.push(extraCard2);
-                }, ["exhausted"]), "Enflame": () => new Card("Enflame+", 1, "Power", "Gain 3 Strength. Exhaust.", function(enemy){
+                }, ["exhausted"]), "Enflame": () => new Card("Enflame+", 1, "Power", "Gain 3 Strength.", function(enemy){
                     gainBuff("Strength", 3);
                 }, ["exhausted"]), "Intimidate": () => new Card("Intimidate+", 0, "Skill", "Apply 2 Weak to ALL enemies. Exhaust.", function(enemy){
                     for(let e of enemies) {e.gainBuff("Weak", 2);}
@@ -1283,8 +1290,12 @@ updateShopScreen();
                 possibleCards = newCards;
                 getId("bossModal").style.display = "block";
                 for(let x=0; x<3; x++) {
+                    let cardTooltip = document.createElement("span");
                     let modalCard = getId("modalRelic"+(x+1));
                     modalCard.innerHTML = newCards[x].name;
+                    cardTooltip.innerHTML = newCards[x].desc;
+                    cardTooltip.setAttribute("class", "txt");
+                    modalCard.appendChild(cardTooltip);
                 }
             };
             function finishAddRelic(cardNumber) {
@@ -1531,7 +1542,7 @@ updateShopScreen();
             ];
             let possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 160, [
-                    {intent: "attack 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)},
                     {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)}
                 ]),
@@ -1647,6 +1658,10 @@ updateShopScreen();
                     potionElem.innerHTML = "Empty Slot";
                     getId("potions").appendChild(potionElem);
                 }
+                let min = Math.floor((Date.now()-startTime)/60000).toString();
+                let sec = Math.floor((Date.now()-startTime)%60000/1000).toString();
+                let sec_100ths = Math.floor((Date.now()-startTime)%1000/10).toString();
+                statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;"+min+":"+sec.padStart(2, "0")+"."+sec_100ths.padStart(2, "0");
                 getId("drawPile").innerHTML = "View Draw Pile | <span style='color:white'>"+drawPile.length+"</span>";
                 getId("discardPile").innerHTML = "View Discard Pile | <span style='color:white'>"+discardPile.length+"</span>";
                 getId("exhaustPile").innerHTML = "View Exhaust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
@@ -1777,6 +1792,7 @@ updateShopScreen();
                                 getId("bossRelicReward").style.display = "none";
                             }
                         }
+                        updateHtml();
                     }
                     let enemyElem = document.createElement("span");
                     enemyElem.setAttribute("class", "tt");
@@ -1958,6 +1974,7 @@ updateShopScreen();
             }
             getId("combatLog").innerHTML = "";
             startTurn();
+            window.setInterval(updateStatLine, 70);
         </script>
     </body>
 </html>
