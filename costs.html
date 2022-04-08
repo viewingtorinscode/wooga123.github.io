@@ -587,9 +587,11 @@
                     getId("mapScreen").style.display = "none";
                     getId("merchantScreen").style.display = "block";
                     getId("merchantScreen").innerHTML = "";
+                    let offers = [];
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
                         let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
+                        offers.push({offer: i, cost: cardCost});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
                         if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
                         let cardElem = document.createElement("tr");
@@ -614,6 +616,7 @@ gold -= ${cardCost};
 deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.effect}, ${JSON.stringify(offer.flags)}));
 getId("cardElem_${i}").style.display = "none";
 updateStatLine();
+updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+cardCost;
@@ -626,6 +629,7 @@ updateStatLine();
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool)();
                         let relicCost = Math.round(Math.random()*14 + 143); // cost: 143g to 157g
+                        offers.push({offer: i+10, cost: relicCost});
                         let relicElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
@@ -642,6 +646,7 @@ gold -= ${relicCost};
 relics.push(new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use}));
 getId("relicElem_${i}").style.display = "none";
 updateStatLine();
+updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+relicCost;
@@ -659,6 +664,27 @@ updateStatLine();
                     continueWrapper.appendChild(continueBtn);
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
+                }
+            }
+            function updateShopScreen(offers) {
+                for(let i of offers) {
+                    if(i.offer >= 10) {
+                        let relicElem = getId("relicElem_"+(i.offer-10));
+                        if(gold >= relicCost) {
+                            relicElem.setAttribute("class", "Status tt");
+                        } else {
+                            relicElem.setAttribute("class", "Status tt unplayable");
+                        }
+                    } else {
+                        let cardElem = getId("cardElem_"+i.offer);
+                        if(i.offer==0) {
+                            cardElem.setAttribute("class", "Skill tt");
+                        } else if(i.offer==6) {
+                            cardElem.setAttribute("class", "Power tt");
+                        } else {
+                            cardElem.setAttribute("class", "tt");
+                        }
+                    }
                 }
             }
             
@@ -1053,15 +1079,15 @@ updateStatLine();
                         }
                     }
                     dealDamage(enemy, 22);
-                }), "Spot Weakness": () => new Card("Spot Weakness", 1, "Skill", "If the enemy intends to attack, gain 4 Strength.", function(enemy){
+                }), "Spot Weakness": () => new Card("Spot Weakness+", 1, "Skill", "If the enemy intends to attack, gain 4 Strength.", function(enemy){
                     if(enemy.intent.intent.includes("attack")) {
                         gainBuff("Strength", 4);
                     } else {
                         alert("That enemy does not intend to attack.");
                     }
-                }), "Uppercut": () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 2 Weak and Vulnerable.", function(enemy){
+                }), "Uppercut": () => new Card("Uppercut+", 2, "Attack", "Deal [DAM13] damage. Apply 2 Weak and Vulnerable.", function(enemy){
                     dealDamage(enemy, 13); enemy.gainBuff("Weak", 2); enemy.gainBuff("Vulnerable", 2);
-                }), "Whirlwind": () => new Card("Whirlwind", "X", "Attack", "Deal [DAM8] damage to ALL enemies X times.", function(enemy){
+                }), "Whirlwind": () => new Card("Whirlwind+", "X", "Attack", "Deal [DAM8] damage to ALL enemies X times.", function(enemy){
                     for(let e of enemies){dealDamage(e, 8);}
                 }), "Barricade": () => new Card("Barricade+", 2, "Power", "Block is not removed at the start of your turn.", function(enemy){
                     gainBuff("Barricade", 1);
