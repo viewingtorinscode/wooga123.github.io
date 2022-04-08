@@ -67,7 +67,7 @@
                 width: 600px;
                 height: 400px;
             }
-            #cardModal {
+            #cardModal, #bossModal {
                 position: fixed;
                 z-index: 1;
                 left: 0;
@@ -77,7 +77,7 @@
                 overflow: auto;
                 background-color: rgba(0,0,0,0.4);
             }
-            #cardModalContent {
+            #cardModalContent, #bossModalContent {
                 background-color: #555;
                 margin: 15% auto;
                 padding: 20px;
@@ -468,6 +468,7 @@
             }
             function dealDamage(actor, amt) {
                 let finalAmt = amt;
+                if(!actor) { alert("that's strange, there is no actor in dealDamage"); }
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
@@ -516,7 +517,7 @@
                 "Rampage": "Increase Rampage's damage by [AMT].",
                 "Barricade": "Block is not removed at the start of your turn.",
                 "Energize": "Gain [AMT] more energy each turn.",
-                "Brutality": "At the start of your turn, lose [AMT] HP and draw [AMT] card[s].",
+                "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
                 "Double Tap": "Duplicate the next [AMT] Attack[s] you play.",
                 "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
                 "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
@@ -761,6 +762,9 @@ updateShopScreen();
                 }
             }
             
+            //
+            // Basics
+            //
             let strike = () => new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){
                 dealDamage(enemy, 6);
             });
@@ -770,6 +774,10 @@ updateShopScreen();
             let bash = () => new Card("Bash", 2, "Attack", "Deal [DAM8] damage, apply 2 Vulnerable.", function(enemy){
                 dealDamage(enemy, 8); enemy.gainBuff("Vulnerable", 2);
             });
+            
+            //
+            // Commons
+            //
             let bodySlam = () => new Card("Body Slam", 1, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
                 dealDamage(enemy, hasBuff("Block"));
             });
@@ -823,6 +831,10 @@ updateShopScreen();
             let wildStrike = () => new Card("Wild Strike", 1, "Attack", "Deal [DAM12] damage. Shuffle a Wound into your discard pile.", function(enemy){
                 dealDamage(enemy, 12); discardPile.push(statusCards["Wound"]());
             });
+            
+            //
+            // Uncommons
+            //
             let battleTrance = () => new Card("Battle Trance", 0, "Skill", "Draw 3 cards. You cannot draw additional cards this turn.", function(enemy){
                 drawCard(3); gainBuff("No Draw", 1);
             });
@@ -956,6 +968,10 @@ updateShopScreen();
             let whirlwind = () => new Card("Whirlwind", "X", "Attack", "Deal [DAM5] damage to ALL enemies X times.", function(enemy){
                 for(let e of enemies){dealDamage(e, 5);}
             });
+            
+            //
+            // Rares
+            //
             let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", function(enemy){
                 gainBuff("Barricade", 1);
             }, ["exhausted"]);
@@ -1520,7 +1536,7 @@ updateShopScreen();
                     {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)}
                 ]),
                 () => new Enemy("Gremlin Leader", 150, [
-                    {intent: "buff", desc: "buff ALL enemies", effect: all_buff("Strength", 3)},
+                    {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 3)},
                     {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
@@ -1878,7 +1894,7 @@ updateShopScreen();
                 stats.skillsThisTurn = 0;
                 if(hasBuff("Barricade")==0){loseBuff("Block");}
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
-                if(hasBuff("Brutality")>0){hp -= 1; drawCard();}
+                if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
                 updateHtml();
             }
             
