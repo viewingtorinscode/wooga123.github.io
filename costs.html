@@ -306,6 +306,13 @@
                         }
                     }
                     this.buffs.push({name: name, amt: newAmt});
+                    if(name=="Vulnerable") {
+                        for(let r of relics) {
+                            if(r.trigger == "apply_vulnerable") {
+                                r.effect();
+                            }
+                        }
+                    }
                 }
                 loseBuff(name, amt=9999) {
                     for(let b of this.buffs) {
@@ -330,6 +337,11 @@
                     if(finalAmt - hasBuff("Block") > 0) {
                         stats.timesLostHp++;
                         dealDamage(this, hasBuff("Thorns"));
+                        for(let r of relics) {
+                            if(r.trigger == "lose_hp") {
+                                r.effect();
+                            }
+                        }
                         getId("html").style.background = "#a00";
                         let normalColor1 = function(){getId("html").style.background = "#811";}
                         let normalColor2 = function(){getId("html").style.background = "#611";}
@@ -446,9 +458,10 @@
                 "Artifact": "Negates the next [AMT] debuff[s].",
                 "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
                 "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
-                "Buffer": "Prevent the first [AMT] unblocked hit[s]."
+                "Buffer": "Prevent the first [AMT] unblocked hit[s].",
+                "Next Turn Block": "Gain [AMT] Block next turn."
             };
-            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex"];
+            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction"];
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -586,7 +599,13 @@
                         cardElem.setAttribute("id", `cardElem_${i}`);
                         nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+unformat(offer.desc)+"</span>";
                         if(gold >= cardCost) {
-                            nameElem.setAttribute("class", "tt");
+                            if(i==0) {
+                                nameElem.setAttribute("class", "Skill tt");
+                            } else if(i==6) {
+                                nameElem.setAttribute("class", "Power tt");
+                            } else {
+                                nameElem.setAttribute("class", "tt");
+                            }
                         } else {
                             nameElem.setAttribute("class", "tt unplayable");
                         }
@@ -614,9 +633,9 @@ updateStatLine();
                         relicElem.setAttribute("id", `relicElem_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
                         if(gold >= relicCost) {
-                            nameElem.setAttribute("class", "Power tt");
+                            nameElem.setAttribute("class", "Status tt");
                         } else {
-                            nameElem.setAttribute("class", "Power tt unplayable");
+                            nameElem.setAttribute("class", "Status tt unplayable");
                         }
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
@@ -641,7 +660,6 @@ updateStatLine();
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
                 }
-                
             }
             
             let strike = () => new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){
@@ -1178,10 +1196,13 @@ updateStatLine();
             function r_moltenEgg() {if(deck[deck.length-1].type=="Attack"){upgradeCard(deck[deck.length-1]);}}
             function r_ornamentalFan() {gainBuff("Block", 4);}
             function r_pear() {maxHp += 10; hp += 10;}
+            function r_selfFormingClay() {gainBuff("Next Turn Block", 3);}
             function r_singingBowl() {maxHp += 2; hp += 2;}
             function r_strikeDummy() {dealDamage(target, 3);}
             function r_toxicEgg() {if(deck[deck.length-1].type=="Skill"){upgradeCard(deck[deck.length-1]);}}
             function r_birdFacedUrn() {hp = Math.min(maxHp, hp+2);}
+            function r_championsBelt() {target.gainBuff("Weak", 1);}
+            function r_deadBranch() {hand.push(randCard()());}
             function r_helixFossil() {gainBuff("Buffer", 1);}
             function r_mango() {maxHp += 14; hp += 14;}
             function r_oldCoin() {gold += 300;}
@@ -1191,7 +1212,7 @@ updateStatLine();
                 () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
                 () => new Relic("Ancient Tea Set","When you enter a Rest Site, start the next combat with 2 more energy.","rest",r_tea),
                 () => new Relic("Art of War","If you play no attacks in a turn, gain 1 energy next turn.","no_attacks",r_artOfWar),
-                () => new Relic("Bag of Marbles","All enemies start combat with 1 Vulnerable.","combat_start",r_bagOfMarbles),
+                () => new Relic("Bag of Marbles","ALL enemies start combat with 1 Vulnerable.","combat_start",r_bagOfMarbles),
                 () => new Relic("Blood Vial","At start of combat, heal 2 HP.","combat_start",r_bloodVial),
                 () => new Relic("Bronze Scales","When you take damage, deal 3 damage back.","combat_start",r_bronzeScales),
                 () => new Relic("Ceramic Fish","When you add a card to your deck, gain 9 gold.","add_card",r_ceramicFish),
@@ -1213,6 +1234,7 @@ updateStatLine();
                 () => new Relic("Molten Egg","When you add an Attack to your deck, it is upgraded.","add_card",r_moltenEgg),
                 () => new Relic("Ornamental Fan","When you play 3 Attacks in a single turn, gain 4 Block.","3_attacks",r_ornamentalFan),
                 () => new Relic("Pear","Raise your max HP by 10 and heal 10 HP.","on_pickup",r_pear),
+                () => new Relic("Self-Forming Clay","When you lose HP in combat, gain 3 Block next turn.","lose_hp",r_selfFormingClay),
                 () => new Relic("Shuriken","When you play 3 Attacks in a single turn, gain 1 Strength.","3_attacks",r_vajra),
                 () => new Relic("Singing Bowl","When you view but decline the card reward, gain 2 Max HP.","no_card",r_singingBowl),
                 () => new Relic("Strike Dummy","Cards containing 'Strike' deal 3 more damage.","strike",r_strikeDummy),
@@ -1220,6 +1242,8 @@ updateStatLine();
             ];
             let rareRelicPool = [
                 () => new Relic("Bird-Faced Urn","When you play a Power, heal 2 HP.","on_power",r_birdFacedUrn),
+                () => new Relic("Champion's Belt","When you apply Vulnerable, also apply 1 Weak.","apply_vulnerable",r_championsBelt),
+                () => new Relic("Charon's Ashes","When you Exhaust a card, deal 3 damage to ALL enemies.",r_mercuryHourglass),
                 () => new Relic("Dead Branch","When you Exhaust a card, add a random card to your hand.","on_exhaust",r_deadBranch),
                 () => new Relic("Fossilized Helix","Prevent the first HP loss each combat.","combat_start",r_helixFossil),
                 () => new Relic("Mango","Raise your max HP by 14 and heal 14 HP.","on_pickup",r_mango),
