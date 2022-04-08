@@ -23,7 +23,7 @@
             .Power {border: 2px solid yellow; color: yellow;}
             .Status {border: 2px solid lightgreen; color: lightgreen;}
             .unplayable {border: 2px solid #555; color: #555;}
-            button:hover:not(.unplayable):not(.notbig):not(.nonbutton) {padding: 3px 9px 3px 9px; font-size: 15px;}
+            button:hover:not(.unplayable):not(.notbig) {padding: 3px 9px 3px 9px; font-size: 15px;}
             button:hover > span {font-size: 13px;}
             table {width: 100%;}
             .tt {user-select: none;}
@@ -74,9 +74,9 @@
                     <br />
                     <span id="energy" class="tt"></span>&nbsp;&nbsp;&nbsp;<span id="hand"></span>
                     <br /><br />
-                    <button onclick="alert(discardPile.map(x => x.name).join(', '))">View Discard Pile</button>
-                    <button onclick="alert(shuffle(drawPile.map(x => x.name).join(', ')))">View Draw Pile</button>
-                    <button onclick="alert(exhaustPile.map(x => x.name).join(', '))">View Exhaust Pile</button>
+                    <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View Discard Pile</button>
+                    <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name).join(', ')))">View Draw Pile</button>
+                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View Exhaust Pile</button>
                     | <button onclick="endTurn()">End Turn</button>
                 </td>
                 <td id="enemiesTd">
@@ -90,13 +90,14 @@
             <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button>
             <button id="potionReward"></button>
             <button id="relicReward" class="tt"></button>
+            <button id="bossRelicReward" class="tt"></button>
             <button id="closeRewards" onclick="showMap();">Continue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="hp = Math.min(maxHp, hp+0.3*maxHp); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP.</span></button>
+            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP.</span></button>
             <button onclick="upgradeDialog();" class="tt">Smith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
                 <p id="oldCard"></p>
@@ -165,6 +166,11 @@
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             gainBuff("Block", hasBuff("Feel No Pain"));
+                            for(let r of relics) {
+                                if(r.trigger == "on_exhaust") {
+                                    r.effect();
+                                }
+                            }
                         } else {
                             discardPile.push(this);
                         }
@@ -202,6 +208,13 @@
                                 r.effect();
                             }
                             if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {
+                                r.effect();
+                            }
+                        }
+                    }
+                    if(this.type == "Skill") {
+                        for(let r of relics) {
+                            if(r.trigger == "on_power") {
                                 r.effect();
                             }
                         }
@@ -308,18 +321,19 @@
                 }
                 dealDamage(amt) {
                     let finalAmt = amt;
-                    if(hasBuff("Vulnerable")) {finalAmt = Math.round(finalAmt * 1.5);}
-                    if(this.hasBuff("Weak")) {finalAmt = Math.round(finalAmt * 0.75);}
+                    if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
+                    if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
                     finalAmt += this.hasBuff("Strength");
+                    if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = 0; loseBuff("Buffer", 1);}
                     
                     hp -= Math.max(0, finalAmt - hasBuff("Block"));
                     if(finalAmt - hasBuff("Block") > 0) {
                         stats.timesLostHp++;
                         dealDamage(this, hasBuff("Thorns"));
-                        getId("html").style.background = "red";
-                        let normalColor1 = function(){getId("html").style.background = "#c11";}
-                        let normalColor2 = function(){getId("html").style.background = "#911";}
-                        let normalColor3 = function(){getId("html").style.background = "#522";}
+                        getId("html").style.background = "#a00";
+                        let normalColor1 = function(){getId("html").style.background = "#811";}
+                        let normalColor2 = function(){getId("html").style.background = "#611";}
+                        let normalColor3 = function(){getId("html").style.background = "#422";}
                         let normalColor4 = function(){getId("html").style.background = "#222";}
                         setTimeout(normalColor1, 40);
                         setTimeout(normalColor2, 80);
@@ -431,7 +445,8 @@
                 "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
                 "Artifact": "Negates the next [AMT] debuff[s].",
                 "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
-                "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s]."
+                "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
+                "Buffer": "Prevent the first [AMT] unblocked hit[s]."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex"];
             let statusCards = {
@@ -450,12 +465,10 @@
                     if(actNum == 1) {
                         actNum = 2;
                         alert("Congratulations! You completed Act I! That's 1/3 of the game!");
-                    }
-                    if(actNum == 2) {
+                    } else if(actNum == 2) {
                         actNum = 3;
                         alert("Congratulations! You completed Act II! That's 2/3 of the game!");
-                    }
-                    if(actNum == 3) {
+                    } else if(actNum == 3) {
                         actNum = 999;
                         alert("Congratulations! You completed Act III! You Win!");
                     }
@@ -485,7 +498,7 @@
                             } else if(floor == mapY && node == mapX) {
                                 nodeButton.innerHTML = "(You)";
                             } else {
-                                nodeButton.setAttribute("class", "nonbutton");
+                                nodeButton.setAttribute("class", "nonbutton notbig");
                             }
                             nodeElem.appendChild(nodeButton);
                         }
@@ -572,7 +585,11 @@
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
                         nameElem.innerHTML = offer.name+(i==0 ? " (On Sale)" : "")+"<span class='txt'>Cost: "+offer.cost+" | "+unformat(offer.desc)+"</span>";
-                        nameElem.setAttribute("class", "tt");
+                        if(gold >= cardCost) {
+                            nameElem.setAttribute("class", "tt");
+                        } else {
+                            nameElem.setAttribute("class", "tt unplayable");
+                        }
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
 gold -= ${cardCost};
 deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.effect}, ${JSON.stringify(offer.flags)}));
@@ -596,7 +613,11 @@ updateStatLine();
                         let costElem = document.createElement("td");
                         relicElem.setAttribute("id", `relicElem_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
-                        nameElem.setAttribute("class", "tt");
+                        if(gold >= relicCost) {
+                            nameElem.setAttribute("class", "Power tt");
+                        } else {
+                            nameElem.setAttribute("class", "Power tt unplayable");
+                        }
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
 relics.push(new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use}));
@@ -1112,6 +1133,25 @@ updateStatLine();
                     addCard(newCards);
                 }
             }
+            function addBossRelic(newRelics="random") {
+                if(newRelics == "random") {
+                    newRelics = [choice(rareRelicPool)(), choice(rareRelicPool)(), choice(rareRelicPool)()];
+                }
+                let relicNames = newRelics.map(x=>x.name.toLowerCase());
+                let relicChoice = prompt("Choose a relic to add to your deck, or\ntype 'info relicname' to see the effect.\nType 'skip' to decline.\n"+newRelics.map(x=>x.name).join(" | ")).toLowerCase();
+                let ind = relicNames.indexOf(relicChoice);
+                if(relicNames.includes(relicChoice)) {
+                    alert("You obtained the "+newRelics[ind].name+".");
+                    relics.push(newRelics[ind]);
+                } else if(relicChoice.slice(0, 4)=="info" && relicNames.includes(relicChoice.slice(5))) {
+                    alert(newRelics.map(x=>x.desc)[relicNames.indexOf(relicChoice.slice(5))]);
+                    addBossRelic(newRelics);
+                } else if(relicChoice == null || relicChoice.includes("skip") || relicChoice == "") {
+                    // "no_card" doesn't trigger on relics
+                } else {
+                    addBossRelic(newRelics);
+                }
+            }
             
             function r_snakeRing() {drawCard(2);}
             function r_akabeko() {dealDamage(8);}
@@ -1141,6 +1181,11 @@ updateStatLine();
             function r_singingBowl() {maxHp += 2; hp += 2;}
             function r_strikeDummy() {dealDamage(target, 3);}
             function r_toxicEgg() {if(deck[deck.length-1].type=="Skill"){upgradeCard(deck[deck.length-1]);}}
+            function r_birdFacedUrn() {hp = Math.min(maxHp, hp+2);}
+            function r_helixFossil() {gainBuff("Buffer", 1);}
+            function r_mango() {maxHp += 14; hp += 14;}
+            function r_oldCoin() {gold += 300;}
+            function r_threadAndNeedle() {gainBuff("Metallicize", 3);}
             let relicPool = [
                 () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
                 () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
@@ -1173,10 +1218,18 @@ updateStatLine();
                 () => new Relic("Strike Dummy","Cards containing 'Strike' deal 3 more damage.","strike",r_strikeDummy),
                 () => new Relic("Toxic Egg","When you add a Skill to your deck, it is upgraded.","add_card",r_toxicEgg)
             ];
+            let rareRelicPool = [
+                () => new Relic("Bird-Faced Urn","When you play a Power, heal 2 HP.","on_power",r_birdFacedUrn),
+                () => new Relic("Dead Branch","When you Exhaust a card, add a random card to your hand.","on_exhaust",r_deadBranch),
+                () => new Relic("Fossilized Helix","Prevent the first HP loss each combat.","combat_start",r_helixFossil),
+                () => new Relic("Mango","Raise your max HP by 14 and heal 14 HP.","on_pickup",r_mango),
+                () => new Relic("Old Coin","Instantly gain 300 gold.","on_pickup",r_oldCoin),
+                () => new Relic("Thread and Needle","Start each combat with 3 Metallicize.","combat_start",r_threadAndNeedle)
+            ];
             
             let potionPool = [
                 {name: "Block", desc: "Gain 12 Block.", effect: "gainBuff('Block', 12)"},
-                {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: "hp = Math.min(maxHp, hp + 0.2 * maxHp)"},
+                {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: "hp = Math.min(maxHp, hp + Math.round(0.2 * maxHp))"},
                 {name: "Cultist", desc: "Gain 1 Ritual.", effect: "gainBuff('Ritual', 1)"},
                 {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: "gainBuff('Dexterity', 2)"},
                 {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"},
@@ -1189,7 +1242,7 @@ updateStatLine();
                 {name: "Steel", desc: "Gain 5 Metallicize.", effect: "gainBuff('Metallicize', 5)"},
                 {name: "Bronze", desc: "Gain 3 Thorns.", effect: "gainBuff('Thorns', 3)"},
                 {name: "Regen", desc: "Gain 5 Regen.", effect: "gainBuff('Regen', 5)"},
-                {name: "Flex", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
+                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
@@ -1409,7 +1462,7 @@ updateStatLine();
                 let statusElem = getId("statusLine");
                 statusElem.innerHTML=(hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
                 statusElem.innerHTML+=" | "+gold+" gold";
-                statusElem.innerHTML+="&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck</button>";
+                statusElem.innerHTML+="&nbsp;&nbsp;&nbsp;<button onclick=\"alert(deck.map(x=>x.name).join(', '))\">View Deck | <span style='color:white'>"+deck.length+"</span></button>";
                 statusElem.innerHTML+="&nbsp;&nbsp;&nbsp;<span id='relics'><b>Relics: </b></span>";
                 for(let relic of relics) {
                     let relicElem = document.createElement("span");
@@ -1439,6 +1492,9 @@ updateStatLine();
                     potionElem.innerHTML = "Empty Slot";
                     getId("potions").appendChild(potionElem);
                 }
+                getId("drawPile").innerHTML = "View Draw Pile | <span style='color:white'>"+drawPile.length+"</span>";
+                getId("discardPile").innerHTML = "View Discard Pile | <span style='color:white'>"+discardPile.length+"</span>";
+                getId("exhaustPile").innerHTML = "View Exhaust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
             }
             function updateHtml() {
                 updateStatLine();
@@ -1552,19 +1608,22 @@ updateStatLine();
                             if(eliteBattle == true) {
                                 getId("relicReward").style.display = "block";
                                 let newRelic = choice(relicPool)();
-                                getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
-                                getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
-                            } else if(bossBattle == true) {
-                                getId("relicReward").style.display = "block";
-                                let newRelic = choice(relicPool)();
-                                getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span";
+                                getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
                                 getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
                             } else {
                                 getId("relicReward").style.display = "none";
                             }
+                            if(bossBattle == true) {
+                                getId("bossRelicReward").style.display = "block";
+                                getId("bossRelicReward").innerHTML = "Choose a Relic";
+                                getId("bossRelicReward").setAttribute("onclick", "addBossRelic('random'); getId('bossRelicReward').style.display = 'none';");
+                            } else {
+                                getId("bossRelicReward").style.display = "none";
+                            }
                         }
                     }
                     let enemyElem = document.createElement("span");
+                    enemyElem.setAttribute("class", "tt");
                     let enemyButton = document.createElement("button");
                     enemyButton.setAttribute("onclick", `target = enemies[${eIndex}]; updateHtml();`);
                     let intentType = e.intent.intent.split(" ")[0];
