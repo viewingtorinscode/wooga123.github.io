@@ -237,11 +237,7 @@
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             gainBuff("Block", hasBuff("Feel No Pain"));
-                            for(let r of relics) {
-                                if(r.trigger == "on_exhaust") {
-                                    r.effect();
-                                }
-                            }
+                            for(let r of relics) {if(r.trigger == "on_exhaust") {r.effect();}}
                         } else {
                             discardPile.push(this);
                         }
@@ -259,20 +255,12 @@
                             if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
                         }
                         for(let r of relics) {
-                            if(r.trigger == "on_skill") {
-                                r.effect();
-                            }
-                            if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {
-                                r.effect();
-                            }
+                            if(r.trigger == "on_skill") {r.effect();}
+                            if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {r.effect();}
                         }
                     }
                     if(this.type == "Skill") {
-                        for(let r of relics) {
-                            if(r.trigger == "on_power") {
-                                r.effect();
-                            }
-                        }
+                        for(let r of relics) {if(r.trigger == "on_power") {r.effect();}}
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
@@ -285,20 +273,12 @@
                             this.play();
                         }
                         for(let r of relics) {
-                            if(r.trigger == "on_attack") {
-                                r.effect();
-                            }
-                            if(r.trigger == "3_attacks" && stats.attacksThisTurn % 3 == 0) {
-                                r.effect();
-                            }
+                            if(r.trigger == "on_attack") {r.effect();}
+                            if(r.trigger == "3_attacks" && stats.attacksThisTurn % 3 == 0) {r.effect();}
                         }
                     }
                     if(this.name.toLowerCase().includes("strike")) {
-                        for(let r of relics) {
-                            if(r.trigger == "strike") {
-                                r.effect();
-                            }
-                        }
+                        for(let r of relics) {if(r.trigger == "strike") {r.effect();}}
                     }
                     if(this.type != "Attack") {
                         if(hasBuff("Hex") > 0) {
@@ -362,11 +342,7 @@
                     }
                     this.buffs.push({name: name, amt: newAmt});
                     if(name=="Vulnerable") {
-                        for(let r of relics) {
-                            if(r.trigger == "apply_vulnerable") {
-                                r.effect();
-                            }
-                        }
+                        for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}
                     }
                     if(amt > 0) {log(this.name+" gained "+amt+" "+name);}
                 }
@@ -399,11 +375,7 @@
                     if(finalAmt - hasBuff("Block") > 0) {
                         stats.timesLostHp++;
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns"));}
-                        for(let r of relics) {
-                            if(r.trigger == "lose_hp") {
-                                r.effect();
-                            }
-                        }
+                        for(let r of relics) {if(r.trigger == "lose_hp") {r.effect();}}
                         getId("html").style.background = "#600";
                         let normalColor1 = function(){getId("html").style.background = "#511";}
                         let normalColor2 = function(){getId("html").style.background = "#411";}
@@ -486,11 +458,7 @@
                 if(finalAmt - actor.hasBuff("Block") > 0) {
                     if(stats.hasAttacked == false) {
                         stats.hasAttacked = true;
-                        for(let r of relics) {
-                            if(r.trigger == "first_attack") {
-                                r.effect();
-                            }
-                        }
+                        for(let r of relics) {if(r.trigger == "first_attack") {r.effect();}}
                         if(hasBuff("Vigor") > 0) {
                             loseBuff("Strength", hasBuff("Vigor"));
                             loseBuff("Vigor");
@@ -610,11 +578,7 @@
                     buffs = [];
                     stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested};
                     target = enemies[0];
-                    for(let r of relics) {
-                        if(r.trigger == "combat_start") {
-                            r.effect();
-                        }
-                    }
+                    for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
                     for(let card of drawPile) {
                         if(card.flags.includes("innate")) {
                             drawPile.splice(drawPile.indexOf(card), 1);
@@ -1280,17 +1244,9 @@ updateShopScreen();
                     }
                     deck.push(c);
                     updateStatLine();
-                    for(let r of relics) {
-                        if(r.trigger == "add_card") {
-                            r.effect();
-                        }
-                    }
+                    for(let r of relics) {if(r.trigger == "add_card") {r.effect();}}
                 } else if(cardNumber == -1) {
-                    for(let r of relics) {
-                        if(r.trigger == "no_card") {
-                            r.effect();
-                        }
-                    }
+                    for(let r of relics) {if(r.trigger == "no_card") {r.effect();}}
                 } else {
                     alert("got to impossible place when adding a card");
                 }
@@ -1315,9 +1271,7 @@ updateShopScreen();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     const r = possibleCards[cardNumber];
                     relics.push(r);
-                    if(r.trigger == "on_pickup") {
-                        r.effect();
-                    }
+                    if(r.trigger == "on_pickup") {r.effect();}
                     updateStatLine();
                 } else {
                     alert("error in logic of adding boss relic");
@@ -1731,7 +1685,7 @@ updateShopScreen();
                     .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
                     .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
                     .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]");
-                    for(let i=1; i<50; i++) {
+                    for(let i=1; i<300; i++) {
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
@@ -1844,7 +1798,7 @@ updateShopScreen();
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
-                    for(let i=1; i<50; i++) {
+                    for(let i=1; i<300; i++) {
                         let newI = i;
                         if(hasBuff("Vulnerable") > 1) {newI = Math.round(newI*1.5);}
                         if(e.hasBuff("Weak") > 0) {newI = Math.round(newI*0.75);}
@@ -1908,25 +1862,13 @@ updateShopScreen();
                 energy = maxEnergy + hasBuff("Energize") + hasBuff("Next Turn Energy");
                 loseBuff("Next Turn Energy");
                 if(stats.attacksThisTurn == 0) {
-                    for(let relic of relics) {
-                        if(relic.trigger == "no_attacks") {
-                            relic.effect();
-                        }
-                    }
+                    for(let relic of relics) {if(relic.trigger == "no_attacks") {relic.effect();}}
                 }
                 if(stats.rested == true) {
                     stats.rested = false;
-                    for(let relic of relics) {
-                        if(relic.trigger == "rest") {
-                            relic.effect();
-                        }
-                    }
+                    for(let relic of relics) {if(relic.trigger == "rest") {relic.effect();}}
                 }
-                for(let relic of relics) {
-                    if(relic.trigger == "turn_start") {
-                        relic.effect();
-                    }
-                }
+                for(let r of relics) {if(r.trigger == "turn_start") {r.effect();}}
                 stats.attacksThisTurn = 0;
                 stats.skillsThisTurn = 0;
                 if(hasBuff("Barricade")==0){loseBuff("Block");}
@@ -1942,11 +1884,7 @@ updateShopScreen();
                     else {discardPile.push(c);}
                     if(c.flags.includes("burning")) {hp -= 1;}
                 }
-                for(let relic of relics) {
-                    if(relic.trigger == "turn_end") {
-                        relic.effect();
-                    }
-                }
+                for(let r of relics) {if(r.trigger == "turn_end") {r.effect();}}
                 hand = [];
                 loseBuff("Vulnerable", 1);
                 loseBuff("Weak", 1);
@@ -1982,11 +1920,7 @@ updateShopScreen();
                 startTurn();
             }
             
-            for(let relic of relics) {
-                if(relic.trigger == "combat_start") {
-                    relic.effect();
-                }
-            }
+            for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
             for(let card of drawPile) {
                 if(card.flags.includes("innate")) {
                     drawPile.splice(drawPile.indexOf(card), 1);
