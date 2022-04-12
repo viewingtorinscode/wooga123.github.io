@@ -535,7 +535,8 @@
                 "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
                 "Buffer": "Prevent the first [AMT] unblocked hit[s].",
                 "Next Turn Block": "Gain [AMT] Block next turn.",
-                "Vigor": "[AMT] of your strength only applies to 1st attack."
+                "Vigor": "[AMT] of your strength only applies to 1st attack.",
+                "Next Turn Energy": "Gain [AMT] more energy next turn."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction"];
             let statusCards = {
@@ -1382,6 +1383,7 @@ updateShopScreen();
                 () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra),
                 () => new Relic("Eternal Feather","When you rest, heal 1 HP for each 2 cards in your deck.","rest",r_feather),
                 () => new Relic("Frozen Egg","When you add a Power to your deck, it is upgraded.","add_card",r_frozenEgg),
+                () => new Relic("Ice Cream","You can keep excess energy between turns.","special",function(){}),
                 () => new Relic("Kunai","When you play 3 Attacks in a single turn, gain 1 Dexterity.","3_attacks",r_smoothStone),
                 () => new Relic("Letter Opener","When you play 3 Skills in a single turn, deal 5 damage to ALL enemies.","3_skills",r_letterOpener),
                 () => new Relic("Meat on the Bone","When you start combat with under 50% HP, heal 12 HP.","combat_start",r_meatBone),
@@ -1844,8 +1846,8 @@ updateShopScreen();
                     let newDesc = e.intent.desc;
                     for(let i=1; i<50; i++) {
                         let newI = i;
-                        if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
-                        if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                        if(hasBuff("Vulnerable") > 1) {newI = Math.round(newI*1.5);}
+                        if(e.hasBuff("Weak") > 0) {newI = Math.round(newI*0.75);}
                         newI += e.hasBuff("Strength");
                         newI -= e.hasBuff("Minus Strength");
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
@@ -1898,7 +1900,13 @@ updateShopScreen();
                 } else {
                     drawCard(5);
                 }
-                if(energy < maxEnergy) {energy = maxEnergy + hasBuff("Energize");}
+                for(let relic of relics) {
+                    if(relic.name == "Ice Cream") {
+                        gainBuff("Next Turn Energy", energy);
+                    }
+                }
+                energy = maxEnergy + hasBuff("Energize") + hasBuff("Next Turn Energy");
+                loseBuff("Next Turn Energy");
                 if(stats.attacksThisTurn == 0) {
                     for(let relic of relics) {
                         if(relic.trigger == "no_attacks") {
