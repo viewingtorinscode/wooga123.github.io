@@ -187,7 +187,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace("[BLOOD4BLOOD]", 4).replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace("[BLOCK]", 0).replace("[DAM", "").replace("[BLK", "").replace("]", "")
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("]", "")
             }
             function log(message, color="white") {
                 getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
@@ -225,7 +225,7 @@
                         }
                         if(energy >= newCost && !(this.flags.includes("unplayable"))) {
                             energy -= newCost;
-                            if(!this.use) {alert("Uh oh! Seems like that card has no `use` function");}
+                            if(!this.use) {alert("Uh oh! Seems like card [" + (this.name ? this.name : "unnamed") + "] has no `use` function");}
                             this.use(target);
                             played = true;
                         }
@@ -490,6 +490,10 @@
                                 r.effect();
                             }
                         }
+                        if(hasBuff("Vigor") > 0) {
+                            loseBuff("Strength", hasBuff("Vigor"));
+                            loseBuff("Vigor");
+                        }
                     }
                 }
                 actor.loseBuff("Block", finalAmt);
@@ -529,7 +533,8 @@
                 "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
                 "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
                 "Buffer": "Prevent the first [AMT] unblocked hit[s].",
-                "Next Turn Block": "Gain [AMT] Block next turn."
+                "Next Turn Block": "Gain [AMT] Block next turn.",
+                "Vigor": "[AMT] of your strength only applies to 1st attack."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction"];
             let statusCards = {
@@ -622,7 +627,7 @@
                     if(actNum == 1) {
                         nme = () => choice(possibleEnemies.slice(0))();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleEnemies.slice(0))();
+                        nme = () => choice(possibleEnemies_act2.slice(0))();
                     } else {
                         nme = () => choice(possibleEnemies_act3.slice(0))();
                     }
@@ -649,7 +654,7 @@
                     if(actNum == 1) {
                         nme = () => choice(possibleBosses.slice(0))();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleElites_act2.slice(0))();
+                        nme = () => choice(possibleBosses_act2.slice(0))();
                     } else {
                         nme = () => choice(possibleBosses_act3.slice(0))();
                     }
@@ -722,7 +727,9 @@ updateShopScreen();
                         }
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
-relics.push(new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use}));
+let r = new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use});
+relics.push(r);
+if(r.trigger=='on_pickup') {r.effect();}
 getId("relicElem_${i}").style.display = "none";
 updateStatLine();
 updateShopScreen();
@@ -1261,11 +1268,15 @@ updateShopScreen();
                 }
             };
             function finishAddCard(cardNumber) {
-                let cardNames = possibleCards.map(x=>x.name.toLowerCase());
-                let ind = cardNumber;
-                let cardChoice = cardNames[cardNumber];
-                if(cardNames.includes(cardChoice)) {
-                    deck.push(possibleCards[ind]);
+                if(cardNumber >= 0 && cardNumber < possibleCards.length) {
+                    const c = possibleCards[cardNumber];
+                    if(!c || !c.name) {
+                        alert("something is broken, the picked card doesn't seem to exist");
+                    }
+                    if(!c.use) {
+                        alert("card added (" + c.name + ") doesn't have a use() function!!");
+                    }
+                    deck.push(c);
                     updateStatLine();
                     for(let r of relics) {
                         if(r.trigger == "add_card") {
@@ -1279,7 +1290,7 @@ updateShopScreen();
                         }
                     }
                 } else {
-                    addCard(possibleCards); // impossible... probably
+                    alert("got to impossible place when adding a card");
                 }
             }
             
@@ -1299,14 +1310,15 @@ updateShopScreen();
                 }
             };
             function finishAddRelic(cardNumber) {
-                let cardNames = possibleCards.map(x=>x.name.toLowerCase());
-                let ind = cardNumber;
-                let cardChoice = cardNames[cardNumber];
-                if(cardNames.includes(cardChoice)) {
-                    relics.push(possibleCards[ind]);
+                if(cardNumber >= 0 && cardNumber < possibleCards.length) {
+                    const r = possibleCards[cardNumber];
+                    relics.push(r);
+                    if(r.trigger == "on_pickup") {
+                        r.effect();
+                    }
                     updateStatLine();
                 } else {
-                    addBossRelic(possibleCards); // impossible... probably
+                    alert("error in logic of adding boss relic");
                 }
             }
             
@@ -1314,7 +1326,7 @@ updateShopScreen();
             let possibleCards = [];
             
             function r_snakeRing() {drawCard(2);}
-            function r_akabeko() {dealDamage(8);}
+            function r_akabeko() {gainBuff("Strength", 8); gainBuff("Vigor", 8);}
             function r_anchor() {gainBuff("Block", 10);}
             function r_tea() {energy += 2;}
             function r_artOfWar() {energy += 1;}
@@ -1350,7 +1362,7 @@ updateShopScreen();
             function r_oldCoin() {gold += 300;}
             function r_threadAndNeedle() {gainBuff("Metallicize", 3);}
             let relicPool = [
-                () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","first_attack",r_akabeko),
+                () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","combat_start",r_akabeko),
                 () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
                 () => new Relic("Ancient Tea Set","When you enter a Rest Site, start the next combat with 2 more energy.","rest",r_tea),
                 () => new Relic("Art of War","If you play no attacks in a turn, gain 1 energy next turn.","no_attacks",r_artOfWar),
