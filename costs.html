@@ -1207,7 +1207,7 @@ updateShopScreen();
             }
             let cardToUpgrade;
             async function upgradeDialog() {
-                let chosen = await choose(deck, "Choose a card to upgrade.");
+                let chosen = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
                 cardToUpgrade = chosen;
                 getId("upgradeDialog").style.display = "block";
                 getId("oldCard").innerHTML = "<b>"+cardToUpgrade.name+":</b><br/>Cost: "+cardToUpgrade.cost+" | Effect: "+unformat(cardToUpgrade.desc);
