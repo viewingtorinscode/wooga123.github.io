@@ -261,7 +261,7 @@
                         if(this.flags.includes("exhausted")) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
-                            gainBuff("Block", hasBuff("Feel No Pain"));
+                            if(hasBuff("Feel No Pain") > 0) {gainBuff("Block", hasBuff("Feel No Pain"));}
                             for(let r of relics) {if(r.trigger == "on_exhaust") {r.effect();}}
                         } else {
                             discardPile.push(this);
@@ -500,7 +500,7 @@
                 "No Draw": "Cannot draw cards for [AMT] turn[s].",
                 "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to ALL enemies.",
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
-                "Thorns": "When attacked, deal [AMT] damage back.",
+                "Thorns": "When recieving unblocked damage, deal [AMT] damage back.",
                 "Ritual": "At end of turn, gain [AMT] Strength.",
                 "Frail": "Gain 25% less Block for [AMT] turn[s].",
                 "Enrage": "When you play a Skill, gains [AMT] Strength.",
