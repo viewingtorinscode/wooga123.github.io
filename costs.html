@@ -16,7 +16,7 @@
                 background: black;
                 font-family: monospace;
                 transition: 0.3s ease;
-                border-radius: 2px;
+                border-radius: 3px;
             }
             .nonbutton {border: 2px solid green; color: green;}
             .Attack {border: 2px solid red; color: red;}
@@ -24,13 +24,13 @@
             .Power {border: 2px solid yellow; color: yellow;}
             .Status {border: 2px solid lightgreen; color: lightgreen;}
             .unplayable {border: 2px solid #555; color: #555;}
-            button:hover:not(.unplayable) {background: #444;}
+            button:hover:not(.unplayable) {background-color: #444;}
             button:hover > span {font-size: 13px;}
             table {width: 100%;}
             .tt {user-select: none;}
             .txt {
                 position: absolute;
-                background: #777;
+                background: #888;
                 color: black;
                 display: none;
                 text-align: left;
@@ -179,7 +179,8 @@
                 for(let c of displayCards) {
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise('"+c.name+"');");
-                    cardButton.innerHTML = c.name;
+                    cardButton.setAttribute("class", "tt");
+                    cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
                     getId("selectionModalContent").appendChild(cardButton);
                 }
                 getId("selectionModal").style.display = "block";
@@ -221,6 +222,7 @@
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
                 return "<b>"+circles[char]+"</b>";
+                //return circles[char];
             }
             class Card {
                 /*
@@ -674,7 +676,7 @@
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
                         nameElem.setAttribute("id", `cardName_${i}`);
-                        nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+" | "+unformat(offer.desc)+"</span>";
+                        nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+"<br/>"+unformat(offer.desc)+"</span>";
                         if(gold >= cardCost) {
                             if(i==0) {
                                 nameElem.setAttribute("class", "Skill tt");
@@ -1152,7 +1154,7 @@ updateShopScreen();
                     gainBuff("Brutality", 1);
                 }, ["exhausted", "innate"]), "Demonic Ritual": () => new Card("Demonic Ritual+", 3, "Power", "At the end of your turn, gain 3 Strength.", function(enemy){
                     gainBuff("Ritual", 3);
-                }, ["exhausted"]), "Double Tap": () => new Card("Double Tap+", 1, "Skill", "Your next 2 Attacks are played twice.", function(enemy){
+                }, ["exhausted"]), "Double Tap": () => new Card("Double Tap+", 1, "Skill", "Your next Attack is played 3 times.", function(enemy){
                     gainBuff("Double Tap", 2);
                 }, ["exhausted"]), "Exhume": () => new Card("Exhume+", 0, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", async function(enemy){
                     let chosen = await choose(exhaustPile, "Choose a card to put into your hand.");
@@ -1219,10 +1221,11 @@ updateShopScreen();
                         alert("card added (" + c.name + ") doesn't have a use() function!!");
                     }
                     deck.push(c);
-                    updateStatLine();
                     for(let r of relics) {if(r.trigger == "add_card") {r.effect();}}
+                    updateStatLine();
                 } else if(cardNumber == -1) {
                     for(let r of relics) {if(r.trigger == "no_card") {r.effect();}}
+                    updateStatLine();
                 } else {
                     alert("got to impossible place when adding a card");
                 }
@@ -1909,7 +1912,7 @@ updateShopScreen();
             }
             getId("combatLog").innerHTML = "";
             startTurn();
-            window.setInterval(updateStatLine, 700);
+            window.setInterval(updateStatLine, 1000);
         </script>
     </body>
 </html>
