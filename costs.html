@@ -152,8 +152,7 @@
             <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP.</span></button>
             <button onclick="upgradeDialog();" class="tt">Smith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
-                <p id="oldCard"></p>
-                <p id="newCard"></p>
+                <p id="cardDesc"></p>
                 <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();">Confirm</button>
             </div>
         </div>
@@ -1207,11 +1206,10 @@ updateShopScreen();
             }
             let cardToUpgrade;
             async function upgradeDialog() {
-                let chosen = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
+                let chosen = await choose(deck.filter(x=>(!x.name.includes("+"))), "Choose a card to upgrade.");
                 cardToUpgrade = chosen;
                 getId("upgradeDialog").style.display = "block";
-                getId("oldCard").innerHTML = "<b>"+cardToUpgrade.name+":</b><br/>Cost: "+cardToUpgrade.cost+" | Effect: "+unformat(cardToUpgrade.desc);
-                getId("newCard").innerHTML = "<br/><b>"+cardToUpgrade.name+"+:</b><br/>Cost: "+upgradedCards[cardToUpgrade.name]().cost+" | Effect: "+unformat(upgradedCards[cardToUpgrade.name]().desc);
+                getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:lightred'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:lightgreen'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind]);
