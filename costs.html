@@ -178,7 +178,7 @@
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
                 for(let c of displayCards) {
                     let cardButton = document.createElement("button");
-                    cardButton.setAttribute("onclick", "alert('Wooging w/ "+c.name+"'); resolvePromise('"+c.name+"');");
+                    cardButton.setAttribute("onclick", "resolvePromise('"+c.name+"');");
                     cardButton.innerHTML = c.name;
                     getId("selectionModalContent").appendChild(cardButton);
                 }
@@ -188,7 +188,7 @@
                 });
                 let chosenCard;
                 await promise.then((result) => {
-                    alert("Wooged with "+result);
+                    getId("selectionModal").style.display = "none";
                     chosenCard = displayCards[displayCards.map(x=>x.name).indexOf(result)];
                 });
                 return chosenCard;
