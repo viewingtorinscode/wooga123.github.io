@@ -462,12 +462,13 @@
                     }
                 }
             }
-            function dealDamage(actor, amt, shiv=true) {
+            function dealDamage(actor, amt, shiv=false) {
                 let finalAmt = amt;
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
                 finalAmt -= hasBuff("Minus Strength");
+                if(shiv) {finalAmt += hasBuff("Accuracy");}
                 
                 if(finalAmt > 0) {log("You dealt "+Math.max(0, finalAmt-actor.hasBuff("Block"))+" damage"+(
                     actor.hasBuff("Block")>0 ? " (+ "+Math.min(actor.hasBuff("Block"), finalAmt)+" blocked)" : ""
@@ -2121,12 +2122,12 @@ updateShopScreen();
             
             function addShivs(num=1) {
                 for(let i=0; i<num; i++) {
-                    hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4);}, ["exhausted"]));
+                    hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4,true);}, ["exhausted"]));
                 }
             }
             function addShivPluses(num=1) {
                 for(let i=0; i<num; i++) {
-                    hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6);}, ["exhausted"]));
+                    hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6,true);}, ["exhausted"]));
                 }
             }
             
