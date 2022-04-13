@@ -1972,9 +1972,9 @@ updateShopScreen();
                 }
                 if(enemies.filter(x => x.hp <= 0).length > 0) {
                     enemies = enemies.filter(x => x.hp > 0);
-                    target = enemies[0];
                     updateHtml();
                 }
+                if(!enemies.includes(target) || !target) {target = enemies[0]; updateHtml();}
                 if(enemies.length == 0) {
                     getId("rewardsScreen").style.display = "block";
                     getId("goldReward").style.display = "block";
