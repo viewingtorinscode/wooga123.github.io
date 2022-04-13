@@ -76,7 +76,7 @@
                 width: 100%;
                 height: 100%;
                 overflow: auto;
-                background-color: rgba(0,0,0,0.4);
+                background-color: rgba(0,0,0,0.7);
             }
             #cardModalContent, #bossModalContent, #selectionModalContent {
                 background-color: #555;
@@ -1917,7 +1917,7 @@ updateShopScreen();
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
                 }
-                enemies = enemies.filter(x => x.hp >= 0);
+                enemies = enemies.filter(x => x.hp > 0);
                 if(!enemies.includes(target)) {target = enemies[0];}
                 if(enemies.length == 0) {
                     getId("rewardsScreen").style.display = "block";
