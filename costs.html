@@ -213,7 +213,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("]", "")
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("]", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6);
             }
             function log(message, color="white") {
                 getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
@@ -527,9 +527,10 @@
                 "Next Turn Block": "Gain [AMT] Block next turn.",
                 "Vigor": "[AMT] of your strength only applies to 1st attack.",
                 "Next Turn Energy": "Gain [AMT] more energy next turn.",
-                "Poison": "Lose [AMT] HP at end of turn. Poison goes down each turn.",
+                "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
                 "Accuracy": "Shivs deal [AMT] more damage.",
-                "Blur": "Keep your Block for [AMT] turn[s]."
+                "Blur": "Keep your Block for [AMT] turn[s].",
+                "Infinite Blades": "Get [AMT] Shiv[s] each turn."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
@@ -1120,6 +1121,58 @@ updateShopScreen();
             let catalyst = () => new Card("Catalyst", 1, "Skill", "Double the enemy's Poison. Exhaust.", function(enemy){
                 enemy.gainBuff("Poison", enemy.hasBuff("Poison"));
             }, ["exhausted"]);
+            let concentrate = () => new Card("Concentrate", 0, "Skill", "Discard 3 cards. Gain 2 energy.", async function(enemy){
+                let chosen = await choose(hand.filter(x=>x.name!="Prepared"), "Choose a card to discard.");
+                if(chosen) {
+                    discardPile.push(chosen);
+                    hand.splice(hand.indexOf(chosen), 1);
+                    updateHtml();
+                }
+                let chosen2 = await choose(hand.filter(x=>x.name!="Prepared"), "Choose another card to discard.");
+                if(chosen2) {
+                    discardPile.push(chosen2);
+                    hand.splice(hand.indexOf(chosen2), 1);
+                    updateHtml();
+                }
+                let chosen3 = await choose(hand.filter(x=>x.name!="Prepared"), "Choose a third card to discard.");
+                if(chosen3) {
+                    discardPile.push(chosen3);
+                    hand.splice(hand.indexOf(chosen3), 1);
+                    updateHtml();
+                }
+                energy += 2;
+            });
+            let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
+                for(let e of enemies) {e.gainBuff("Poison", 4); e.gainBuff("Weak", 2);}
+            }, ["exhausted"]);
+            let dash = () => new Card("Dash", 2, "Deal 10 damage. Gain 10 Block.", function(enemy){
+                gainBuff("Block", 10); dealDamage(enemy, 10);
+            });
+            let distraction = () => new Card("Distraction", 0, "Skill", "Add a random Skill to your hand. Exhaust.", function(enemy){
+                let extraCard = randCard()(); // looks weird ik
+                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                hand.push(extraCard);
+            }, ["exhausted"]);
+            let escapePlan = () => new Card("Escape Plan", 0, "Skill", "Draw a card. If it's a Skill, gain 3 Block.", function(enemy){
+                drawCard();
+                if(hand[hand.length - 1].type == "Skill") {gainBuff("Block", 3);}
+            });
+            let expertise = () => new Card("Expertise", 1, "Skill", "Draw cards until you have 6 in hand.", function(enemy){
+                if(hand.length < 6) {drawCard(6 - hand.length);}
+            });
+            let finisher = () => new Card("Finisher", 1, "Attack", "Deal 6 damage for each Attack played this turn. (Deals [FINISHER] damage)", function(enemy){
+                dealDamage(enemy, stats.attacksThisTurn * 6);
+            });
+            let footwork = () => new Card("Footwork", 1, "Power", "Gain 2 Dexterity.", function(enemy){
+                gainBuff("Dexterity", 2);
+            }, ["exhausted"]);
+            let heelHook = () => new Card("Heel Hook", 1, "Attack", "Deal [DAM5] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
+                dealDamage(enemy, 5);
+                if(enemy.hasBuff("Weak") > 0) {energy += 1; drawCard();}
+            });
+            let infiniteBlades = () => new Card("Infinite Blades", 1, "Power", "At the start of your turn, add a Shiv into your hand.", function(enemy){
+                gainBuff("Infinite Blades", 1);
+            }, ["exhausted"]);
             
             //
             // Upgraded Cards
@@ -1386,7 +1439,46 @@ updateShopScreen();
                 gainBuff("Thorns", 5);
             }, ["exhausted"]), "Catalyst": () => new Card("Catalyst+", 1, "Skill", "Triple the enemy's Poison. Exhaust.", function(enemy){
                 enemy.gainBuff("Poison", enemy.hasBuff("Poison") * 2);
-            }, ["exhausted"])
+            }, ["exhausted"]), "Concentrate": () => new Card("Concentrate+", 0, "Skill", "Discard 2 cards. Gain 2 energy.", async function(enemy){
+                let chosen = await choose(hand.filter(x=>x.name!="Prepared"), "Choose a card to discard.");
+                if(chosen) {
+                    discardPile.push(chosen);
+                    hand.splice(hand.indexOf(chosen), 1);
+                    updateHtml();
+                }
+                let chosen2 = await choose(hand.filter(x=>x.name!="Prepared"), "Choose another card to discard.");
+                if(chosen2) {
+                    discardPile.push(chosen2);
+                    hand.splice(hand.indexOf(chosen2), 1);
+                    updateHtml();
+                }
+                energy += 2;
+            }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
+                for(let e of enemies) {e.gainBuff("Poison", 7); e.gainBuff("Weak", 2);}
+            }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Deal 13 damage. Gain 13 Block.", function(enemy){
+                gainBuff("Block", 13); dealDamage(enemy, 13);
+            }), "Distraction": () => new Card("Distraction+", 0, "Skill", "Add 2 random Skills to your hand. Exhaust.", function(enemy){
+                let extraCard = randCard()(); // looks weird ik
+                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                hand.push(extraCard);
+                extraCard = randCard()(); // looks weird ik
+                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                hand.push(extraCard);
+            }, ["exhausted"]), "Escape Plan": () => new Card("Escape Plan+", 0, "Skill", "Draw a card. If it's a Skill, gain 5 Block.", function(enemy){
+                drawCard();
+                if(hand[hand.length - 1].type == "Skill") {gainBuff("Block", 5);}
+            }), "Expertise": () => new Card("Expertise+", 1, "Skill", "Draw cards until you have 7 in hand.", function(enemy){
+                if(hand.length < 7) {drawCard(7 - hand.length);}
+            }), "Finisher": () => new Card("Finisher+", 1, "Attack", "Deal 8 damage for each Attack played this turn. (Deals [FINISHER+] damage)", function(enemy){
+                dealDamage(enemy, stats.attacksThisTurn * 8);
+            }), "Footwork": () => new Card("Footwork+", 1, "Power", "Gain 3 Dexterity.", function(enemy){
+                gainBuff("Dexterity", 3);
+            }, ["exhausted"]), "Heel Hook": () => new Card("Heel Hook+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
+                dealDamage(enemy, 8);
+                if(enemy.hasBuff("Weak") > 0) {energy += 1; drawCard();}
+            }), "Infinite Blades": () => new Card("Infinite Blades+", 1, "Power", "Innate. At the start of your turn, add a Shiv into your hand.", function(enemy){
+                gainBuff("Infinite Blades", 1);
+            }, ["exhausted", "innate"])
             };
             function upgradeCard(c) {
                 let newCard = upgradedCards[c.name];
@@ -1881,7 +1973,9 @@ updateShopScreen();
                     .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
                     .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]")
                     .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
-                    .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]");
+                    .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]")
+                    .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
+                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]");
                     for(let i=1; i<300; i++) {
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
@@ -1946,11 +2040,14 @@ updateShopScreen();
                     }
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     enemyElem.appendChild(enemyButton);
+                    let extraText = "";
                     if(e.hasBuff("Block") > 0) {
-                        enemyElem.innerHTML += " HP: "+e.hp+" (<img src='StS/intent-block.png'>"+e.hasBuff("Block")+") / "+e.maxHp;
-                    } else {
-                        enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                        extraText += " (<img src='StS/intent-block.png'>"+e.hasBuff("Block")+")";
                     }
+                    if(e.hasBuff("Poison") > 0) {
+                        extraText += " (<img src='StS/poison.png'>"+e.hasBuff("Poison")+")";
+                    }
+                    enemyElem.innerHTML += " HP: "+e.hp+extraText+" / "+e.maxHp;
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
@@ -2056,12 +2153,13 @@ updateShopScreen();
             }
             
             function startTurn() {
-                log("Player turn ========", "#666");
+                log("Player turn ========", "#999");
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
                     drawCard(5);
                 }
+                if(hasBuff("Infinite Blades") > 0) {addShivs(hasBuff("Infinite Blades"));}
                 for(let relic of relics) {
                     if(relic.name == "Ice Cream") {
                         gainBuff("Next Turn Energy", energy);
@@ -2083,11 +2181,12 @@ updateShopScreen();
                 loseBuff("Blur", 1);
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
+                if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
                 updateHtml();
             }
             
             function endTurn() {
-                log("Enemy turn =========", "#666");
+                log("Enemy turn =========", "#999");
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
@@ -2107,7 +2206,6 @@ updateShopScreen();
                 loseBuff("Strength Down");
                 loseBuff("Dexterity", hasBuff("Dexterity Down"));
                 loseBuff("Dexterity Down");
-                if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
                 if(hasBuff("Combust") > 0) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
@@ -2116,6 +2214,7 @@ updateShopScreen();
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
                     if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
+                    if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
                     e.attack();
                     e.loseBuff("Vulnerable", 1);
                     e.loseBuff("Weak", 1);
@@ -2126,7 +2225,6 @@ updateShopScreen();
                     e.loseBuff("Strength Down");
                     e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
                     e.loseBuff("Dexterity Down");
-                    if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
                 }
                 startTurn();
             }
