@@ -238,7 +238,6 @@
                     this.number = Math.random();
                 }
                 async play() {
-                    log("playing [" + this.name + "]");
                     let played = false;
                     if(this.cost == "X") {
                         for(let x=0; x<energy; x++) {
@@ -269,10 +268,6 @@
                             discardPile.push(this);
                         }
                         await this.play_success();
-                        updateHtml();
-                        log("finished playing [" + this.name + "]");
-                    } else {
-                        log("didn't successfully play [" + this.name + "]");
                     }
                     updateHtml();
                 }
@@ -788,7 +783,7 @@ updateShopScreen();
                 dealDamage(enemy, hasBuff("Block"));
             });
             let clash = () => new Card("Clash", 0, "Attack","Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
-                if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);}
+                if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);} else {alert("Failed to play Clash: There are non-Attack cards in your hand.");}
             });
             let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let e of enemies){dealDamage(e, 8);}
@@ -802,8 +797,10 @@ updateShopScreen();
             let headbutt = () => new Card("Headbutt", 1, "Attack", "Deal [DAM9] damage. Put a card from your discard pile on top of your draw pile.", async function(enemy){
                 dealDamage(enemy, 9);
                 let chosen = await choose(discardPile, "Choose a card to put on top of your Draw Pile.");
-                drawPile = [chosen, ...drawPile];
-                discardPile.splice(discardPile.indexOf(chosen), 1);
+                if(chosen) {
+                    drawPile = [chosen, ...drawPile];
+                    discardPile.splice(discardPile.indexOf(chosen), 1);
+                }
             });
             let heavyBlade = () => new Card("Heavy Blade", 2, "Attack", "Deal [HEAVYBLADE] damage. Strength affects the damage 3 times.", function(enemy){
                 dealDamage(enemy, 14 + 2 * hasBuff("Strength"));
@@ -846,10 +843,14 @@ updateShopScreen();
                 hp -= 3; energy += 2;
             });
             let burningPact = () => new Card("Burning Pact", 1, "Skill", "Exhaust 1 card. Draw 2 cards.", async function(enemy){
-                let chosen = await choose(hand, "Choose a card to Exhaust.");
-                hand.splice(hand.indexOf(chosen), 1);
-                exhaustPile.push(chosen);
-                drawCard(2);
+                let chosen = await choose(hand.filter(x=>x.name != "Burning Pact"), "Choose a card to Exhaust.");
+                if(chosen) {
+                    hand.splice(hand.indexOf(chosen), 1);
+                    exhaustPile.push(chosen);
+                    drawCard(2);
+                } else {
+                    alert("Failed to play Burning Pact: No remaining cards in hand.");
+                }
             });
             let carnage = () => new Card("Carnage", 2, "Attack", "Ethereal. Deal [DAM20] damage.", function(enemy){
                 dealDamage(enemy, 20);
@@ -872,8 +873,12 @@ updateShopScreen();
             });
             let dualWield = () => new Card("Dual Wield", 1, "Skill", "Copy an Attack or Power card in your hand.", async function(enemy){
                 let chosen = await choose(hand.filter(x=>["Attack","Power"].includes(x.type)), "Choose a card to copy.");
-                hand.push(chosen);
-                chosen.number = Math.random(); // they've gotta be different
+                if(chosen) {
+                    hand.push(chosen);
+                    chosen.number = Math.random(); // they've gotta be different
+                } else {
+                    alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
+                }
             });
             let entrench = () => new Card("Entrench", 2, "Skill", "Double your Block.", function(enemy){
                 if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
@@ -950,7 +955,7 @@ updateShopScreen();
                 if(enemy.intent.intent.includes("attack")) {
                     gainBuff("Strength", 3);
                 } else {
-                    alert("That enemy does not intend to attack.");
+                    alert("Failed to play Spot Weakness: That enemy does not intend to attack.");
                 }
             });
             let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", function(enemy){
@@ -983,8 +988,12 @@ updateShopScreen();
             }, ["exhausted"]);
             let exhume = () => new Card("Exhume", 1, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", async function(enemy){
                 let chosen = await choose(exhaustPile, "Choose a card to put into your hand.");
-                hand.push(chosen);
-                exhaustPile.splice(exhaustPile.indexOf(chosen));
+                if(chosen) {
+                    hand.push(chosen);
+                    exhaustPile.splice(exhaustPile.indexOf(chosen));
+                } else {
+                    alert("Failed to play Exhume: Exhaust pile is empty.");
+                }
             });
             let feed = () => new Card("Feed", 1, "Attack", "Enemy loses 10 HP. If they die from it, gain 3 Max HP. Exhaust.", function(enemy){
                 if(enemy.hp <= 10) {maxHp += 3; hp += 3;}
@@ -1026,8 +1035,10 @@ updateShopScreen();
                 }), "Headbutt": () => new Card("Headbutt", 1, "Attack", "Deal [DAM12] damage. Put a card from your discard pile on top of your draw pile.", async function(enemy){
                     dealDamage(enemy, 12);
                     let chosen = await choose(discardPile, "Choose a card to put on top of your Draw Pile.");
-                    drawPile = [chosen, ...drawPile];
-                    discardPile.splice(discardPile.indexOf(chosen), 1);
+                    if(chosen) {
+                        drawPile = [chosen, ...drawPile];
+                        discardPile.splice(discardPile.indexOf(chosen), 1);
+                    }
                 }), "Heavy Blade": () => new Card("Heavy Blade+", 2, "Attack", "Deal [HEAVYBLADE+] damage. Strength affects the damage 5 times.", function(enemy){
                     dealDamage(enemy, 14 + 4 * hasBuff("Strength"));
                 }), "Iron Wave": () => new Card("Iron Wave+", 1, "Attack", "Gain [BLK7] Block. Deal [DAM7] damage.", function(enemy){
@@ -1043,8 +1054,10 @@ updateShopScreen();
                 }), "True Grit": () => new Card("True Grit+", 1, "Skill", "Gain [BLK7] Block. Exhaust a card in your hand.", async function(enemy){
                     gainBuff("Block", 7);
                     let chosen = await choose(hand, "Choose a card to Exhaust.");
-                    hand.splice(hand.indexOf(chosen), 1);
-                    exhaustPile.push(chosen);
+                    if(chosen) {
+                        hand.splice(hand.indexOf(chosen), 1);
+                        exhaustPile.push(chosen);
+                    }
                 }), "Twin Strike": () => new Card("Twin Strike+", 1, "Attack", "Deal [DAM7] damage twice.", function(enemy){
                     dealDamage(enemy, 7); dealDamage(enemy, 7);
                 }), "Wild Strike": () => new Card("Wild Strike+", 1, "Attack", "Deal [DAM17] damage. Shuffle a Wound into your discard pile.", function(enemy){
@@ -1057,9 +1070,13 @@ updateShopScreen();
                     hp -= 3; energy += 3;
                 }), "Burning Pact": () => new Card("Burning Pact+", 1, "Skill", "Exhaust 1 card. Draw 3 cards.", async function(enemy){
                     let chosen = await choose(hand, "Choose a card to Exhaust.");
-                    hand.splice(hand.indexOf(chosen), 1);
-                    exhaustPile.push(chosen);
-                    drawCard(3);
+                    if(chosen) {
+                        hand.splice(hand.indexOf(chosen), 1);
+                        exhaustPile.push(chosen);
+                        drawCard(3);
+                    } else {
+                        alert("Failed to play Burning Pact: No remaining cards in hand.");
+                    }
                 }), "Carnage": () => new Card("Carnage+", 2, "Attack", "Ethereal. Deal [DAM28] damage.", function(enemy){
                     dealDamage(enemy, 28);
                 }, ["ethereal"]), "Combust": () => new Card("Combust+", 1, "Power", "At the end of your turn, lose 1 HP and deal 7 damage to ALL enemies.", function(enemy){
@@ -1076,9 +1093,13 @@ updateShopScreen();
                     }
                 }), "Dual Wield": () => new Card("Dual Wield+", 1, "Skill", "Create 2 copies of an Attack or Power card in your hand.", async function(enemy){
                     let chosen = await choose(hand.filter(x=>["Attack","Power"].includes(x.type)), "Choose a card to copy.");
-                    let new1 = {...x}; let new2 = {...x};
-                    new1.number = Math.random(); new2.number = Math.random(); // they've gotta be different
-                    hand.push(new1); hand.push(new2);
+                    if(chosen) {
+                        let new1 = {...x}; let new2 = {...x};
+                        new1.number = Math.random(); new2.number = Math.random(); // they've gotta be different
+                        hand.push(new1); hand.push(new2);
+                    } else {
+                        alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
+                    }
                 }), "Entrench": () => new Card("Entrench+", 1, "Skill", "Double your Block.", function(enemy){
                     if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
                 }), "Evolve": () => new Card("Evolve+", 1, "Power", "Whenever you draw a Status card, draw 2 more cards.", function(enemy){
@@ -1158,8 +1179,12 @@ updateShopScreen();
                     gainBuff("Double Tap", 2);
                 }, ["exhausted"]), "Exhume": () => new Card("Exhume+", 0, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", async function(enemy){
                     let chosen = await choose(exhaustPile, "Choose a card to put into your hand.");
-                    hand.push(chosen);
-                    exhaustPile.splice(exhaustPile.indexOf(chosen));
+                    if(chosen) {
+                        hand.push(chosen);
+                        exhaustPile.splice(exhaustPile.indexOf(chosen));
+                    } else {
+                        alert("Failed to play Exhume: Exhaust pile is empty.");
+                    }
                 }), "Feed": () => new Card("Feed+", 1, "Attack", "Enemy loses 12 HP. If they die from it, gain 4 Max HP. Exhaust.", function(enemy){
                     if(enemy.hp <= 12) {maxHp += 4; hp += 4;}
                     enemy.hp -= 12;
