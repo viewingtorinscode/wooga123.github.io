@@ -462,7 +462,7 @@
                     }
                 }
             }
-            function dealDamage(actor, amt) {
+            function dealDamage(actor, amt, shiv=true) {
                 let finalAmt = amt;
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
@@ -527,9 +527,11 @@
                 "Next Turn Block": "Gain [AMT] Block next turn.",
                 "Vigor": "[AMT] of your strength only applies to 1st attack.",
                 "Next Turn Energy": "Gain [AMT] more energy next turn.",
-                "Poison": "Lose [AMT] HP at end of turn. Poison goes down each turn."
+                "Poison": "Lose [AMT] HP at end of turn. Poison goes down each turn.",
+                "Accuracy": "Shivs deal [AMT] more damage.",
+                "Blur": "Keep your Block for [AMT] turn[s]."
             };
-            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction"];
+            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -1091,6 +1093,37 @@ updateShopScreen();
                 dealDamage(enemy, 7); enemy.gainBuff("Weak", 1);
             });
             
+            //
+            // Silent Uncommons
+            //
+            let accuracy = () => new Card("Accuracy", 1, "Power", "Shivs deal 4 more damage.", function(enemy){
+                gainBuff("Accuracy", 4);
+            }, ["exhausted"]);
+            let allOutAttack = () => new Card("All-Out Attack", 1, "Attack", "Deal [DAM10] damage to ALL enemies. Discard a random card.", function(enemy){
+                for(let e of enemies) {dealDamage(e,10);}
+                let chosen = choice(hand);
+                discardPile.push(chosen);
+                hand.splice(hand.indexOf(chosen), 1);
+            });
+            let backstab = () => new Card("Backstab", 0, "Attack", "Innate. Deal [DAM11] damage. Exhaust.", function(enemy){
+                dealDamage(enemy, 11);
+            }, ["exhausted", "innate"]);
+            let blur = () => new Card("Blur", 1, "Skill", "Gain [BLK5] Block. Block is not removed next turn.", function(enemy){
+                gainBuff("Blur", 1); gainBuff("Block", 5);
+            });
+            let bouncingFlask = () => new Card("Bouncing Flask", 2, "Skill", "Apply 9 Poison to a random enemy.", function(enemy){
+                choice(enemies).gainBuff("Poison", 9);
+            });
+            let caltrops = () => new Card("Caltrops", 1, "Skill", "Gain 3 Thorns. Exhaust.", function(enemy){
+                gainBuff("Thorns", 3);
+            }, ["exhausted"]);
+            let catalyst = () => new Card("Catalyst", 1, "Skill", "Double the enemy's Poison. Exhaust.", function(enemy){
+                enemy.gainBuff("Poison", enemy.hasBuff("Poison"));
+            }, ["exhausted"]);
+            
+            //
+            // Upgraded Cards
+            //
             let upgradedCards = {
                 "Strike": () => new Card("Strike+", 1, "Attack", "Deal [DAM9] damage.", function(enemy){
                     dealDamage(enemy, 9);
@@ -1336,7 +1369,24 @@ updateShopScreen();
                 dealDamage(enemy, 9);
             }), "Sucker Punch": () => new Card("Sucker Punch+", 1, "Attack", "Deal [DAM9] damage. Apply 2 Weak.", function(enemy){
                 dealDamage(enemy, 9); enemy.gainBuff("Weak", 2);
-            })
+            }), "Accuracy": () => new Card("Accuracy+", 1, "Power", "Shivs deal 6 more damage.", function(enemy){
+                gainBuff("Accuracy", 6);
+            }, ["exhausted"]), "All-Out Attack": () => new Card("All-Out Attack+", 1, "Attack", "Deal [DAM14] damage to ALL enemies. Discard a random card.", function(enemy){
+                for(let e of enemies) {dealDamage(e, 14);}
+                let chosen = choice(hand);
+                discardPile.push(chosen);
+                hand.splice(hand.indexOf(chosen), 1);
+            }), "Backstab": () => new Card("Backstab+", 0, "Attack", "Innate. Deal [DAM15] damage. Exhaust.", function(enemy){
+                dealDamage(enemy, 15);
+            }, ["exhausted", "innate"]), "Blur": () => new Card("Blur+", 1, "Skill", "Gain [BLK8] Block. Block is not removed next turn.", function(enemy){
+                gainBuff("Blur", 1); gainBuff("Block", 8);
+            }), "Bouncing Flask": () => new Card("Bouncing Flask+", 2, "Skill", "Apply 12 Poison to a random enemy.", function(enemy){
+                choice(enemies).gainBuff("Poison", 12);
+            }), "Caltrops": () => new Card("Caltrops+", 1, "Skill", "Gain 5 Thorns. Exhaust.", function(enemy){
+                gainBuff("Thorns", 5);
+            }, ["exhausted"]), "Catalyst": () => new Card("Catalyst+", 1, "Skill", "Triple the enemy's Poison. Exhaust.", function(enemy){
+                enemy.gainBuff("Poison", enemy.hasBuff("Poison") * 2);
+            }, ["exhausted"])
             };
             function upgradeCard(c) {
                 let newCard = upgradedCards[c.name];
@@ -1351,7 +1401,7 @@ updateShopScreen();
                 getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst]);
             let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper]);
             
             function addCard(newCards="random") {
@@ -1829,7 +1879,9 @@ updateShopScreen();
                     .replace("[BLOOD4BLOOD]", 4 - stats.timesLostHp)
                     .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
                     .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
-                    .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]");
+                    .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]")
+                    .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
+                    .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]");
                     for(let i=1; i<300; i++) {
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
@@ -1845,7 +1897,8 @@ updateShopScreen();
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                         else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
                         
-                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI).replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
+                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
+                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                     }
                     cardTooltip.innerHTML = addCircle(c.cost.toString())+" "+c.type+"<br/>"+newDesc;
                     
@@ -1917,8 +1970,11 @@ updateShopScreen();
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
                 }
-                enemies = enemies.filter(x => x.hp > 0);
-                if(!enemies.includes(target)) {target = enemies[0];}
+                if(enemies.filter(x => x.hp <= 0).length > 0) {
+                    enemies = enemies.filter(x => x.hp > 0);
+                    target = enemies[0];
+                    updateHtml();
+                }
                 if(enemies.length == 0) {
                     getId("rewardsScreen").style.display = "block";
                     getId("goldReward").style.display = "block";
@@ -1968,7 +2024,12 @@ updateShopScreen();
             
             function addShivs(num=1) {
                 for(let i=0; i<num; i++) {
-                    hand.push(new Card("Shiv", 0, "Attack", "Deal [DAM4] damage. Exhaust.", function(e){dealDamage(e,4);}, ["exhausted"]));
+                    hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4);}, ["exhausted"]));
+                }
+            }
+            function addShivPluses(num=1) {
+                for(let i=0; i<num; i++) {
+                    hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6);}, ["exhausted"]));
                 }
             }
             
@@ -2018,7 +2079,8 @@ updateShopScreen();
                 for(let r of relics) {if(r.trigger == "turn_start") {r.effect();}}
                 stats.attacksThisTurn = 0;
                 stats.skillsThisTurn = 0;
-                if(hasBuff("Barricade")==0){loseBuff("Block");}
+                if(hasBuff("Barricade")==0 && hasBuff("Blur")==0){loseBuff("Block");}
+                loseBuff("Blur", 1);
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
                 updateHtml();
