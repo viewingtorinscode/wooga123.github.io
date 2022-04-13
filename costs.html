@@ -1464,8 +1464,8 @@ updateShopScreen();
             let possibleEnemies_act2 = [
                 () => new Enemy("Spheric Guardian", 60, [
                     {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
-                    {intent: "attack-nerf 10", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Frail", 5)},
-                    {intent: "attack-block 15", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Frail", 5)},
+                    {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
                 ], ["no-repeat"]),
                 () => new Enemy("The Chosen", 95, [
                     {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
@@ -1752,8 +1752,8 @@ updateShopScreen();
                     if(e.intent.intent.split(" ")[1]) {
                         if(parseInt(e.intent.intent.split(" ")[1])) {
                             intentNumber = parseInt(e.intent.intent.split(" ")[1]);
-                            if(hasBuff("Vulnerable")) {intentNumber = Math.round(intentNumber*1.5);}
-                            if(e.hasBuff("Weak")) {intentNumber = Math.round(intentNumber*0.75);}
+                            if(hasBuff("Vulnerable") > 0) {intentNumber = Math.round(intentNumber*1.5);}
+                            if(e.hasBuff("Weak") > 0) {intentNumber = Math.round(intentNumber*0.75);}
                             intentNumber += e.hasBuff("Strength");
                             intentNumber -= e.hasBuff("Minus Strength");
                             if(intentNumber >= 20) {
