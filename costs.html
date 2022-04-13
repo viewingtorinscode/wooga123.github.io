@@ -1274,7 +1274,7 @@ updateShopScreen();
                     gainBuff("Juggernaut", 7);
                 }, ["exhausted"]), "Limit Break": () => new Card("Limit Break+", 1, "Skill", "Double your Strength.", function(enemy){
                     if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
-                }), "Offering": () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.", function(enemy){
+                }), "Offering": () => new Card("Offering+", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.", function(enemy){
                     hp -= 6; energy += 2; drawCard(5);
                 }, ["exhausted"]), "Reaper": () => new Card("Reaper", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
                     dealDamage(enemy, 10); hp = Math.min(maxHp, hp + 10);
