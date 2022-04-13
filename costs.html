@@ -1706,7 +1706,7 @@ updateShopScreen();
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                         else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
                         
-                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
+                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI).replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                     }
                     cardTooltip.innerHTML = addCircle(c.cost.toString())+" "+c.type+"<br/>"+newDesc;
                     
