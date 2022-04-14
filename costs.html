@@ -531,7 +531,9 @@
                 "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
                 "Accuracy": "Shivs deal [AMT] more damage.",
                 "Blur": "Keep your Block for [AMT] turn[s].",
-                "Infinite Blades": "Get [AMT] Shiv[s] each turn."
+                "Infinite Blades": "Get [AMT] Shiv[s] each turn.",
+                "Noxious Fumes": "At the start of your turn, apply [AMT] Poison to ALL enemies.",
+                "Next Turn Cards": "Draw [AMT] more card[s] next turn."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
@@ -1175,9 +1177,21 @@ updateShopScreen();
             let infiniteBlades = () => new Card("Infinite Blades", 1, "Power", "At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
             }, ["exhausted"]);
-            let legSweep = () => new Card("Leg Sweep", 2, "Skill", "Apply 2 Weak. Gain 11 Block.", function(enemy){
+            let legSweep = () => new Card("Leg Sweep", 2, "Skill", "Apply 2 Weak. Gain [DAM11] Block.", function(enemy){
                 gainBuff("Block", 11); enemy.gainBuff("Weak", 2);
             });
+            let noxiousFumes = () => new Card("Noxious Fumes", 1, "Power", "At the start of your turn, apply 2 Poison to ALL enemies.", function(enemy){
+                gainBuff("Noxious Fumes", 2);
+            }, ["exhausted"]);
+            let predator = () => new Card("Predator", 2, "Attack", "Deal [DAM15] damage. Next turn, draw 2 more cards.", function(enemy){
+                dealDamage(enemy, 15); gainBuff("Next Turn Cards", 2);
+            });
+            let skewer = () => new Card("Skewer", "X", "Attack", "Deal [DAM7] damage X times.", function(enemy){
+                dealDamage(enemy, 7);
+            });
+            let terror = () => new Card("Terror", 1, "Skill", "Apply 999 Vulnerable. Exhaust.", function(enemy){
+                enemy.gainBuff("Vulnerable", 999);
+            }, ["exhausted"]);
             
             //
             // Upgraded Cards
@@ -1485,7 +1499,15 @@ updateShopScreen();
                 gainBuff("Infinite Blades", 1);
             }, ["exhausted", "innate"]), "Leg Sweep": () => new Card("Leg Sweep+", 2, "Skill", "Apply 3 Weak. Gain 14 Block.", function(enemy){
                 gainBuff("Block", 14); enemy.gainBuff("Weak", 3);
-            })
+            }), "Noxious Fumes": () => new Card("Noxious Fumes+", 1, "Power", "At the start of your turn, apply 3 Poison to ALL enemies.", function(enemy){
+                gainBuff("Noxious Fumes", 3);
+            }, ["exhausted"]), "Predator": () => new Card("Predator+", 2, "Attack", "Deal [DAM20] damage. Next turn, draw 2 more cards.", function(enemy){
+                dealDamage(enemy, 2); gainBuff("Next Turn Cards", 2);
+            }), "Skewer": () => new Card("Skewer+", "X", "Attack", "Deal [DAM10] damage X times.", function(enemy){
+                dealDamage(enemy, 10);
+            }), "Terror": () => new Card("Terror+", 0, "Skill", "Apply 999 Vulnerable. Exhaust.", function(enemy){
+                enemy.gainBuff("Vulnerable", 999);
+            }, ["exhausted"])
             };
             
             function upgradeCard(c) {
@@ -1501,7 +1523,7 @@ updateShopScreen();
                 getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
             let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper]);
             
             function addCard(newCards="random") {
@@ -2166,7 +2188,8 @@ updateShopScreen();
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
-                    drawCard(5);
+                    drawCard(5 + hasBuff("Next Turn Cards"));
+                    loseBuff("Next Turn Cards");
                 }
                 if(hasBuff("Infinite Blades") > 0) {addShivs(hasBuff("Infinite Blades"));}
                 for(let relic of relics) {
@@ -2192,6 +2215,7 @@ updateShopScreen();
                 if(hasBuff("Next Turn Block")>0){gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
                 if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
+                if(hasBuff("Noxious Fumes")>0){for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}}
                 updateHtml();
             }
             
