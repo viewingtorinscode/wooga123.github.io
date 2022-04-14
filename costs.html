@@ -213,7 +213,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("]", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6);
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace("]", "").replace("]", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6);
             }
             function log(message, color="white") {
                 getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
@@ -281,7 +281,7 @@
                             if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {r.effect();}
                         }
                     }
-                    if(this.type == "Skill") {
+                    if(this.type == "Power") {
                         for(let r of relics) {if(r.trigger == "on_power") {r.effect();}}
                     }
                     if(this.type == "Attack") {
@@ -679,8 +679,6 @@
                         if(gold >= cardCost) {
                             if(i==0) {
                                 nameElem.setAttribute("class", "Skill tt");
-                            } else if(i==5) {
-                                nameElem.setAttribute("class", "Power tt");
                             } else {
                                 nameElem.setAttribute("class", "tt");
                             }
@@ -756,12 +754,14 @@ updateShopScreen();
                         }
                     } else {
                         let cardElem = getId("cardName_"+i.offer);
-                        if(gold < i.cost) {
-                            cardElem.setAttribute("class", "unplayable tt");
-                        } else if(i.offer==0) {
-                            cardElem.setAttribute("class", "Skill tt");
+                        if(gold >= i.cost) {
+                            if(i==0) {
+                                cardElem.setAttribute("class", "Skill tt");
+                            } else {
+                                cardElem.setAttribute("class", "tt");
+                            }
                         } else {
-                            cardElem.setAttribute("class", "tt");
+                            cardElem.setAttribute("class", "tt unplayable");
                         }
                     }
                 }
