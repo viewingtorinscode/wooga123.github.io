@@ -2181,6 +2181,7 @@ updateShopScreen();
                 if(hasBuff("Barricade")==0 && hasBuff("Blur")==0){loseBuff("Block");}
                 loseBuff("Blur", 1);
                 if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
+                if(hasBuff("Next Turn Block")>0){gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
                 if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
                 updateHtml();
