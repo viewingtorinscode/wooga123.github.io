@@ -861,7 +861,7 @@ updateShopScreen();
             let carnage = () => new Card("Carnage", 2, "Attack", "Ethereal. Deal [DAM20] damage.", function(enemy){
                 dealDamage(enemy, 20);
             }, ["ethereal"]);
-            let combust = () => new Card("Combust", 1, "Power", "At the end of your turn, lose 1 HP and deal 5 damage to ALL enemies.", function(enemy){
+            let combust = () => new Card("Combust", 1, "Power", "At the end of your turn, lose 1 HP and deal [DAM5] damage to ALL enemies.", function(enemy){
                 gainBuff("Combust", 5);
             }, ["exhausted"]);
             let darkEmbrace = () => new Card("Dark Embrace", 2, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
@@ -1248,7 +1248,7 @@ updateShopScreen();
                     }
                 }), "Carnage": () => new Card("Carnage+", 2, "Attack", "Ethereal. Deal [DAM28] damage.", function(enemy){
                     dealDamage(enemy, 28);
-                }, ["ethereal"]), "Combust": () => new Card("Combust+", 1, "Power", "At the end of your turn, lose 1 HP and deal 7 damage to ALL enemies.", function(enemy){
+                }, ["ethereal"]), "Combust": () => new Card("Combust+", 1, "Power", "At the end of your turn, lose 1 HP and deal [DAM7] damage to ALL enemies.", function(enemy){
                     gainBuff("Combust", 7);
                 }, ["exhausted"]), "Dark Embrace+": () => new Card("Dark Embrace+", 1, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
                     gainBuff("Dark Embrace", 1);
@@ -1366,7 +1366,7 @@ updateShopScreen();
                     if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
                 }), "Offering": () => new Card("Offering+", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.", function(enemy){
                     hp -= 6; energy += 2; drawCard(5);
-                }, ["exhausted"]), "Reaper": () => new Card("Reaper", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
+                }, ["exhausted"]), "Reaper": () => new Card("Reaper+", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
                     dealDamage(enemy, 10); hp = Math.min(maxHp, hp + 10);
                 }, ["exhausted"]), "Acrobatics": () => new Card("Acrobatics+", 1, "Skill", "Draw 4 cards. Discard 1 card.", async function(enemy){
                 drawCard(4);
