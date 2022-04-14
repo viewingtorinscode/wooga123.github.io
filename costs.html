@@ -247,7 +247,7 @@
                     } else {
                         let newCost = this.cost;
                         if(this.flags.includes("blood4blood")) {
-                            newCost = Math.max(0, stats.timesLostHp);
+                            newCost = Math.max(0, 4-stats.timesLostHp);
                         }
                         if(energy >= newCost && !(this.flags.includes("unplayable"))) {
                             energy -= newCost;
