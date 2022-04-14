@@ -108,7 +108,7 @@
             </div>
         </div>
         <span id="statusLineB4"></span>
-        <button onclick="alert(deck.map(x=>x.name).join(', '));">View Deck | <span style="color:white" id="deckSize">10</span></button>
+        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t='';for(let i in o){t+=o[i]+'x '+i+'\n';}alert(t);">View Deck | <span style="color:white" id="deckSize">10</span></button>
         <span id="statusLine"></span>
         <br /><br />
         <table id="gameScreen">
@@ -178,7 +178,7 @@
                 for(let c of displayCards) {
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise('"+c.name+"');");
-                    cardButton.setAttribute("class", "tt");
+                    cardButton.setAttribute("class", c.type+" tt");
                     cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
                     getId("selectionModalContent").appendChild(cardButton);
                 }
