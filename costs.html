@@ -213,7 +213,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace("]", "").replace("]", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6);
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
             }
             function log(message, color="white") {
                 getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
