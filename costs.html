@@ -2223,7 +2223,7 @@ updateShopScreen();
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
                     if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
                     if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
-                    e.attack();
+                    if(e.hp > 0){e.attack();}
                     e.loseBuff("Vulnerable", 1);
                     e.loseBuff("Weak", 1);
                     e.hp = Math.min(e.maxHp, e.hp + e.hasBuff("Regen"));
