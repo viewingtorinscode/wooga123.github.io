@@ -108,7 +108,7 @@
             </div>
         </div>
         <span id="statusLineB4"></span>
-        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t='';for(let i in o){t+=o[i]+'x '+i+'\n';}let c=[new ClipboardItem({'text/plain':new Blob([t],{type:'text/plain'})})];navigator.clipboard.write(c);alert(t+'Deck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
+        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
         <span id="statusLine"></span>
         <br /><br />
         <table id="gameScreen">
@@ -603,6 +603,7 @@
                     exhaustPile = [];
                     hand = [];
                     buffs = [];
+                    energy = 0; // no ice cream hax
                     stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested};
                     target = enemies[0];
                     for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
@@ -666,7 +667,7 @@
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
                         let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
-                        offers.push({offer: i, cost: cardCost});
+                        offers.push({offer: i, price: cardCost});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
                         if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
                         let cardElem = document.createElement("tr");
@@ -703,7 +704,7 @@ updateShopScreen();
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool)();
                         let relicCost = Math.round(Math.random()*119 + 143);
-                        offers.push({offer: i+100, cost: relicCost});
+                        offers.push({offer: i+100, price: relicCost});
                         let relicElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
@@ -747,14 +748,14 @@ updateShopScreen();
                 for(let i of offers) {
                     if(i.offer >= 100) {
                         let relicElem = getId("relicName_"+(i.offer-100));
-                        if(gold >= i.cost) {
+                        if(gold >= i.price) {
                             relicElem.setAttribute("class", "Status tt");
                         } else {
                             relicElem.setAttribute("class", "unplayable tt");
                         }
                     } else {
                         let cardElem = getId("cardName_"+i.offer);
-                        if(gold >= i.cost) {
+                        if(gold >= i.price) {
                             if(i==0) {
                                 cardElem.setAttribute("class", "Skill tt");
                             } else {
@@ -1677,7 +1678,7 @@ updateShopScreen();
             let discardPile = [];
             let exhaustPile = [];
             let hand = [];
-            let energy = 3;
+            let energy = 0;
             let maxEnergy = 3;
             let hp = 70;
             let maxHp = 70;
