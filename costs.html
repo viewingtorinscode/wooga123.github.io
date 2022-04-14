@@ -108,7 +108,7 @@
             </div>
         </div>
         <span id="statusLineB4"></span>
-        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t='';for(let i in o){t+=o[i]+'x '+i+'\n';}alert(t);">View Deck | <span style="color:white" id="deckSize">10</span></button>
+        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t='';for(let i in o){t+=o[i]+'x '+i+'\n';}let c=[new ClipboardItem({'text/plain':new Blob([t],{type:'text/plain'})})];navigator.clipboard.write(c);alert(t+'Deck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
         <span id="statusLine"></span>
         <br /><br />
         <table id="gameScreen">
@@ -464,11 +464,11 @@
             }
             function dealDamage(actor, amt, shiv=false) {
                 let finalAmt = amt;
+                if(shiv) {finalAmt += hasBuff("Accuracy");}
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
                 finalAmt -= hasBuff("Minus Strength");
-                if(shiv) {finalAmt += hasBuff("Accuracy");}
                 
                 if(finalAmt > 0) {log("You dealt "+Math.max(0, finalAmt-actor.hasBuff("Block"))+" damage"+(
                     actor.hasBuff("Block")>0 ? " (+ "+Math.min(actor.hasBuff("Block"), finalAmt)+" blocked)" : ""
@@ -880,7 +880,7 @@ updateShopScreen();
             let dualWield = () => new Card("Dual Wield", 1, "Skill", "Copy an Attack or Power card in your hand.", async function(enemy){
                 let chosen = await choose(hand.filter(x=>["Attack","Power"].includes(x.type)), "Choose a card to copy.");
                 if(chosen) {
-                    hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use));
+                    hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
                     updateHtml();
                 } else {
                     alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
@@ -1263,8 +1263,8 @@ updateShopScreen();
                 }), "Dual Wield": () => new Card("Dual Wield+", 1, "Skill", "Create 2 copies of an Attack or Power card in your hand.", async function(enemy){
                     let chosen = await choose(hand.filter(x=>["Attack","Power"].includes(x.type)), "Choose a card to copy.");
                     if(chosen) {
-                        hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use));
-                        hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use));
+                        hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
+                        hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
                         updateHtml();
                     } else {
                         alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
@@ -1816,7 +1816,7 @@ updateShopScreen();
                             () => new Enemy("Sneaky Gremlin", 10, [{intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}]),
                             () => new Enemy("Wizard Gremlin", 25, [{intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}])
                         ];
-                        enemies = [choice(gremlins), choice(gremlins), ...enemies];
+                        enemies = [choice(gremlins)(), choice(gremlins)(), ...enemies];
                     }}
                 ], ["randomize"])
             ];
