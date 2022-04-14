@@ -419,8 +419,8 @@
                     this.trigger = trigger;
                     this.use = effect;
                 }
-                effect() {
-                    this.use();
+                effect(n=undefined) {
+                    if(n) {this.use(n);} else {this.use();}
                 }
             }
             
@@ -1512,7 +1512,8 @@ updateShopScreen();
             
             function upgradeCard(c) {
                 let newCard = upgradedCards[c.name];
-                deck.splice(deck.indexOf(c), 1);
+                let deckNames = deck.map(x=>x.name);
+                deck.splice(deckNames.indexOf(c.name), 1);
                 deck.push(newCard());
             }
             let cardToUpgrade;
@@ -1555,7 +1556,7 @@ updateShopScreen();
                         alert("card added (" + c.name + ") doesn't have a use() function!!");
                     }
                     deck.push(c);
-                    for(let r of relics) {if(r.trigger == "add_card") {r.effect();}}
+                    for(let r of relics) {if(r.trigger == "add_card") {r.effect(c);}}
                     updateStatLine();
                 } else if(cardNumber == -1) {
                     for(let r of relics) {if(r.trigger == "no_card") {r.effect();}}
@@ -1612,17 +1613,17 @@ updateShopScreen();
             function r_strawberry() {maxHp += 7; hp += 7;}
             function r_vajra() {gainBuff("Strength", 1);}
             function r_feather() {hp = Math.min(maxHp, hp+Math.round(0.5*deck.length));}
-            function r_frozenEgg() {if(deck[deck.length-1].type=="Power"){upgradeCard(deck[deck.length-1]);}}
+            function r_frozenEgg(c) {if(c.type=="Power"){upgradeCard(c);}}
             function r_letterOpener() {for(let x of enemies){dealDamage(x, 5);}}
             function r_meatBone() {if(hp/maxHp <= 0.5) {hp = Math.min(maxHp, hp+12);}}
             function r_mercuryHourglass() {for(let x of enemies){dealDamage(x, 3);}}
-            function r_moltenEgg() {if(deck[deck.length-1].type=="Attack"){upgradeCard(deck[deck.length-1]);}}
+            function r_moltenEgg(c) {if(c.type=="Attack"){upgradeCard(c);}}
             function r_ornamentalFan() {gainBuff("Block", 4);}
             function r_pear() {maxHp += 10; hp += 10;}
             function r_selfFormingClay() {gainBuff("Next Turn Block", 3);}
             function r_singingBowl() {maxHp += 2; hp += 2;}
             function r_strikeDummy() {dealDamage(target, 3);}
-            function r_toxicEgg() {if(deck[deck.length-1].type=="Skill"){upgradeCard(deck[deck.length-1]);}}
+            function r_toxicEgg(c) {if(c.type=="Skill"){upgradeCard(c);}}
             function r_birdFacedUrn() {hp = Math.min(maxHp, hp+2);}
             function r_championsBelt() {target.gainBuff("Weak", 1);}
             function r_deadBranch() {hand.push(randCard()());}
