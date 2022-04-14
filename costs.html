@@ -1792,10 +1792,10 @@ updateShopScreen();
                 ])
             ];
             let possibleBosses = [
-                () => new Enemy("Slime Boss", 140, [
+                () => new Enemy("Slime Boss", 190, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
-                    {intent: "attacking 25", desc: "deal [DAM25] damage", effect: attack(23)}
+                    {intent: "attacking 35", desc: "deal [DAM35] damage", effect: attack(35)}
                 ])
             ];
             let possibleEnemies_act2 = [
@@ -1844,12 +1844,13 @@ updateShopScreen();
                 ], ["randomize"])
             ];
             let possibleBosses_act2 = [
-                () => new Enemy("The Champ", 400, [
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 2)},
+                () => new Enemy("The Champ", 530, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 3)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
                     {intent: "meganerf", desc: "apply a <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
-                    {intent: "attacking 11", desc: "deal [DAM11] damage", effect: attack(11)},
-                    {intent: "attacking 11", desc: "deal [DAM11] damage", effect: attack(11)}
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
                 ], ["randomize"])
             ];
             let possibleEnemies_act3 = [
@@ -1893,12 +1894,12 @@ updateShopScreen();
                 ], ["no-repeat"])
             ];
             let possibleBosses_act3 = [
-                () => new Enemy("Time Eater", 500, [
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage", effect: attack_buff(14, "Strength", 2)},
+                () => new Enemy("Time Eater", 666, [
+                    {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 2], ["Weak", 1]])},
-                    {intent: "attack-nerf 18", desc: "deal [DAM18] damage and apply a negative effect", effect: attack_apply(18, "Draw Reduction", 2)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage", effect: attack_buff(14, "Strength", 2)},
-                    {intent: "attack-nerf 18", desc: "deal [DAM18] damage and apply a negative effect", effect: attack_apply(18, "Draw Reduction", 2)}
+                    {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)},
+                    {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
+                    {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)}
                 ], ["randomize"])
             ];
             
