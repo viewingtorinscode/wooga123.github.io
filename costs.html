@@ -1597,7 +1597,7 @@ updateShopScreen();
             
             function r_snakeRing() {drawCard(2);}
             function r_akabeko() {gainBuff("Strength", 8); gainBuff("Vigor", 8);}
-            function r_anchor() {gainBuff("Block", 10);}
+            function r_anchor() {gainBuff("Next Turn Block", 10);}
             function r_tea() {energy += 2;}
             function r_artOfWar() {energy += 1;}
             function r_bagOfMarbles() {for(let x of enemies){x.gainBuff("Vulnerable",1);}}
@@ -1848,7 +1848,7 @@ updateShopScreen();
                 () => new Enemy("The Champ", 530, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 3)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
-                    {intent: "meganerf", desc: "apply a <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
@@ -1863,14 +1863,14 @@ updateShopScreen();
                 ]),
                 () => new Enemy("Spiker", 50, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
-                        enemies.push(new Enemy("Exploder", 30, [
+                        enemies = [new Enemy("Exploder", 30, [
                             {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                             {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                             {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: function(me){me.dealDamage(20);me.hp=0}}
-                        ]));
-                        enemies.push(new Enemy("Repulsor", 30, [
+                        ]);
+                        new Enemy("Repulsor", 30, [
                             {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
-                        ]));
+                        ]), ...enemies];
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
                 ], ["no-repeat"]),
