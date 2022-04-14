@@ -1146,7 +1146,7 @@ updateShopScreen();
             let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {e.gainBuff("Poison", 4); e.gainBuff("Weak", 2);}
             }, ["exhausted"]);
-            let dash = () => new Card("Dash", 2, "Deal 10 damage. Gain 10 Block.", function(enemy){
+            let dash = () => new Card("Dash", 2, "Attack", "Deal 10 damage. Gain 10 Block.", function(enemy){
                 gainBuff("Block", 10); dealDamage(enemy, 10);
             });
             let distraction = () => new Card("Distraction", 0, "Skill", "Add a random Skill to your hand. Exhaust.", function(enemy){
@@ -1459,7 +1459,7 @@ updateShopScreen();
                 energy += 2;
             }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {e.gainBuff("Poison", 7); e.gainBuff("Weak", 2);}
-            }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Deal 13 damage. Gain 13 Block.", function(enemy){
+            }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Attack", "Deal 13 damage. Gain 13 Block.", function(enemy){
                 gainBuff("Block", 13); dealDamage(enemy, 13);
             }), "Distraction": () => new Card("Distraction+", 0, "Skill", "Add 2 random Skills to your hand. Exhaust.", function(enemy){
                 let extraCard = randCard()(); // looks weird ik
