@@ -1805,12 +1805,12 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 15, [{intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}]),
-                            () => new Enemy("Mad Gremlin", 20, [{intent: "attack 4", desc: "deal [DAM4] damage", effect: attack(4)}]),
+                            () => new Enemy("Mad Gremlin", 20, [{intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}]),
                             () => new Enemy("Shield Gremlin", 15, [{intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}, {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}]),
                             () => new Enemy("Sneaky Gremlin", 10, [{intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}]),
                             () => new Enemy("Wizard Gremlin", 25, [{intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}])
                         ];
-                        enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());
+                        enemies = [choice(gremlins), choice(gremlins), ...enemies];
                     }}
                 ], ["randomize"])
             ];
