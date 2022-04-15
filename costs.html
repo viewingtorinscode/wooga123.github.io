@@ -118,7 +118,7 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
-        <span id="damageNumber" style="color: #222; position: absolute;"></span>
+        <span id="damageNumber" style="position:absolute; opacity:0; color: yellow;"></span>
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
             <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
@@ -432,6 +432,7 @@
                     }
                 }
             }
+            let timeouts = [];
             function dealDamage(actor, amt, shiv=false) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
@@ -451,6 +452,17 @@
                     }
                 }
                 actor.loseBuff("Block", finalAmt);
+                let dn = getId("damageNumber");
+                dn.innerHTML = Math.max(0, finalAmt - actor.hasBuff("Block"));
+                dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top - 10;
+                dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left - 30;
+                dn.style.opacity = "1";
+                dn.style.fontSize = "50px";
+                for(let i of timeouts) {clearTimeout(i);}
+                timeouts = [];
+                for(let i=0; i<40; i++) {
+                    timeouts.push(setTimeout(function(){dn.style.opacity = (40-i)/40}, i*12));
+                }
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns")); updateHtml();}
             }
             let buffDesc = {
@@ -1946,7 +1958,7 @@ updateShopScreen();
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
                         let buffStuff = "";
-                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
+                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage"].includes(x.name)) {
                             buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
@@ -2031,6 +2043,7 @@ updateShopScreen();
                     let enemyElem = document.createElement("span");
                     enemyElem.setAttribute("class", "tt");
                     let enemyButton = document.createElement("button");
+                    enemyButton.setAttribute("id", "enemy_"+e.number);
                     enemyButton.setAttribute("onclick", `target = enemies[${eIndex}]; updateHtml();`);
                     let intentType = e.intent.intent.split(" ")[0];
                     let intentNumber = "";
@@ -2060,7 +2073,7 @@ updateShopScreen();
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
