@@ -118,6 +118,7 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
+        <span id="damageNumber" style="color: #222; position: absolute;"></span>
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
             <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
@@ -143,14 +144,6 @@
                 <td id="enemiesTd">
                     <div id="enemies"></div>
                 </td>
-            </tr>
-            <tr>
-                <td>
-                    <br /><br /><br />
-                    <h3>Combat log</h3>
-                    <pre id="combatLog"></pre>
-                </td>
-                <td></td>
             </tr>
         </table>
         <div id="rewardsScreen" style="display: none;">
