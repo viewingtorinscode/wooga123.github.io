@@ -213,7 +213,7 @@
                 }
             }
             function unformat(desc) {
-                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage", "").replace(" (Deals [FINISHER+] damage", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
             }
             function log(message, color="white") {
                 getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
@@ -499,9 +499,9 @@
                 "Dexterity": "Cards gain you [AMT] more Block.",
                 "Strength Down": "At the end of this turn, lose [AMT] Strength.",
                 "No Draw": "Cannot draw cards for [AMT] turn[s].",
-                "Combust": "At the end of your turn, lose 1 HP and deal [AMT] damage to ALL enemies.",
+                "Combust": "At the end of your turn, lose 1 HP and deal [DAMT] damage to ALL enemies.",
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
-                "Thorns": "When recieving unblocked damage, deal [AMT] damage back.",
+                "Thorns": "When recieving unblocked damage, deal [DAMT] damage back.",
                 "Ritual": "At end of turn, gain [AMT] Strength.",
                 "Frail": "Gain 25% less Block for [AMT] turn[s].",
                 "Enrage": "When you play a Skill, gains [AMT] Strength.",
@@ -509,24 +509,24 @@
                 "Minus Dexterity": "Gain [AMT] less block from cards.",
                 "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
                 "Pen Nib": "When you get 10 Pen Nib, deal 10 damage.",
-                "Feel No Pain": "When a card is Exausted, gain [AMT] Block.",
-                "Fire Breathing": "Whenever you draw a Status card, deal [AMT] damage to ALL enemies.",
-                "Metallicize": "Start each turn with [AMT] Block.",
-                "Rage": "For each Attack you play this turn, gain [AMT] Block.",
+                "Feel No Pain": "When a card is Exausted, gain [BAMT] Block.",
+                "Fire Breathing": "Whenever you draw a Status card, deal [DAMT] damage to ALL enemies.",
+                "Metallicize": "Start each turn with [BAMT] Block.",
+                "Rage": "For each Attack you play this turn, gain [BAMT] Block.",
                 "Rampage": "Increase Rampage's damage by [AMT].",
                 "Barricade": "Block is not removed at the start of your turn.",
                 "Berserk": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
                 "Double Tap": "The next Attack you play is played [AMT] more time[s]",
-                "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
+                "Juggernaut": "Whenever you gain Block, deal [DAMT] damage to a random enemy.",
                 "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
                 "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
                 "Artifact": "Negates the next [AMT] debuff[s].",
                 "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
                 "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
                 "Buffer": "Prevent the first [AMT] unblocked hit[s].",
-                "Next Turn Block": "Gain [AMT] Block next turn.",
-                "Vigor": "[AMT] of your strength only applies to 1st attack.",
+                "Next Turn Block": "Gain [BAMT] Block next turn.",
+                "Vigor": "[AMT] of your Strength only applies to 1st attack.",
                 "Next Turn Energy": "Gain [AMT] more energy next turn.",
                 "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
                 "Accuracy": "Shivs deal [AMT] more damage.",
@@ -1991,7 +1991,26 @@ updateShopScreen();
                         } else {
                             buffStuff += x.name+" ";
                         }
-                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
+                        let adjustedDamage = function(n) {
+                            let newI = n;
+                            if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
+                            if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                            newI += hasBuff("Strength");
+                            newI -= hasBuff("Minus Strength");
+                            if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
+                            else if(newI < n) {return "<span style='color:orangered'>"+newI+"</span>";}
+                            else {return newI;}
+                        }
+                        let adjustedBlock = function(n) {
+                            let blockI = n;
+                            if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
+                            blockI += hasBuff("Dexterity");
+                            blockI -= hasBuff("Minus Dexterity");
+                            if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
+                            else if(blockI < n) {return "<span style='color:orangered'>"+blockI+"</span>";}
+                            else {return blockI;}
+                        }
+                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
                         counter++;
                     }
                 }
