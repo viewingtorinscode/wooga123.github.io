@@ -30,7 +30,7 @@
             .tt {user-select: none;}
             .txt {
                 position: absolute;
-                background: #888;
+                background: #555;
                 color: black;
                 display: none;
                 text-align: left;
@@ -2059,7 +2059,7 @@ updateShopScreen();
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
                         if(!hasBuff(c.name)) {blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");}
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
-                        else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
+                        else if(blockI < i) {blockI = "<span style='color:#f66'>"+blockI+"</span>";}
                         
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
@@ -2174,15 +2174,11 @@ updateShopScreen();
                     let goldAmt = Math.round(Math.random()*10)+25;
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
-                    if(Math.random() < 0.5 && potions.length < 3) { // set to 1 (always drop) for testing
+                    if(Math.random() < 0.5) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
                         let potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: "${potionDrop.effect}"}); updateStatLine(); getId('potionReward').style.display = 'none';`);
-                    } else if(potions.length >= 3) {
-                        getId("potionReward").style.display = "block";
-                        getId("potionReward").innerHTML = "Potion slots full!";
-                        getId("potionReward").removeAttribute("onclick");
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: "${potionDrop.effect}"}); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
@@ -2292,6 +2288,10 @@ updateShopScreen();
                 }
                 for(let r of relics) {if(r.trigger == "turn_end") {r.effect();}}
                 hand = [];
+                if(hasBuff("Combust") > 0) {
+                    hp -= 1;
+                    for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
+                }
                 loseBuff("Vulnerable", 1);
                 loseBuff("Weak", 1);
                 loseBuff("Frail", 1);
@@ -2304,10 +2304,6 @@ updateShopScreen();
                 loseBuff("Strength Down");
                 loseBuff("Dexterity", hasBuff("Dexterity Down"));
                 loseBuff("Dexterity Down");
-                if(hasBuff("Combust") > 0) {
-                    hp -= 1;
-                    for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
-                }
                 updateHtml();
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
