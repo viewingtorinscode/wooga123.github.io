@@ -1982,8 +1982,7 @@ updateShopScreen();
                 let playerElem = getId("player");
                 playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand:";
                 if(buffs.length > 0) {
-                    playerElem.innerHTML += " | ";
-                    let counter = 0;
+                    playerElem.innerHTML += " |";
                     for(let x of buffs) {
                         let buffStuff = "";
                         if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
@@ -2010,8 +2009,7 @@ updateShopScreen();
                             else if(blockI < n) {return "<span style='color:orangered'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
-                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
-                        counter++;
+                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
                     }
                 }
                 
@@ -2100,14 +2098,38 @@ updateShopScreen();
                     }
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     enemyElem.appendChild(enemyButton);
-                    let extraText = "";
-                    if(e.hasBuff("Block") > 0) {
-                        extraText += " (<img src='StS/intent-block.png'>"+e.hasBuff("Block")+")";
+                    enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                    if(e.buffs.length > 0) {
+                        enemyElem.innerHTML += " |";
+                        for(let x of e.buffs) {
+                            let buffStuff = "";
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
+                                buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
+                            } else {
+                                buffStuff += x.name+" ";
+                            }
+                            let adjustedDamage = function(n) {
+                                let newI = n;
+                                if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
+                                if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                                newI += e.hasBuff("Strength");
+                                newI -= e.hasBuff("Minus Strength");
+                                if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
+                                else if(newI < n) {return "<span style='color:orangered'>"+newI+"</span>";}
+                                else {return newI;}
+                            }
+                            let adjustedBlock = function(n) {
+                                let blockI = n;
+                                if(e.hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
+                                blockI += e.hasBuff("Dexterity");
+                                blockI -= e.hasBuff("Minus Dexterity");
+                                if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
+                                else if(blockI < n) {return "<span style='color:orangered'>"+blockI+"</span>";}
+                                else {return blockI;}
+                            }
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
+                        }
                     }
-                    if(e.hasBuff("Poison") > 0) {
-                        extraText += " (<img src='StS/poison.png'>"+e.hasBuff("Poison")+")";
-                    }
-                    enemyElem.innerHTML += " HP: "+e.hp+extraText+" / "+e.maxHp;
                     let enemyTooltip = document.createElement("span");
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
@@ -2169,7 +2191,8 @@ updateShopScreen();
                     }
                 }
                 if(hp <= 0) {
-                    alert("You died! D:");
+                    hp = 0;
+                    alert("You died! D:\nReload to try again");
                     getId("gameScreen").style.display = "none";
                 }
                 let x = document.getElementsByClassName("txt");
