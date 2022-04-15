@@ -791,7 +791,7 @@ updateShopScreen();
                 dealDamage(enemy, 9);
                 let chosen = await choose(discardPile, "Choose a card to put on top of your Draw Pile.");
                 if(chosen) {
-                    drawPile = [chosen, ...drawPile];
+                    drawPile.push(chosen);
                     discardPile.splice(discardPile.indexOf(chosen), 1);
                     updateHtml();
                 }
