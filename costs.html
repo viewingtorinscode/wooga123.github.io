@@ -1599,7 +1599,7 @@ updateShopScreen();
             function r_akabeko() {gainBuff("Strength", 8); gainBuff("Vigor", 8);}
             function r_anchor() {gainBuff("Next Turn Block", 10);}
             function r_tea() {energy += 2;}
-            function r_artOfWar() {energy += 1;}
+            function r_artOfWar() {gainBuff("Next Turn Energy", 1);}
             function r_bagOfMarbles() {for(let x of enemies){x.gainBuff("Vulnerable",1);}}
             function r_bloodVial() {hp = Math.min(maxHp, hp+2);}
             function r_bronzeScales() {gainBuff("Thorns", 3);}
@@ -1994,19 +1994,17 @@ updateShopScreen();
                             let newI = n;
                             if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                             if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
-                            newI += hasBuff("Strength");
-                            newI -= hasBuff("Minus Strength");
+                            newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");
                             if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
-                            else if(newI < n) {return "<span style='color:orangered'>"+newI+"</span>";}
+                            else if(newI < n) {return "<span style='color:#700'>"+newI+"</span>";}
                             else {return newI;}
                         }
                         let adjustedBlock = function(n) {
                             let blockI = n;
                             if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
-                            blockI += hasBuff("Dexterity");
-                            blockI -= hasBuff("Minus Dexterity");
+                            blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");
                             if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
-                            else if(blockI < n) {return "<span style='color:orangered'>"+blockI+"</span>";}
+                            else if(blockI < n) {return "<span style='color:#700'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
                         playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
@@ -2038,16 +2036,14 @@ updateShopScreen();
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
-                        newI += hasBuff("Strength");
-                        newI -= hasBuff("Minus Strength");
+                        if(!hasBuff(c.name)) {newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");}
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
-                        else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
+                        else if(newI < i) {newI = "<span style='color:#700'>"+newI+"</span>";}
                         let blockI = i;
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
-                        blockI += hasBuff("Dexterity");
-                        blockI -= hasBuff("Minus Dexterity");
+                        if(!hasBuff(c.name)) {blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");}
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
-                        else if(blockI < i) {blockI = "<span style='color:orangered'>"+blockI+"</span>";}
+                        else if(blockI < i) {blockI = "<span style='color:#700'>"+blockI+"</span>";}
                         
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
