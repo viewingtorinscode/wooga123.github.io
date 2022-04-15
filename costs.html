@@ -86,13 +86,13 @@
             }
             @keyframes grow {
                 0% {    transform: scale(1); }
-                12.5% { transform: scale(1.1); }
-                25% {   transform: scale(1.175); }
-                37.5% { transform: scale(1.225); }
-                50% {   transform: scale(1.25); }
-                62.5% { transform: scale(1.225); }
-                75% {   transform: scale(1.175); }
-                87.5% { transform: scale(1.1); }
+                12.5% { transform: scale(1.08); }
+                25% {   transform: scale(1.14); }
+                37.5% { transform: scale(1.18); }
+                50% {   transform: scale(1.20); }
+                62.5% { transform: scale(1.18); }
+                75% {   transform: scale(1.14); }
+                87.5% { transform: scale(1.08); }
                 100% {  transform: scale(1); }
             }
         </style>
@@ -118,7 +118,16 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
-        <span id="damageNumber" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber0" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber1" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber2" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber3" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber4" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber5" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber6" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber7" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber8" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber9" style="position:absolute; opacity:0; color: yellow;"></span>
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
             <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
@@ -126,7 +135,7 @@
         </span>
         <br /><br />
         <div id="introScreen" style="width: 100%;">
-            <h1 style="text-align: center; font-size: 30px; animation: grow 0.6s infinite;">Torin's Clone of Slay The Spire</h1>
+            <h1 style="text-align: center; font-size: 30px; animation: grow 0.5s infinite;">Torin's Clone of Slay The Spire</h1>
             <button style="text-align: center; width: 100%; border: none; font-size: 18px;" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap();">Start</button>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -452,17 +461,20 @@
                     }
                 }
                 actor.loseBuff("Block", finalAmt);
-                let dn = getId("damageNumber");
+                let num = enemies.indexOf(actor);
+                let dn = getId("damageNumber"+num);
                 dn.innerHTML = Math.max(0, finalAmt - actor.hasBuff("Block"));
                 dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top - 10;
-                dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left - 30;
+                dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left -
+                    (10 + 25*(finalAmt - actor.hasBuff("Block")).toString().length);
                 dn.style.opacity = "1";
                 dn.style.fontSize = "50px";
-                for(let i of timeouts) {clearTimeout(i);}
-                timeouts = [];
+                for(let i of timeouts[num]) {clearTimeout(i);}
+                timeouts[num] = [];
                 for(let i=0; i<40; i++) {
-                    timeouts.push(setTimeout(function(){dn.style.opacity = (40-i)/40}, i*12));
+                    timeouts[num].push(setTimeout(function(){dn.style.opacity = (40-i)/40}, i*12));
                 }
+                timeouts[num].push(setTimeout(function(){timeouts[num] = []}, 40*12));
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns")); updateHtml();}
             }
             let buffDesc = {
@@ -589,6 +601,7 @@
                             hand.push(card);
                         }
                     }
+                    timeouts = enemies.map(x=>[]);
                     startTurn();
                 }
                 if(map[y][x] == "enemy") {
@@ -1667,7 +1680,7 @@ updateShopScreen();
                 {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
             ];
             
-            let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
+            let deck = [strike(), strike(), strike(), strike(), bash(), cleave(), cleave(), defend(), defend(), defend()];
             let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
