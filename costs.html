@@ -515,7 +515,7 @@
                 "Rage": "For each Attack you play this turn, gain [AMT] Block.",
                 "Rampage": "Increase Rampage's damage by [AMT].",
                 "Barricade": "Block is not removed at the start of your turn.",
-                "Energize": "Gain [AMT] more energy each turn.",
+                "Berserk": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
                 "Double Tap": "The next Attack you play is played [AMT] more time[s]",
                 "Juggernaut": "Whenever you gain Block, deal [AMT] damage to a random enemy.",
@@ -981,7 +981,7 @@ updateShopScreen();
                 gainBuff("Barricade", 1);
             }, ["exhausted"]);
             let berserk = () => new Card("Berserk", 0, "Power", "Gain Vulnerable for 2 turns, but gain 1 more energy each turn.", function(enemy){
-                gainBuff("Vulnerable", 3); gainBuff("Energize", 1);
+                gainBuff("Vulnerable", 3); gainBuff("Berserk", 1);
             }, ["exhausted"]);
             let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
                 dealDamage(enemy, 32);
@@ -1352,7 +1352,7 @@ updateShopScreen();
                 }), "Barricade": () => new Card("Barricade+", 2, "Power", "Block is not removed at the start of your turn.", function(enemy){
                     gainBuff("Barricade", 1);
                 }, ["exhausted"]), "Berserk": () => new Card("Berserk+", 0, "Power", "Gain Vulnerable for 1 turn, but gain 1 more energy each turn.", function(enemy){
-                    gainBuff("Vulnerable", 2); gainBuff("Energize", 1);
+                    gainBuff("Vulnerable", 2); gainBuff("Berserk", 1);
                 }, ["exhausted"]), "Bludgeon": () => new Card("Bludgeon+", 3, "Attack", "Deal [DAM42] damage.", function(enemy){
                     dealDamage(enemy, 42);
                 }), "Brutality": new Card("Brutality+", 0, "Power", "Innate. At the start of your turn, lose 1 HP and draw 1 more card.", function(enemy){
@@ -1867,7 +1867,7 @@ updateShopScreen();
                             {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                             {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                             {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: function(me){me.dealDamage(20);me.hp=0}}
-                        ]);
+                        ]),
                         new Enemy("Repulsor", 30, [
                             {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                         ]), ...enemies];
@@ -1980,13 +1980,19 @@ updateShopScreen();
                 else {energyElem.style.background = "yellow";}
                 
                 let playerElem = getId("player");
-                playerElem.innerHTML = "Your Hand: "+
-                    (buffs.length ? (" [ "+buffs.map(
-                        x => "<span class='tt'>"+x.name+" "+x.amt+"<span class='txt'>"+buffDesc[x.name]
-                        .replace("[AMT]", x.amt)
-                        .replace("[s]", (x.amt==1 ? "" : "s"))
-                        .replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>"
-                    ).join(", ")+" ]") : "");
+                playerElem.innerHTML = "Your Hand:";
+                if(buffs.length > 0) {
+                    playerElem.innerHTML += " | ";
+                    for(let x of buffs) {
+                        let buffStuff = "";
+                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
+                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace("minus ", "").replace(" ","_").replace(" ","_")+".png'>";
+                        } else {
+                            buffStuff += x.name+" ";
+                        }
+                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
+                    }
+                }
                 
                 let handElem = getId("hand");
                 handElem.innerHTML = "";
@@ -2059,7 +2065,7 @@ updateShopScreen();
                             if(e.hasBuff("Weak") > 0) {intentNumber = Math.round(intentNumber*0.75);}
                             intentNumber += e.hasBuff("Strength");
                             intentNumber -= e.hasBuff("Minus Strength");
-                            if(intentNumber >= 20) {
+                            if(intentNumber >= 20 && e.intent.intent.includes("attacking")) {
                                 intentType = "bigattack";
                             }
                         } else {
@@ -2199,7 +2205,7 @@ updateShopScreen();
                         gainBuff("Next Turn Energy", energy);
                     }
                 }
-                energy = maxEnergy + hasBuff("Energize") + hasBuff("Next Turn Energy");
+                energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy");
                 loseBuff("Next Turn Energy");
                 if(stats.attacksThisTurn == 0) {
                     for(let relic of relics) {if(relic.trigger == "no_attacks") {relic.effect();}}
