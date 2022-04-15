@@ -1980,17 +1980,19 @@ updateShopScreen();
                 else {energyElem.style.background = "yellow";}
                 
                 let playerElem = getId("player");
-                playerElem.innerHTML = "Your Hand:";
+                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand:";
                 if(buffs.length > 0) {
                     playerElem.innerHTML += " | ";
+                    let counter = 0;
                     for(let x of buffs) {
                         let buffStuff = "";
                         if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards"].includes(x.name)) {
-                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace("minus ", "").replace(" ","_").replace(" ","_")+".png'>";
+                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
                         }
-                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
+                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span>";
+                        counter++;
                     }
                 }
                 
