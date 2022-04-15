@@ -1822,14 +1822,14 @@ updateShopScreen();
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
                 ], ["no-repeat"]),
                 () => new Enemy("The Chosen", 95, [
-                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
-                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
+                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
                     {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)},
-                    {intent: "attacking 7", desc: "deal [DAM10] damage", effect: attack(7)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)},
+                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
                     {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)}
                 ]),
