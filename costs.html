@@ -63,11 +63,6 @@
             .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
             .attack-buff::before { content: url(StS/intent-attackbuff.png); }
             .block-nerf::before { content: url(StS/intent-blocknerf.png); }
-            #combatLog {
-                overflow: scroll;
-                width: 600px;
-                height: 400px;
-            }
             #cardModal, #bossModal, #selectionModal {
                 position: fixed;
                 z-index: 1;
@@ -84,16 +79,60 @@
                 padding: 20px;
                 width: 80%;
             }
+            #h1 {
+                text-align: center;
+                font-size: 30px;
+                width: 80%;
+                animation: grow 0.8s infinite;
+                margin: 0px 0px 30px 140px;
+            }
+            #startButton {
+                text-align: center;
+                width: 100%;
+                border: none;
+                font-size: 18px;
+                transition: 0.4s ease-in-out;
+            }
+            #startButton:hover {
+                font-size: 26px;
+                color: black;
+                background: lime;
+                font-weight: bold;
+            }
             @keyframes grow {
-                0% {    transform: scale(1); }
+                0%    { transform: scale(1);    }
                 12.5% { transform: scale(1.08); }
-                25% {   transform: scale(1.14); }
+                25%   { transform: scale(1.14); }
                 37.5% { transform: scale(1.18); }
-                50% {   transform: scale(1.20); }
+                50%   { transform: scale(1.20); }
                 62.5% { transform: scale(1.18); }
-                75% {   transform: scale(1.14); }
+                75%   { transform: scale(1.14); }
                 87.5% { transform: scale(1.08); }
-                100% {  transform: scale(1); }
+                100%  { transform: scale(1);    }
+            }
+            @keyframes boing {
+                0%    { transform: translate(0px, 0px);   }
+                12.5% { transform: translate(0px,-8px);   }
+                25%   { transform: translate(0px, -14px); }
+                37.5% { transform: translate(0px, -18px); }
+                50%   { transform: translate(0px, -20px); }
+                62.5% { transform: translate(0px, -18px); }
+                75%   { transform: translate(0px, -14px); }
+                87.5% { transform: translate(0px, -8px);  }
+                100%  { transform: translate(0px, 0px);   }
+            }
+            @keyframes wiggle {
+                0%  { transform: rotate(10deg);  }
+                10% { transform: rotate(2deg);   }
+                20% { transform: rotate(-4deg);  }
+                30% { transform: rotate(-8deg);  }
+                40% { transform: rotate(-10deg); }
+                50% { transform: rotate(-10deg); }
+                60% { transform: rotate(-2deg);  }
+                70% { transform: rotate(4deg);   }
+                80% { transform: rotate(8deg);   }
+                90% { transform: rotate(10deg);  }
+                100%{ transform: rotate(10deg);  }
             }
         </style>
     </head>
@@ -118,25 +157,25 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
-        <span id="damageNumber0" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber1" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber2" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber3" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber4" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber5" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber6" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber7" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber8" style="position:absolute; opacity:0; color: yellow;"></span>
-        <span id="damageNumber9" style="position:absolute; opacity:0; color: yellow;"></span>
+        <span id="damageNumber0" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber1" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber2" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber3" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber4" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber5" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber6" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber7" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber8" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="damageNumber9" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
-            <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
+            <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist copied to clipboard.');">View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
             <span id="statusLine"></span>
         </span>
         <br /><br />
         <div id="introScreen" style="width: 100%;">
-            <h1 style="text-align: center; font-size: 30px; animation: grow 0.5s infinite;">Torin's Clone of Slay The Spire</h1>
-            <button style="text-align: center; width: 100%; border: none; font-size: 18px;" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Start</button>
+            <h1 id="h1">Slay The Spire</h1>
+            <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Play</button>
         </div>
         <table id="gameScreen" style="display: none;">
             <tr>
@@ -145,9 +184,9 @@
                     <br />
                     <span id="energy" class="tt"></span>&nbsp;&nbsp;&nbsp;<span id="hand"></span>
                     <br /><br />
-                    <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View Discard Pile</button>
-                    <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name).join(', ')))">View Draw Pile</button>
-                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View Exhaust Pile</button>
+                    <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View D<span style="text-decoration:underline">i</span>scard Pile</button>
+                    <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name)).join(', '))">View Draw <span style="text-decoration:underline">P</span>ile</button>
+                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View <span style="text-decoration:underline">E</span>xhaust Pile</button>
                     | <button onclick="endTurn()">End Turn</button>
                 </td>
                 <td id="enemiesTd">
@@ -229,6 +268,21 @@
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
+            document.onkeypress = function(e) {
+                e = e || window.event;
+                //alert("You just pressed "+e.keyCode);
+                if(e.keyCode == 100) { // d
+                    let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist copied to clipboard.');
+                } else if(e.keyCode == 116) { // t
+                    if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}
+                } else if(e.keyCode == 112) { // p
+                    alert(shuffle(drawPile.map(x=>x.name)).join(', '));
+                } else if(e.keyCode == 105) { // i
+                    alert(discardPile.map(x=>x.name).join(', '));
+                } else if(e.keyCode == 101) { // e
+                    alert(exhaustPile.map(x=>x.name).join(', '));
+                }
+            };
             function unformat(desc) {
                 return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
             }
@@ -441,6 +495,7 @@
                 }
             }
             let timeouts = [];
+            let prevNum = 0;
             function dealDamage(actor, amt, shiv=false) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
@@ -459,21 +514,42 @@
                         }
                     }
                 }
-                actor.loseBuff("Block", finalAmt);
+                
                 let num = enemies.indexOf(actor);
                 let dn = getId("damageNumber"+num);
-                dn.innerHTML = Math.max(0, finalAmt - actor.hasBuff("Block"));
-                dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top - 10;
-                dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left -
-                    (10 + 25*(finalAmt - actor.hasBuff("Block")).toString().length);
-                dn.style.opacity = "1";
-                dn.style.fontSize = "50px";
-                for(let i of timeouts[num]) {clearTimeout(i);}
-                timeouts[num] = [];
-                for(let i=0; i<40; i++) {
-                    timeouts[num].push(setTimeout(function(){dn.style.opacity = (40-i)/40}, i*12));
+                let dealt = Math.max(0, finalAmt - actor.hasBuff("Block"));
+                if(dealt > 0) {
+                    prevNum = prevNum + dealt;
+                    dn.innerHTML = prevNum; // dealt has already been added to prevNum
+                    dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top - 10;
+                    dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left -
+                        (10 + prevNum.toString().length * 25); // dealt has already been added to prevNum
+                    dn.style.fontSize = "50px";
+                    dn.style.color = "yellow";
+                    for(let i of timeouts[num]) {clearTimeout(i);}
+                    timeouts[num] = [];
+                    dn.style.opacity = "1";
+                    for(let i=0; i<50; i++) {
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*20));
+                    }
+                    timeouts[num].push(setTimeout(function(){timeouts[num] = []; prevNum = 0;}, 1000));
+                } else if(finalAmt > 0) {
+                    prevNum = 0;
+                    dn.innerHTML = "Block";
+                    dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top;
+                    dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left - 90;
+                    dn.style.fontSize = "30px";
+                    dn.style.color = "skyblue";
+                    for(let i of timeouts[num]) {clearTimeout(i);}
+                    timeouts[num] = [];
+                    dn.style.opacity = "1";
+                    for(let i=0; i<50; i++) {
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*20));
+                    }
+                    timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 }
-                timeouts[num].push(setTimeout(function(){timeouts[num] = []}, 40*12));
+                
+                actor.loseBuff("Block", finalAmt);
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns")); updateHtml();}
             }
             let buffDesc = {
@@ -808,7 +884,8 @@ updateShopScreen();
                 gainBuff("Block", 8); drawCard();
             });
             let swordBoomerang = () => new Card("Sword Boomerang", 1, "Attack", "Deal [DAM3] damage to a random enemy 3 times.", function(enemy){
-                dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3);
+                let boom = () => dealDamage(choice(enemies), 3);
+                boom(); boom(); boom();
             });
             let thunderclap = () => new Card("Thunderclap", 1, "Attack", "Deal [DAM4] damage and apply 1 Vulnerable to ALL enemies.", function(enemy){
                 for(let e of enemies){dealDamage(e, 4); e.gainBuff("Vulnerable", 1);}
@@ -1935,10 +2012,10 @@ updateShopScreen();
                 let min = Math.floor(currentTimer/60000).toString();
                 let sec = Math.floor(currentTimer%60000/1000).toString();
                 let sec_100ths = Math.floor(currentTimer%1000/10).toString();
-                statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;<button id=\"timer\" class=\""+(timerRunning?"Skill":"Attack")+"\" onclick=\"if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}\">"+min+":"+sec.padStart(2, "0")+"</button>";
-                getId("drawPile").innerHTML = "View Draw Pile | <span style='color:white'>"+drawPile.length+"</span>";
-                getId("discardPile").innerHTML = "View Discard Pile | <span style='color:white'>"+discardPile.length+"</span>";
-                getId("exhaustPile").innerHTML = "View Exhaust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
+                statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;<button id=\"timer\" class=\""+(timerRunning?"Skill":"Attack")+"\" onclick=\"if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}\"><span style='text-decoration:underline'>T</span>ime: "+min+":"+sec.padStart(2, "0")+"</button>";
+                getId("drawPile").innerHTML = "View Draw <span style='text-decoration:underline'>P</span>ile | <span style='color:white'>"+drawPile.length+"</span>";
+                getId("discardPile").innerHTML = "View D<span style='text-decoration:underline'>i</span>scard Pile | <span style='color:white'>"+discardPile.length+"</span>";
+                getId("exhaustPile").innerHTML = "View <span style='text-decoration:underline'>E</span>xhaust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
             }
             let timerRunning = true;
             let currentTimer = 0;
@@ -2295,7 +2372,7 @@ updateShopScreen();
                 }
                 startTurn();
             }
-            window.setInterval(updateStatLine, 1000);
+            window.setInterval(updateStatLine, 300);
         </script>
     </body>
 </html>
