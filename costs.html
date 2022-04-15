@@ -1680,7 +1680,7 @@ updateShopScreen();
                 {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "gainBuff('Dexterity', 5); gainBuff('Dexterity Down', 5)"},
             ];
             
-            let deck = [strike(), strike(), strike(), strike(), bash(), cleave(), cleave(), defend(), defend(), defend()];
+            let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
             let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
