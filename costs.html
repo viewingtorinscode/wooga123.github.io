@@ -136,7 +136,7 @@
         <br /><br />
         <div id="introScreen" style="width: 100%;">
             <h1 style="text-align: center; font-size: 30px; animation: grow 0.5s infinite;">Torin's Clone of Slay The Spire</h1>
-            <button style="text-align: center; width: 100%; border: none; font-size: 18px;" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap();">Start</button>
+            <button style="text-align: center; width: 100%; border: none; font-size: 18px;" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Start</button>
         </div>
         <table id="gameScreen" style="display: none;">
             <tr>
@@ -178,7 +178,6 @@
         <table id="merchantScreen" style="display: none;">
         </table>
         <script>
-            let startTime = Date.now();
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
                 while(currentIndex != 0) {
@@ -1931,16 +1930,21 @@ updateShopScreen();
                     potionElem.innerHTML = "Empty Slot";
                     getId("potions").appendChild(potionElem);
                 }
-                let min = Math.floor((Date.now()-startTime)/60000).toString();
-                let sec = Math.floor((Date.now()-startTime)%60000/1000).toString();
-                let sec_100ths = Math.floor((Date.now()-startTime)%1000/10).toString();
-                //statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;"+min+":"+sec.padStart(2, "0")+"."+sec_100ths.padStart(2, "0"); // x:xx.xx
-                statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;"+min+":"+sec.padStart(2, "0"); // x:xx
+                if(timerRunning) { currentTimer += Date.now() - beforeTime; }
+                beforeTime = Date.now();
+                let min = Math.floor(currentTimer/60000).toString();
+                let sec = Math.floor(currentTimer%60000/1000).toString();
+                let sec_100ths = Math.floor(currentTimer%1000/10).toString();
+                statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;<button id=\"timer\" class=\""+(timerRunning?"Skill":"Attack")+"\" onclick=\"if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}\">"+min+":"+sec.padStart(2, "0")+"</button>";
                 getId("drawPile").innerHTML = "View Draw Pile | <span style='color:white'>"+drawPile.length+"</span>";
                 getId("discardPile").innerHTML = "View Discard Pile | <span style='color:white'>"+discardPile.length+"</span>";
                 getId("exhaustPile").innerHTML = "View Exhaust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
             }
+            let timerRunning = true;
+            let currentTimer = 0;
+            let beforeTime = Date.now();
             function updateHtml() {
+                timerRunning = true;
                 updateStatLine();
                 if(hasBuff("Strength") > 0 && hasBuff("Minus Strength") > 0) {
                     if(hasBuff("Strength") >= hasBuff("Minus Strength")) {
