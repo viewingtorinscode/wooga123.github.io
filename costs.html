@@ -84,6 +84,17 @@
                 padding: 20px;
                 width: 80%;
             }
+            @keyframes grow {
+                0% {    transform: scale(1); }
+                12.5% { transform: scale(1.1); }
+                25% {   transform: scale(1.175); }
+                37.5% { transform: scale(1.225); }
+                50% {   transform: scale(1.25); }
+                62.5% { transform: scale(1.225); }
+                75% {   transform: scale(1.175); }
+                87.5% { transform: scale(1.1); }
+                100% {  transform: scale(1); }
+            }
         </style>
     </head>
     <body>
@@ -107,11 +118,17 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
-        <span id="statusLineB4"></span>
-        <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
-        <span id="statusLine"></span>
+        <span id="statusContainer" style="display: none;">
+            <span id="statusLineB4"></span>
+            <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDeck copied to clipboard.');">View Deck | <span style="color:white" id="deckSize">10</span></button>
+            <span id="statusLine"></span>
+        </span>
         <br /><br />
-        <table id="gameScreen">
+        <div id="introScreen" style="width: 100%;">
+            <h1 style="text-align: center; font-size: 30px; animation: grow 0.6s infinite;">Torin's Clone of Slay The Spire</h1>
+            <button style="text-align: center; width: 100%; border: none; font-size: 18px;" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap();">Start</button>
+        </div>
+        <table id="gameScreen" style="display: none;">
             <tr>
                 <td id="playerTd">
                     <div id="player"></div>
@@ -159,7 +176,6 @@
         <table id="merchantScreen" style="display: none;">
         </table>
         <script>
-            alert("Welcome to COSTS (Clone Of Slay The Spire)!");
             let startTime = Date.now();
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
@@ -2310,16 +2326,6 @@ updateShopScreen();
                 }
                 startTurn();
             }
-            
-            for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
-            for(let card of drawPile) {
-                if(card.flags.includes("innate")) {
-                    drawPile.splice(drawPile.indexOf(card), 1);
-                    hand.push(card);
-                }
-            }
-            getId("combatLog").innerHTML = "";
-            startTurn();
             window.setInterval(updateStatLine, 1000);
         </script>
     </body>
