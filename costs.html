@@ -30,7 +30,7 @@
             .tt {user-select: none;}
             .txt {
                 position: absolute;
-                background: #555;
+                background: #666;
                 color: black;
                 display: none;
                 text-align: left;
@@ -231,9 +231,6 @@
             function unformat(desc) {
                 return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
             }
-            function log(message, color="white") {
-                getId('combatLog').innerHTML += "<span style='color: "+color+"'>" + message + "</span>\n";
-            }
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
                 return "<b>"+circles[char]+"</b>";
@@ -359,11 +356,7 @@
                     }
                 }
                 hasBuff(name) {
-                    for(let b of this.buffs) {
-                        if(b.name == name) {
-                            return b.amt;
-                        }
-                    }
+                    for(let b of this.buffs) {if(b.name == name) {return b.amt;}}
                     return 0;
                 }
                 gainBuff(name, amt) {
@@ -372,28 +365,15 @@
                     if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                     if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
                     if(this.hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Minus Dexterity");}
-                    for(let b of this.buffs) {
-                        if(b.name == name) {
-                            b.amt += newAmt;
-                            return;
-                        }
-                    }
+                    for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt;return;}}
                     this.buffs.push({name: name, amt: newAmt});
-                    if(name=="Vulnerable") {
-                        for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}
-                    }
-                    if(amt > 0) {log(this.name+" gained "+amt+" "+name);}
+                    if(name=="Vulnerable") {for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}}
                 }
                 loseBuff(name, amt=9999) {
                     for(let b of this.buffs) {
                         if(b.name == name) {
                             let prevAmt = b.amt;
-                            if(amt >= b.amt) {
-                                this.buffs.splice(this.buffs.indexOf(b), 1);
-                            } else {
-                                b.amt -= amt;
-                            }
-                            if(amt > 0) {log(this.name+" lost "+Math.min(amt, prevAmt)+" "+name);}
+                            if(amt >= b.amt) {this.buffs.splice(this.buffs.indexOf(b), 1);} else {b.amt -= amt;}
                             return;
                         }
                     }
@@ -404,10 +384,6 @@
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
                     finalAmt += this.hasBuff("Strength");
                     if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = 0; loseBuff("Buffer", 1);}
-                    
-                    if(finalAmt > 0){log(this.name+" dealt "+Math.max(0, finalAmt-hasBuff("Block"))+" damage"+(
-                        hasBuff("Block")>0 ? " (+ "+Math.min(hasBuff("Block"), finalAmt)+" blocked)" : ""
-                    ));}
                     
                     hp -= Math.max(0, finalAmt - hasBuff("Block"));
                     if(finalAmt - hasBuff("Block") > 0) {
@@ -441,11 +417,7 @@
             }
             
             function hasBuff(name) {
-                for(let b of buffs) {
-                    if(b.name == name) {
-                        return b.amt;
-                    }
-                }
+                for(let b of buffs) {if(b.name == name) {return b.amt;}}
                 return 0;
             }
             function gainBuff(name, amt) {
@@ -455,25 +427,14 @@
                 if(hasBuff("Dexterity") > 0       && name == "Block") {newAmt += hasBuff("Dexterity");}
                 if(hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Minus Dexterity");}
                 if(hasBuff("Juggernaut") > 0      && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
-                for(let b of buffs) {
-                    if(b.name == name) {
-                        b.amt += newAmt;
-                        return;
-                    }
-                }
+                for(let b of buffs) {if(b.name == name) {b.amt += newAmt;return;}}
                 buffs.push({name: name, amt: newAmt});
-                if(amt > 0) {log("You gained "+amt+" "+name);}
             }
             function loseBuff(name, amt=9999) {
                 for(let b of buffs) {
                     if(b.name == name) {
                         let prevAmt = b.amt;
-                        if(amt >= b.amt) {
-                            buffs.splice(buffs.indexOf(b), 1);
-                        } else {
-                            b.amt -= amt;
-                        }
-                        if(amt > 0) {log("You lost "+Math.min(amt, prevAmt)+" "+name);}
+                        if(amt >= b.amt) {buffs.splice(buffs.indexOf(b), 1);} else {b.amt -= amt;}
                         return;
                     }
                 }
@@ -485,14 +446,6 @@
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
                 finalAmt += hasBuff("Strength");
                 finalAmt -= hasBuff("Minus Strength");
-                
-                if(finalAmt > 0) {log("You dealt "+Math.max(0, finalAmt-actor.hasBuff("Block"))+" damage"+(
-                    actor.hasBuff("Block")>0 ? " (+ "+Math.min(actor.hasBuff("Block"), finalAmt)+" blocked)" : ""
-                )+" to "+actor.name);}
-                else {
-                    log("Not dealing any damage.");
-                }
-                
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(finalAmt - actor.hasBuff("Block") > 0) {
                     if(stats.hasAttacked == false) {
@@ -631,7 +584,6 @@
                             hand.push(card);
                         }
                     }
-                    getId("combatLog").innerHTML = "";
                     startTurn();
                 }
                 if(map[y][x] == "enemy") {
@@ -1759,7 +1711,7 @@ updateShopScreen();
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
-            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]()); log(me.name+" generated a "+what);} }
+            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
             let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
             let multi_buff = (lst) => function(me){ for(let x of lst){me.gainBuff(x[0], x[1]);} }
             let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
@@ -1767,7 +1719,7 @@ updateShopScreen();
             let attack_buff = (atk, what, amt) => function(me){ me.dealDamage(atk); me.gainBuff(what, amt); }
             let block_buff = (blk, what, amt) => function(me){ me.gainBuff("Block", blk); me.gainBuff(what, amt); }
             let block_multinerf = (blk, lst) => function(me){ me.gainBuff("Block", blk); for(let x of lst){gainBuff(x[0], x[1]);}}
-            let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]()); log(me.name+" generated a "+what);} me.dealDamage(atk); }
+            let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} me.dealDamage(atk); }
             let buff_apply = (b, bamt, n, namt) => function(me){ me.gainBuff(b, bamt); gainBuff(n, namt); }
             
             let possibleEnemies = [
@@ -2244,7 +2196,6 @@ updateShopScreen();
             }
             
             function startTurn() {
-                log("Player turn ========", "#999");
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
@@ -2280,7 +2231,6 @@ updateShopScreen();
             }
             
             function endTurn() {
-                log("Enemy turn =========", "#999");
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
