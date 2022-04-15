@@ -2012,7 +2012,7 @@ updateShopScreen();
                             if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
                             newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");
                             if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
-                            else if(newI < n) {return "<span style='color:#700'>"+newI+"</span>";}
+                            else if(newI < n) {return "<span style='color:#f00'>"+newI+"</span>";}
                             else {return newI;}
                         }
                         let adjustedBlock = function(n) {
@@ -2020,7 +2020,7 @@ updateShopScreen();
                             if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
                             blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");
                             if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
-                            else if(blockI < n) {return "<span style='color:#700'>"+blockI+"</span>";}
+                            else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
                         playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
@@ -2054,12 +2054,12 @@ updateShopScreen();
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
                         if(!hasBuff(c.name)) {newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");}
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
-                        else if(newI < i) {newI = "<span style='color:#700'>"+newI+"</span>";}
+                        else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
                         let blockI = i;
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
                         if(!hasBuff(c.name)) {blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");}
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
-                        else if(blockI < i) {blockI = "<span style='color:#700'>"+blockI+"</span>";}
+                        else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
                         
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
@@ -2127,7 +2127,7 @@ updateShopScreen();
                                 newI += e.hasBuff("Strength");
                                 newI -= e.hasBuff("Minus Strength");
                                 if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
-                                else if(newI < n) {return "<span style='color:orangered'>"+newI+"</span>";}
+                                else if(newI < n) {return "<span style='color:#f00'>"+newI+"</span>";}
                                 else {return newI;}
                             }
                             let adjustedBlock = function(n) {
@@ -2136,7 +2136,7 @@ updateShopScreen();
                                 blockI += e.hasBuff("Dexterity");
                                 blockI -= e.hasBuff("Minus Dexterity");
                                 if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
-                                else if(blockI < n) {return "<span style='color:orangered'>"+blockI+"</span>";}
+                                else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
                             enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
@@ -2152,7 +2152,7 @@ updateShopScreen();
                         newI += e.hasBuff("Strength");
                         newI -= e.hasBuff("Minus Strength");
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
-                        else if(newI < i) {newI = "<span style='color:orangered'>"+newI+"</span>";}
+                        else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
                         newDesc = newDesc.replace("[DAM"+i+"]", newI);
                     }
                     enemyTooltip.innerHTML = e.name+" intends to "+newDesc+".";
