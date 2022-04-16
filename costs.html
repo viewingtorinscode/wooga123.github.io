@@ -268,9 +268,9 @@
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
-            document.onkeypress = function(e) {
+            document.onkeypress = async function(e) {
                 e = e || window.event;
-                alert("You just pressed "+e.keyCode);
+                //alert("You just pressed "+e.keyCode);
                 if(e.keyCode == 100) { // d
                     let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist copied to clipboard.');
                 } else if(e.keyCode == 116) { // t
@@ -283,6 +283,26 @@
                     alert(exhaustPile.map(x=>x.name).join(', '));
                 } else if(e.keyCode == 101) { // e
                     endTurn();
+                } else if(e.keyCode == 49) { // 1
+                    await hand[0].play();
+                } else if(e.keyCode == 49) { // 2
+                    await hand[1].play();
+                } else if(e.keyCode == 49) { // 3
+                    await hand[2].play();
+                } else if(e.keyCode == 49) { // 4
+                    await hand[3].play();
+                } else if(e.keyCode == 49) { // 5
+                    await hand[4].play();
+                } else if(e.keyCode == 49) { // 6
+                    await hand[5].play();
+                } else if(e.keyCode == 49) { // 7
+                    await hand[6].play();
+                } else if(e.keyCode == 49) { // 8
+                    await hand[7].play();
+                } else if(e.keyCode == 49) { // 9
+                    await hand[8].play();
+                } else if(e.keyCode == 49) { // 0
+                    await hand[9].play();
                 }
             };
             function unformat(desc) {
