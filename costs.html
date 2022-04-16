@@ -632,7 +632,7 @@ let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.
                     timeouts[num] = [];
                     dn.style.opacity = "1";
                     for(let i=0; i<50; i++) {
-                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*5 + 750));
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                     }
                     timeouts[num].push(setTimeout(function(){timeouts[num] = []; prevNum = 0;}, 1000));
                 } else if(finalAmt > 0) {
@@ -646,7 +646,7 @@ let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.
                     timeouts[num] = [];
                     dn.style.opacity = "1";
                     for(let i=0; i<50; i++) {
-                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*20));
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*20));
                     }
                     timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 }
@@ -760,6 +760,7 @@ let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.
             function gotoMap(y, x) {
                 mapY = y;
                 mapX = x;
+                timerRunning = true; updateStatLine();
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
