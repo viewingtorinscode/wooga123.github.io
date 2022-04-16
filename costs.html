@@ -365,26 +365,23 @@ R/S             rest/smith at rest sites
                             let func = getId("bossRelicReward").getAttribute("onclick"); eval(func);
                         } else { showMap(); }
                     }
-                } else if(e.keyCode == 67) { // c
+                } else if(e.keyCode == 99) { // c
                     if(getId("merchantScreen").style.display != "none" || getId("rewardsScreen").style.display != "none") {
                         showMap();
                     }
-                } else if(e.keyCode == 82) { // r
+                } else if(e.keyCode == 114) { // r
                     if(getId("restScreen").style.display != "none") {
                         hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();
                     }
-                } else if(e.keyCode == 83) { // s
+                } else if(e.keyCode == 115) { // s
                     if(getId("restScreen").style.display != "none") {upgradeDialog();}
-                } else if(e.keyCode == 188) { // ,
+                } else if(e.keyCode == 44) { // ,
                     if(potions.length >= 1) {let x = eval("let tgt=target; "+potions[0].effect); potions.splice(0, 1); updateHtml();}
-                } else if(e.keyCode == 190) { // .
+                } else if(e.keyCode == 46) { // .
                     if(potions.length >= 2) {let x = eval("let tgt=target; "+potions[1].effect); potions.splice(1, 1); updateHtml();}
-                } else if(e.keyCode == 191) { // /
+                } else if(e.keyCode == 47) { // /
                     if(potions.length >= 3) {let x = eval("let tgt=target; "+potions[2].effect); potions.splice(2, 1); updateHtml();}
                 }
-/*
-let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();
-*/
             };
             function unformat(desc) {
                 return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
