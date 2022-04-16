@@ -324,7 +324,9 @@ R/S             rest/smith at rest sites
                         }
                     }
                 } else if(getId("gameScreen").style.display != "none") { await hand[n].play(); }
-                else if(getId("mapScreen").style.display != "none" && n <= 2) { gotoMap(mapY + 1, mapX + n - 1); }
+                else if(getId("mapScreen").style.display != "none" && n <= 2) {
+                    if(map[mapY+1][mapX+n-1] != "") {gotoMap(mapY + 1, mapX + n - 1);}
+                }
             }
             document.onkeypress = async function(e) {
                 e = e || window.event;
@@ -2225,6 +2227,14 @@ updateShopScreen();
                     
                     cardElem.appendChild(cardTooltip);
                     handElem.appendChild(cardElem);
+                    
+                    let helpNumber = document.createElement("span");
+                    helpNumber.style.position = "absolute";
+                    let coords = cardElem.getBoundingClientRect()
+                    helpNumber.style.top = coords.bottom;
+                    helpNumber.style.left = coords.left + 0.5 * (coords.right - coords.left) - 5;
+                    helpNumber.innerHTML = hand.indexOf(c) + 1;
+                    handElem.appendChild(helpNumber);
                 }
                 
                 let enemiesElem = getId("enemies");
@@ -2370,12 +2380,16 @@ updateShopScreen();
             
             function addShivs(num=1) {
                 for(let i=0; i<num; i++) {
-                    hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4,true);}, ["exhausted"]));
+                    if(hand.length < 10) {
+                        hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4,true);}, ["exhausted"]));
+                    }
                 }
             }
             function addShivPluses(num=1) {
                 for(let i=0; i<num; i++) {
-                    hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6,true);}, ["exhausted"]));
+                    if(hand.length < 10) {
+                        hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6,true);}, ["exhausted"]));
+                    }
                 }
             }
             
