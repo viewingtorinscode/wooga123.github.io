@@ -300,6 +300,7 @@ R/S             rest/smith at rest sites
             }
             async function numberKey(n) {
                 if(getId("cardModal").style.display != "none" && n<=2) {getId('cardModal').style.display='none'; finishAddCard(n);}
+                else if(getId("cardModal").style.display != "none" && n==3) {getId('cardModal').style.display='none';finishAddCard(-1);}
                 else if(getId("bossModal").style.display != "none" && n<=2) {getId('bossModal').style.display='none';finishAddRelic(n);}
                 else if(getId("selectionModal").style.display != "none" && n<modalNames.length) { resolvePromise(modalNames[n]); }
                 else if(getId("merchantScreen").style.display != "none" && n<offers.length) {
@@ -2149,7 +2150,7 @@ updateShopScreen();
                 else {energyElem.style.background = "yellow";}
                 
                 let playerElem = getId("player");
-                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand:";
+                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand ("+hand.length+"):";
                 if(buffs.length > 0) {
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
