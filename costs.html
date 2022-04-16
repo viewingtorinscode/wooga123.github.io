@@ -2077,20 +2077,20 @@ updateShopScreen();
                 let deckNumber = getId("deckSize");
                 let statusElem = getId("statusLine");
                 statusElemB4.innerHTML=(hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
-                statusElemB4.innerHTML+=" | "+gold+" gold&nbsp;&nbsp;&nbsp;";
+                statusElemB4.innerHTML+=" | "+gold+" gold | Act "+"I".repeat(actNum)+", Floor "+mapY;
                 deckNumber.innerHTML=deck.length;
-                statusElem.innerHTML="&nbsp;&nbsp;&nbsp;<span id='relics'><b>Relics: </b></span>";
+                statusElem.innerHTML="<span id='relics'><b>Relics: </b></span>";
                 for(let relic of relics) {
                     let relicElem = document.createElement("span");
                     relicElem.setAttribute("class", "tt");
-                    relicElem.innerHTML = relic.name+", ";
+                    relicElem.innerHTML = " | "+relic.name;
                     let relicTooltip = document.createElement("span");
                     relicTooltip.setAttribute("class", "txt");
                     relicTooltip.innerHTML = relic.desc;
                     relicElem.appendChild(relicTooltip);
                     getId("relics").appendChild(relicElem);
                 }
-                statusElem.innerHTML+= "<span id='potions'><b>Potions: </b></span>";
+                statusElem.innerHTML+= "<br/><br/><span id='potions'><b>Potions: </b></span>";
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
