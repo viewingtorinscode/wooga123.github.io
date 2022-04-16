@@ -174,7 +174,7 @@
         </span>
         <br /><br />
         <div id="introScreen" style="width: 100%;">
-            <h1 id="h1">Slay The Spire</h1>
+            <h1 id="h1">Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
             <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Play</button>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -186,8 +186,8 @@
                     <br /><br />
                     <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View D<span style="text-decoration:underline">i</span>scard Pile</button>
                     <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name)).join(', '))">View Draw <span style="text-decoration:underline">P</span>ile</button>
-                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View <span style="text-decoration:underline">E</span>xhaust Pile</button>
-                    | <button onclick="endTurn()">End Turn</button>
+                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View E<span style="text-decoration:underline">x</span>haust Pile</button>
+                    | <button onclick="endTurn()"><span style="text-decoration:underline">E</span>nd Turn</button>
                 </td>
                 <td id="enemiesTd">
                     <div id="enemies"></div>
@@ -270,7 +270,7 @@
             }
             document.onkeypress = function(e) {
                 e = e || window.event;
-                //alert("You just pressed "+e.keyCode);
+                alert("You just pressed "+e.keyCode);
                 if(e.keyCode == 100) { // d
                     let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist copied to clipboard.');
                 } else if(e.keyCode == 116) { // t
@@ -279,8 +279,10 @@
                     alert(shuffle(drawPile.map(x=>x.name)).join(', '));
                 } else if(e.keyCode == 105) { // i
                     alert(discardPile.map(x=>x.name).join(', '));
-                } else if(e.keyCode == 101) { // e
+                } else if(e.keyCode == 120) { // x
                     alert(exhaustPile.map(x=>x.name).join(', '));
+                } else if(e.keyCode == 101) { // e
+                    endTurn();
                 }
             };
             function unformat(desc) {
@@ -530,7 +532,7 @@
                     timeouts[num] = [];
                     dn.style.opacity = "1";
                     for(let i=0; i<50; i++) {
-                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*20));
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (50-i)/50}, i*5 + 750));
                     }
                     timeouts[num].push(setTimeout(function(){timeouts[num] = []; prevNum = 0;}, 1000));
                 } else if(finalAmt > 0) {
