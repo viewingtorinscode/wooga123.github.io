@@ -319,14 +319,14 @@ R/S             rest/smith at rest sites
                     let cost = offers[n].price;
                     if(gold >= cost) {
                         gold -= cost;
-                        if(offers[n].index >= 100) {
+                        if(offers[n].index >= 100 && getId("relicElem_"+(n-6))) {
                             let r = new Relic(offer.name, offer.desc, offer.trigger, offer.use);
                             relics.push(r);
                             if(r.trigger=='on_pickup') {r.effect();}
-                            getId("relicElem_"+n).style.display = "none";
+                            getId("relicElem_"+(n-6)).style.display = "none";
                             updateStatLine();
                             updateShopScreen();
-                        } else {
+                        } else if(getId("cardElem_"+n)) {
                             deck.push(new Card(offer.name, offer.cost, offer.type, offer.desc, offer.use, offer.flags));
                             getId("cardElem_"+n).style.display = "none";
                             updateStatLine();
@@ -883,6 +883,15 @@ updateShopScreen();
                         cardElem.appendChild(nameWrapper);
                         cardElem.appendChild(costElem);
                         getId("merchantScreen").appendChild(cardElem);
+                        let helpNumber = document.createElement("span");
+                        helpNumber.style.position = "absolute";
+                        helpNumber.setAttribute("class", "helpNumber Status");
+                        let coords = cardElem.getBoundingClientRect();
+                        helpNumber.style.top = coords.top;
+                        helpNumber.style.left = coords.left - 10;
+                        let ind = i + 1;
+                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
+                        getId("merchantScreen").appendChild(helpNumber);
                     }
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool)();
@@ -916,6 +925,15 @@ updateShopScreen();
                         relicElem.appendChild(nameWrapper);
                         relicElem.appendChild(costElem);
                         getId("merchantScreen").appendChild(relicElem);
+                        let helpNumber = document.createElement("span");
+                        helpNumber.style.position = "absolute";
+                        helpNumber.setAttribute("class", "helpNumber Status");
+                        let coords = relicElem.getBoundingClientRect();
+                        helpNumber.style.top = coords.top;
+                        helpNumber.style.left = coords.left - 10;
+                        let ind = i + 7;
+                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
+                        getId("merchantScreen").appendChild(helpNumber);
                     }
                     let continueElem = document.createElement("tr");
                     let continueWrapper = document.createElement("td");
@@ -929,6 +947,10 @@ updateShopScreen();
             }
             let offers = [];
             function updateShopScreen() {
+                let helpers = document.getElementsByClassName("helpNumber");
+                while(helpers.length > 0) {
+                    helpers[0].parentNode.removeChild(helpers[0]);
+                }
                 for(let i of offers) {
                     if(i.index >= 100) {
                         let relicElem = getId("relicName_"+(i.index-100));
@@ -937,6 +959,15 @@ updateShopScreen();
                         } else {
                             relicElem.setAttribute("class", "unplayable tt");
                         }
+                        let helpNumber = document.createElement("span");
+                        helpNumber.style.position = "absolute";
+                        helpNumber.setAttribute("class", "helpNumber Power");
+                        let coords = relicElem.getBoundingClientRect();
+                        helpNumber.style.top = coords.top;
+                        helpNumber.style.left = coords.left - 10;
+                        let ind = offers.indexOf(i) + 1;
+                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
+                        getId("merchantScreen").appendChild(helpNumber);
                     } else {
                         let cardElem = getId("cardName_"+i.index);
                         if(gold >= i.price) {
@@ -948,6 +979,15 @@ updateShopScreen();
                         } else {
                             cardElem.setAttribute("class", "tt unplayable");
                         }
+                        let helpNumber = document.createElement("span");
+                        helpNumber.style.position = "absolute";
+                        helpNumber.setAttribute("class", "helpNumber Power");
+                        let coords = cardElem.getBoundingClientRect();
+                        helpNumber.style.top = coords.top;
+                        helpNumber.style.left = coords.left - 10;
+                        let ind = offers.indexOf(i) + 1;
+                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
+                        getId("merchantScreen").appendChild(helpNumber);
                     }
                 }
             }
