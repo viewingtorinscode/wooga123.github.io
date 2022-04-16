@@ -86,15 +86,15 @@
                 animation: grow 0.8s infinite;
                 margin: 0px 0px 30px 140px;
             }
-            #startButton {
+            #startButton, #rulesButton, #keyButton {
                 text-align: center;
                 width: 100%;
                 border: none;
-                font-size: 18px;
-                transition: 0.4s ease-in-out;
+                font-size: 16px;
+                transition: 0.2s ease-in-out;
             }
-            #startButton:hover {
-                font-size: 26px;
+            #startButton:hover, #rulesButton:hover, #keyButton:hover {
+                font-size: 21px;
                 color: black;
                 background: lime;
                 font-weight: bold;
@@ -176,6 +176,33 @@
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1">Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
             <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Play</button>
+            <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('keyScreen').style.display = 'none';">Instructions</button>
+            <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
+            <pre id="rulesScreen" style="display: none;">
+When you begin you will be on the Map. Click a highlighted node to travel there.
+In combat, your cards will be shown on the left and the enemies will be on the right.
+Click a card to play it. Depending on the card, it might target the selected enemy, all enemies, or yourself.
+You should watch the enemies' intents and play cards accordingly.
+
+A rest node is extremely useful, allowing you to heal or upgrade a card.
+A shop sells cards and relics, gather gold from enemies to buy them.
+Elites are stronger enemies that drop rare cards and a helpful Relic on defeat.
+
+One last tip: Many things can be hovered to see their description.
+            </pre>
+            <pre id="keyScreen" style="display: none;">
+Number          select from dialog, buy cards (shop), play cards (combat), travel (map)
+D               view and copy deck
+T               pause/resume timer
+E               end turn
+P               draw pile
+I               discard pile
+X               exhaust pile
+, . /           use potion
+Space           claim reward
+C               continue (from shop or combat)
+R/S             rest/smith at rest sites
+            </pre>
         </div>
         <table id="gameScreen" style="display: none;">
             <tr>
@@ -201,14 +228,14 @@
             <button id="potionReward"></button>
             <button id="relicReward" class="tt"></button>
             <button id="bossRelicReward" class="tt"></button>
-            <button id="closeRewards" onclick="showMap();">Continue</button>
+            <button id="closeRewards" onclick="showMap();"><span style='text-decoration:underline'>C</span>ontinue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();" class="tt">Rest<span class="txt">Heal 30% of your Max HP.</span></button>
-            <button onclick="upgradeDialog();" class="tt">Smith<span class="txt">Upgrade a card in your deck.</span></button>
+            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt">Heal 30% of your Max HP.</span></button>
+            <button onclick="upgradeDialog();" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
                 <p id="cardDesc"></p>
                 <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();">Confirm</button>
@@ -229,9 +256,12 @@
             let getId = x => document.getElementById(x);
             let choice = x => x[Math.floor(Math.random()*x.length)];
             let resolvePromise;
+            let modalNames = [];
             async function showCardChoiceModal(displayCards, prompt) {
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
+                modalNames = [];
                 for(let c of displayCards) {
+                    modalNames.push(c.name);
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise('"+c.name+"');");
                     cardButton.setAttribute("class", c.type+" tt");
@@ -268,6 +298,32 @@
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
+            async function numberKey(n) {
+                if(getId("cardModal").style.display != "none" && n<=2) {getId('cardModal').style.display='none'; finishAddCard(n);}
+                else if(getId("bossModal").style.display != "none" && n<=2) {getId('bossModal').style.display='none';finishAddRelic(n);}
+                else if(getId("selectionModal").style.display != "none" && n<modalNames.length) { resolvePromise(modalNames[n]); }
+                else if(getId("merchantScreen").style.display != "none" && n<offers.length) {
+                    let offer = offers[n].offer;
+                    let cost = offers[n].price;
+                    if(gold >= cost) {
+                        gold -= cost;
+                        if(offers[n].index >= 100) {
+                            let r = new Relic(offer.name, offer.desc, offer.trigger, offer.use);
+                            relics.push(r);
+                            if(r.trigger=='on_pickup') {r.effect();}
+                            getId("relicElem_"+n).style.display = "none";
+                            updateStatLine();
+                            updateShopScreen();
+                        } else {
+                            deck.push(new Card(offer.name, offer.cost, offer.type, offer.desc, offer.use, offer.flags));
+                            getId("cardElem_"+n).style.display = "none";
+                            updateStatLine();
+                            updateShopScreen();
+                        }
+                    }
+                } else if(getId("gameScreen").style.display != "none") { await hand[n].play(); }
+                else if(getId("mapScreen").style.display != "none" && n <= 2) { gotoMap(mapY + 1, mapX + n - 1); }
+            }
             document.onkeypress = async function(e) {
                 e = e || window.event;
                 //alert("You just pressed "+e.keyCode);
@@ -283,27 +339,51 @@
                     alert(exhaustPile.map(x=>x.name).join(', '));
                 } else if(e.keyCode == 101) { // e
                     endTurn();
-                } else if(e.keyCode == 49) { // 1
-                    await hand[0].play();
-                } else if(e.keyCode == 49) { // 2
-                    await hand[1].play();
-                } else if(e.keyCode == 49) { // 3
-                    await hand[2].play();
-                } else if(e.keyCode == 49) { // 4
-                    await hand[3].play();
-                } else if(e.keyCode == 49) { // 5
-                    await hand[4].play();
-                } else if(e.keyCode == 49) { // 6
-                    await hand[5].play();
-                } else if(e.keyCode == 49) { // 7
-                    await hand[6].play();
-                } else if(e.keyCode == 49) { // 8
-                    await hand[7].play();
-                } else if(e.keyCode == 49) { // 9
-                    await hand[8].play();
-                } else if(e.keyCode == 49) { // 0
-                    await hand[9].play();
+                // numbers
+                } else if(e.keyCode == 49) {await numberKey(0);}
+                else if(e.keyCode == 50) {await numberKey(1);}
+                else if(e.keyCode == 51) {await numberKey(2);}
+                else if(e.keyCode == 52) {await numberKey(3);}
+                else if(e.keyCode == 53) {await numberKey(4);}
+                else if(e.keyCode == 54) {await numberKey(5);}
+                else if(e.keyCode == 55) {await numberKey(6);}
+                else if(e.keyCode == 56) {await numberKey(7);}
+                else if(e.keyCode == 57) {await numberKey(8);}
+                else if(e.keyCode == 58) {await numberKey(9);}
+                else if(e.keyCode == 32) { // space
+                    if(getId("rewardsScreen").style.display != "none") {
+                        if(getId("goldReward").style.display != "none") {
+                            let func = getId("goldReward").getAttribute("onclick"); eval(func);
+                        } else if(getId("cardReward").style.display != "none") {
+                            let func = getId("cardReward").getAttribute("onclick"); eval(func);
+                        } else if(getId("potionReward").style.display != "none") {
+                            let func = getId("potionReward").getAttribute("onclick"); eval(func);
+                        } else if(getId("relicReward").style.display != "none") {
+                            let func = getId("relicReward").getAttribute("onclick"); eval(func);
+                        } else if(getId("bossRelicReward").style.display != "none") {
+                            let func = getId("bossRelicReward").getAttribute("onclick"); eval(func);
+                        } else { showMap(); }
+                    }
+                } else if(e.keyCode == 67) { // c
+                    if(getId("merchantScreen").style.display != "none" || getId("rewardsScreen").style.display != "none") {
+                        showMap();
+                    }
+                } else if(e.keyCode == 82) { // r
+                    if(getId("restScreen").style.display != "none") {
+                        hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();
+                    }
+                } else if(e.keyCode == 83) { // s
+                    if(getId("restScreen").style.display != "none") {upgradeDialog();}
+                } else if(e.keyCode == 188) { // ,
+                    if(potions.length >= 1) {let x = eval("let tgt=target; "+potions[0].effect); potions.splice(0, 1); updateHtml();}
+                } else if(e.keyCode == 190) { // .
+                    if(potions.length >= 2) {let x = eval("let tgt=target; "+potions[1].effect); potions.splice(1, 1); updateHtml();}
+                } else if(e.keyCode == 191) { // /
+                    if(potions.length >= 3) {let x = eval("let tgt=target; "+potions[2].effect); potions.splice(2, 1); updateHtml();}
                 }
+/*
+let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();
+*/
             };
             function unformat(desc) {
                 return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
@@ -752,7 +832,7 @@
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
                         let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
-                        offers.push({offer: i, price: cardCost});
+                        offers.push({index: i, price: cardCost, offer: offer});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
                         if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
                         let cardElem = document.createElement("tr");
@@ -789,7 +869,7 @@ updateShopScreen();
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool)();
                         let relicCost = Math.round(Math.random()*119 + 143);
-                        offers.push({offer: i+100, price: relicCost});
+                        offers.push({index: i+100, price: relicCost, offer: offer});
                         let relicElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
@@ -822,26 +902,27 @@ updateShopScreen();
                     let continueElem = document.createElement("tr");
                     let continueWrapper = document.createElement("td");
                     let continueBtn = document.createElement("button");
-                    continueBtn.innerHTML = "Continue";
+                    continueBtn.innerHTML = "<span style='text-decoration:underline'>C</span>ontinue";
                     continueBtn.setAttribute("onclick", "showMap();");
                     continueWrapper.appendChild(continueBtn);
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
                 }
             }
+            let offers = [];
             function updateShopScreen() {
                 for(let i of offers) {
-                    if(i.offer >= 100) {
-                        let relicElem = getId("relicName_"+(i.offer-100));
+                    if(i.index >= 100) {
+                        let relicElem = getId("relicName_"+(i.index-100));
                         if(gold >= i.price) {
                             relicElem.setAttribute("class", "Status tt");
                         } else {
                             relicElem.setAttribute("class", "unplayable tt");
                         }
                     } else {
-                        let cardElem = getId("cardName_"+i.offer);
+                        let cardElem = getId("cardName_"+i.index);
                         if(gold >= i.price) {
-                            if(i==0) {
+                            if(i.index==0) {
                                 cardElem.setAttribute("class", "Skill tt");
                             } else {
                                 cardElem.setAttribute("class", "tt");
@@ -1675,8 +1756,6 @@ updateShopScreen();
                     alert("error in logic of adding boss relic");
                 }
             }
-            
-            let offers = [];
             let possibleCards = [];
             
             function r_snakeRing() {drawCard(2);}
