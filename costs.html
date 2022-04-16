@@ -781,7 +781,7 @@ R/S             rest/smith at rest sites
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
-                    drawPile = shuffle(deck.slice(0)); // no shallow copy
+                    drawPile = [];
                     discardPile = [];
                     exhaustPile = [];
                     hand = [];
@@ -789,13 +789,17 @@ R/S             rest/smith at rest sites
                     energy = 0; // no ice cream hax
                     stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested};
                     target = enemies[0];
-                    for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
-                    for(let card of drawPile) {
+                    
+                    let shuffledDeck = shuffle(deck);
+                    for(let card of shuffledDeck) {
                         if(card.flags.includes("innate")) {
-                            drawPile.splice(drawPile.indexOf(card), 1);
                             hand.push(card);
+                        } else {
+                            drawPile.push(card);
                         }
                     }
+                    
+                    for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
                     timeouts = enemies.map(x=>[]);
                     startTurn();
                 }
