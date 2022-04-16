@@ -37,6 +37,7 @@
                 border-radius: 5px;
                 margin-left: 10px;
                 padding: 5px;
+                z-index: 2;
             }
             .tt:hover > .txt {display: inline;}
             #energy, #player {display: inline;}
@@ -259,6 +260,7 @@ R/S             rest/smith at rest sites
             let resolvePromise;
             let modalNames = [];
             async function showCardChoiceModal(displayCards, prompt) {
+                getId("selectionModal").style.display = "block";
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
                 modalNames = [];
                 for(let c of displayCards) {
@@ -268,8 +270,15 @@ R/S             rest/smith at rest sites
                     cardButton.setAttribute("class", c.type+" tt");
                     cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
                     getId("selectionModalContent").appendChild(cardButton);
+                    let helpNumber = document.createElement("span");
+                    helpNumber.style.position = "absolute";
+                    let coords = cardButton.getBoundingClientRect();
+                    helpNumber.style.top = coords.bottom;
+                    helpNumber.style.left = coords.left + 0.5 * (coords.right - coords.left) - 5;
+                    let ind = displayCards.indexOf(c) + 1;
+                    helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
+                    getId("selectionModalContent").appendChild(helpNumber);
                 }
-                getId("selectionModal").style.display = "block";
                 let promise = new Promise((resolve, reject) => {
                     resolvePromise = resolve;
                 });
@@ -299,7 +308,8 @@ R/S             rest/smith at rest sites
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
             }
-            async function numberKey(n) {
+            async function numberKey(num) {
+                let n = num - 1;
                 if(getId("cardModal").style.display != "none" && n<=2) {getId('cardModal').style.display='none'; finishAddCard(n);}
                 else if(getId("cardModal").style.display != "none" && n==3) {getId('cardModal').style.display='none';finishAddCard(-1);}
                 else if(getId("bossModal").style.display != "none" && n<=2) {getId('bossModal').style.display='none';finishAddRelic(n);}
@@ -344,16 +354,16 @@ R/S             rest/smith at rest sites
                 } else if(e.keyCode == 101 && getId("gameScreen").style.display != "none") { // e
                     endTurn();
                 // numbers
-                } else if(e.keyCode == 49) {await numberKey(0);}
-                else if(e.keyCode == 50) {await numberKey(1);}
-                else if(e.keyCode == 51) {await numberKey(2);}
-                else if(e.keyCode == 52) {await numberKey(3);}
-                else if(e.keyCode == 53) {await numberKey(4);}
-                else if(e.keyCode == 54) {await numberKey(5);}
-                else if(e.keyCode == 55) {await numberKey(6);}
-                else if(e.keyCode == 56) {await numberKey(7);}
-                else if(e.keyCode == 57) {await numberKey(8);}
-                else if(e.keyCode == 58) {await numberKey(9);}
+                } else if(e.keyCode == 49) {await numberKey(1);}
+                else if(e.keyCode == 50) {await numberKey(2);}
+                else if(e.keyCode == 51) {await numberKey(3);}
+                else if(e.keyCode == 52) {await numberKey(4);}
+                else if(e.keyCode == 53) {await numberKey(5);}
+                else if(e.keyCode == 54) {await numberKey(6);}
+                else if(e.keyCode == 55) {await numberKey(7);}
+                else if(e.keyCode == 56) {await numberKey(8);}
+                else if(e.keyCode == 57) {await numberKey(9);}
+                else if(e.keyCode == 48) {await numberKey(10);}
                 else if(e.keyCode == 32) { // space
                     if(getId("rewardsScreen").style.display != "none") {
                         if(getId("goldReward").style.display != "none") {
@@ -727,6 +737,7 @@ R/S             rest/smith at rest sites
                     } else if(actNum == 3) {
                         actNum = 999;
                         alert("Congratulations! You completed Act III! You Win!");
+                        timerRunning = false; updateStatusLine();
                     }
                 }
                 updateStatLine();
@@ -2233,7 +2244,8 @@ updateShopScreen();
                     let coords = cardElem.getBoundingClientRect()
                     helpNumber.style.top = coords.bottom;
                     helpNumber.style.left = coords.left + 0.5 * (coords.right - coords.left) - 5;
-                    helpNumber.innerHTML = hand.indexOf(c) + 1;
+                    let ind = hand.indexOf(c) + 1;
+                    helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
                     handElem.appendChild(helpNumber);
                 }
                 
@@ -2370,6 +2382,7 @@ updateShopScreen();
                     hp = 0;
                     alert("You died! D:\nReload to try again");
                     getId("gameScreen").style.display = "none";
+                    timerRunning = false; updateStatusLine();
                 }
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
