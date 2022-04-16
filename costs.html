@@ -195,6 +195,7 @@ Number          select from dialog / buy cards / play cards / travel
 D               view and copy deck
 T               pause/resume timer
 E               end turn
+O               change target
 P               draw pile
 I               discard pile
 X               exhaust pile
@@ -383,6 +384,9 @@ R/S             rest/smith at rest sites
                     if(potions.length >= 2) {let x = eval("let tgt=target; "+potions[1].effect); potions.splice(1, 1); updateHtml();}
                 } else if(e.keyCode == 47) { // /
                     if(potions.length >= 3) {let x = eval("let tgt=target; "+potions[2].effect); potions.splice(2, 1); updateHtml();}
+                } else if(e.keyCode == 111 && getId("gameScreen").style.display != "none") { // o
+                    let t = enemies.indexOf(target)+1; if(t >= enemies.length) {target = enemies[0];} else {target = enemies[t];}
+                    updateHtml();
                 }
             };
             function unformat(desc) {
