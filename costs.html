@@ -2383,7 +2383,7 @@ updateShopScreen();
                         drawPile = shuffle(discardPile);
                         discardPile = [];
                     }
-                    if(drawPile.length > 0) {
+                    if(drawPile.length > 0 && hand.length < 10) {
                         let toDraw = drawPile.pop(0);
                         hand.push(toDraw);
                         if(toDraw.type == "Status") {
@@ -2392,8 +2392,6 @@ updateShopScreen();
                                 dealDamage(e, hasBuff("Fire Breathing"));
                             }
                         }
-                    } else {
-                        alert("Uh-oh, nothing to draw...");
                     }
                 }
             }
