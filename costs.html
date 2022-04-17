@@ -1797,7 +1797,7 @@ updateShopScreen();
             }), "Noxious Fumes": () => new Card("Noxious Fumes+", 1, "Power", "At the start of your turn, apply 3 Poison to ALL enemies.", function(enemy){
                 gainBuff("Noxious Fumes", 3);
             }, ["exhausted"]), "Predator": () => new Card("Predator+", 2, "Attack", "Deal [DAM20] damage. Next turn, draw 2 more cards.", function(enemy){
-                dealDamage(enemy, 2); gainBuff("Next Turn Cards", 2);
+                dealDamage(enemy, 20); gainBuff("Next Turn Cards", 2);
             }), "Skewer": () => new Card("Skewer+", "X", "Attack", "Deal [DAM10] damage X times.", function(enemy){
                 dealDamage(enemy, 10);
             }), "Terror": () => new Card("Terror+", 0, "Skill", "Apply 999 Vulnerable. Exhaust.", async function(enemy){
