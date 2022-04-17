@@ -551,8 +551,9 @@ R/S             rest/smith at rest sites
                     if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                     if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
                     if(this.hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Minus Dexterity");}
-                    for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt;}}
-                    this.buffs.push({name: name, amt: newAmt});
+                    let foundBuff = false;
+                    for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt; foundBuff = true;}}
+                    if(!foundBuff) {this.buffs.push({name: name, amt: newAmt});}
                     if(name=="Vulnerable" && newAmt > 0) {for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}}
                     
                     let idx = enemies.indexOf(this);
