@@ -427,8 +427,6 @@ R/S             rest/smith at rest sites
             
             let timeouts = [];
             let playerTimeouts = [];
-            let prevNum = 0;
-            let playerPrevNum = 0;
             let buffTimeouts = [];
             let playerBuffTimeouts = [];
             
@@ -601,7 +599,7 @@ R/S             rest/smith at rest sites
                     let idx = enemies.indexOf(this);
                     let dn = getId("buffSayer"+idx);
                     if(amt > 0 && prevAmt > 0) {
-                        let str = (prevAmt > amt ? "-"+amt+" "+name : "Lost "+name);
+                        let str = (prevAmt > amt ? "-"+amt+" "+name : name+" Wears Off");
                         dn.innerHTML = str;
                         dn.style.top = getId("enemy_"+idx).getBoundingClientRect().top;
                         dn.style.left = getId("enemy_"+idx).getBoundingClientRect().left - (10 + str.length * 18);
@@ -643,9 +641,8 @@ R/S             rest/smith at rest sites
                         let dn = getId("playerDamageNumber");
                         let dealt = finalAmt - hasBuff("Block");
                         if(dealt > 0) {
-                            playerPrevNum = playerPrevNum + dealt;
                             let GBCR = getId("statusLine").getBoundingClientRect();
-                            dn.innerHTML = "-"+playerPrevNum; // dealt has already been added to prevNum
+                            dn.innerHTML = "-"+dealt;
                             dn.style.top = GBCR.top - 10;
                             dn.style.left = GBCR.left;
                             dn.style.fontSize = "50px";
@@ -661,7 +658,7 @@ R/S             rest/smith at rest sites
                             for(let i=0; i<50; i++) {
                                 playerTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
                             }
-                            playerTimeouts.push(setTimeout(function(){playerTimeouts = []; playerPrevNum = 0;}, 1000));
+                            playerTimeouts.push(setTimeout(function(){playerTimeouts = [];}, 1000));
                         }
                     }
                     Promise.resolve(loseBuff("Block", finalAmt));
@@ -767,12 +764,10 @@ R/S             rest/smith at rest sites
                 let dn = getId("damageNumber"+num);
                 let dealt = Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(dealt > 0) {
-                    prevNum = prevNum + dealt;
                     let GBCR = getId("enemy_"+num).getBoundingClientRect();
-                    dn.innerHTML = "-"+prevNum; // dealt has already been added to prevNum
+                    dn.innerHTML = "-"+dealt;
                     dn.style.top = GBCR.top - 10;
-                    //dn.style.left = GBCR.left - (10 + prevNum.toString().length * 25); // dealt has already been added to prevNum
-                    dn.style.left = GBCR.left + 0.5*(GBCR.right - GBCR.left) - (prevNum.toString().length * 25);
+                    dn.style.left = GBCR.left + 0.5*(GBCR.right - GBCR.left) - (dealt.toString().length * 25);
                     dn.style.fontSize = "50px";
                     dn.style.color = "yellow";
                     for(let i of timeouts[num]) {clearTimeout(i);}
@@ -786,12 +781,12 @@ R/S             rest/smith at rest sites
                     for(let i=0; i<50; i++) {
                         timeouts[num].push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
                     }
-                    timeouts[num].push(setTimeout(function(){timeouts[num] = []; prevNum = 0;}, 1000));
+                    timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 } else if(finalAmt > 0) {
-                    prevNum = 0;
-                    dn.innerHTML = "Block";
-                    dn.style.top = getId("enemy_"+num).getBoundingClientRect().top;
-                    dn.style.left = getId("enemy_"+num).getBoundingClientRect().left - 90;
+                    let GBCR = getId("enemy_"+num).getBoundingClientRect();
+                    dn.innerHTML = "Blocked";
+                    dn.style.top = GBCR.top - 5;
+                    dn.style.left = GBCR.left - 140;
                     dn.style.fontSize = "30px";
                     dn.style.color = "skyblue";
                     for(let i of timeouts[num]) {clearTimeout(i);}
