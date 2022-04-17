@@ -138,6 +138,8 @@
         </style>
     </head>
     <body>
+        <b id="musicSayer" style="top:50px;opacity:0;position:absolute;width:100%;text-align:center;font-size:35px;color:yellow;"></b>
+        
         <div id="selectionModal" style="display: none;">
             <div id="selectionModalContent"></div>
         </div>
@@ -430,6 +432,39 @@ R/S             rest/smith at rest sites
             let buffTimeouts = [];
             let playerBuffTimeouts = [];
             
+            let music = {
+                boss1: new Audio("ShovelKnight/thedecadentdandy.mp3"),
+                boss2: new Audio("ShovelKnight/theschemer.mp3"),
+                boss3: new Audio("ShovelKnight/therival.mp3"),
+                enemy: new Audio("ShovelKnight/fightingwithallofourmight.mp3"),
+                elite: new Audio("ShovelKnight/striketheearth.mp3"),
+                rest: new Audio("ShovelKnight/noweaponshere.mp3"),
+                shop: new Audio("ShovelKnight/onefatefulknight.mp3"),
+                menu: new Audio("ShovelKnight/maintheme.mp3"), // Doesn't seem to work, unused right now
+                map: new Audio("ShovelKnight/steelthyshovel.mp3"),
+                death: new Audio("ShovelKnight/thedonorsdespair.mp3"),
+                win: new Audio("ShovelKnight/returntoorder.mp3"),
+                bossDead: new Audio("ShovelKnight/forshovelry.mp3") // A bit of a misnomer, used for elites too
+            };
+            music.boss1.loop = true;
+            music.boss2.loop = true;
+            music.boss3.loop = true;
+            music.enemy.loop = true;
+            music.elite.loop = true;
+            music.rest.loop = true;
+            music.shop.loop = true;
+            music.menu.loop = true;
+            music.map.loop = true;
+            let announceMusic = function(name) {
+                let sayer = getId("musicSayer");
+                sayer.style.opacity = 1;
+                sayer.innerHTML = "♫ "+name+" — Shovel Knight OST";
+                for(let i=0; i<30; i++) {
+                    setTimeout(function(){sayer.style.opacity = (29-i)/30}, 1500+i*8);
+                }
+            };
+            music.map.volume = 0.4;
+            
             class Card {
                 /*
                 'effect' is a function that takes the current target, whether it is used or not.
@@ -581,7 +616,7 @@ R/S             rest/smith at rest sites
                             buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                         }
                         buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
-                        return new Promise(resolve => setTimeout(function() {resolve(0);}, 500));
+                        return new Promise(resolve => setTimeout(function() {resolve(0);}, 300));
                     } else {
                         return new Promise(resolve => setTimeout(function(){resolve(0);}));
                     }
@@ -612,7 +647,7 @@ R/S             rest/smith at rest sites
                             buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                         }
                         buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
-                        return new Promise((resolve, reject) => setTimeout(function() {resolve(0);}, 500));
+                        return new Promise((resolve, reject) => setTimeout(function() {resolve(0);}, 300));
                     } else {
                         return new Promise(resolve => setTimeout(function(){resolve(0);}));
                     }
@@ -662,7 +697,7 @@ R/S             rest/smith at rest sites
                         }
                     }
                     Promise.resolve(loseBuff("Block", finalAmt));
-                    return new Promise((resolve, reject) => setTimeout(function() {resolve(0);}, 500));
+                    return new Promise((resolve, reject) => setTimeout(function() {resolve(0);}, 300));
                 }
             }
             
@@ -707,7 +742,7 @@ R/S             rest/smith at rest sites
                         playerBuffTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                     }
                     playerBuffTimeouts.push(setTimeout(function(){playerBuffTimeouts = [];}, 1000));
-                    return new Promise(resolve => setTimeout(function() {resolve(0);}, 500));
+                    return new Promise(resolve => setTimeout(function() {resolve(0);}, 300));
                 }
                 return new Promise(resolve => setTimeout(function() {resolve(0);}, 0));
             }
@@ -736,7 +771,7 @@ R/S             rest/smith at rest sites
                         playerBuffTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                     }
                     playerBuffTimeouts.push(setTimeout(function(){playerBuffTimeouts = [];}, 1000));
-                    return new Promise(resolve => setTimeout(function() {resolve(0);}, 500));
+                    return new Promise(resolve => setTimeout(function() {resolve(0);}, 300));
                 }
                 return new Promise(resolve => setTimeout(function() {resolve(0);}, 0));
             }
@@ -861,6 +896,7 @@ R/S             rest/smith at rest sites
             };
             
             function showMap() {
+                music.shop.pause(); music.rest.pause();
                 if(mapY >= 15) {
                     mapY = 0;
                     hp = maxHp;
@@ -868,21 +904,19 @@ R/S             rest/smith at rest sites
                     maxEnergy += 1;
                     if(actNum == 1) {
                         actNum = 2;
-                        alert("Congratulations! You completed Act One! That's a third of the game!");
                     } else if(actNum == 2) {
                         actNum = 3;
-                        alert("Congratulations! You completed Act Two! That's two thirds of the game!");
                     } else if(actNum == 3) {
-                        alert("Congratulations! You completed Act Three! You Win!");
-                        timerRunning = false; updateStatusLine(); return;
+                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); return;
                     }
                 }
                 updateStatLine();
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("merchantScreen").style.display = "none";
-                if(actNum > 3) {return;}
                 getId("mapScreen").style.display = "block";
+                music.map.play();
+                announceMusic("Steel Thy Shovel");
                 getId("mapScreen").innerHTML = "Select your next room...";
                 for(let floor in map) {
                     let floorElem = document.createElement("tr");
@@ -915,9 +949,15 @@ R/S             rest/smith at rest sites
                 mapY = y;
                 mapX = x;
                 timerRunning = true; updateStatLine();
+                music.map.pause();
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
+                    if(eliteBattle) {music.elite.play(); announceMusic("Strike The Earth!");}
+                    else if(bossBattle && actNum == 1) {music.boss1.play(); announceMusic("The Decadent Dandy");}
+                    else if(bossBattle && actNum == 2) {music.boss2.play(); announceMusic("The Schemer");}
+                    else if(bossBattle && actNum == 3) {music.boss3.play(); announceMusic("The Rival");}
+                    else {music.enemy.play(); announceMusic("Fighting With All Of Our Might");}
                     drawPile = [];
                     discardPile = [];
                     exhaustPile = [];
@@ -985,9 +1025,13 @@ R/S             rest/smith at rest sites
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
+                    music.rest.play();
+                    announceMusic("No Weapons Here");
                 } else if(map[y][x] == "shop&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("merchantScreen").style.display = "block";
+                    music.shop.play();
+                    announceMusic("One Fateful Knight");
                     getId("merchantScreen").innerHTML = "";
                     offers = [];
                     for(let i=0; i<6; i++) {
@@ -2532,6 +2576,8 @@ updateShopScreen();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
                 if(enemies.length == 0) {
+                    music.enemy.pause(); music.elite.pause(); music.boss1.pause(); music.boss2.pause(); music.boss3.pause(); 
+                    if(eliteBattle || bossBattle) {music.bossDead.play();}
                     getId("rewardsScreen").style.display = "block";
                     getId("goldReward").style.display = "block";
                     getId("cardReward").style.display = "block";
@@ -2567,6 +2613,8 @@ updateShopScreen();
                     hp = 0;
                     alert("You died! D:\nReload to try again");
                     getId("gameScreen").style.display = "none";
+                    music.enemy.pause(); music.elite.pause(); music.boss1.pause(); music.boss2.pause(); music.boss3.pause();
+                    music.death.play();
                     timerRunning = false; updateStatusLine();
                 }
                 let x = document.getElementsByClassName("txt");
