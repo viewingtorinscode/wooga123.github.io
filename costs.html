@@ -559,7 +559,7 @@ R/S             rest/smith at rest sites
                     let idx = enemies.indexOf(this);
                     let dn = getId("buffSayer"+idx);
                     if(newAmt > 0) {
-                        setTimeout(function() {
+                        return new Promise(resolve => setTimeout(function() {
                             let str = "+"+newAmt+" "+name;
                             dn.innerHTML = str;
                             //alert("getId(enemy_"+idx+") --> "+getId("enemy_"+idx));
@@ -574,7 +574,10 @@ R/S             rest/smith at rest sites
                                 buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                             }
                             buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
-                        }, 200);
+                            resolve(0);
+                        }, 200));
+                    } else {
+                        return new Promise(resolve => setTimeout(function(){resolve(0);}));
                     }
                 }
                 async loseBuff(name, amt=9999) {
@@ -590,7 +593,7 @@ R/S             rest/smith at rest sites
                     let idx = enemies.indexOf(this);
                     let dn = getId("buffSayer"+idx);
                     if(amt > 0 && prevAmt > 0) {
-                        setTimeout(function() {
+                        return new Promise((resolve, reject) => setTimeout(function() {
                             let str = (prevAmt > amt ? "-"+amt+" "+name : "Lost "+name);
                             dn.innerHTML = str;
                             dn.style.top = getId("enemy_"+idx).getBoundingClientRect().top;
@@ -604,7 +607,10 @@ R/S             rest/smith at rest sites
                                 buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                             }
                             buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
-                        }, 200);
+                            resolve(0);
+                        }, 200));
+                    } else {
+                        return new Promise(resolve => setTimeout(function(){resolve(0);}));
                     }
                 }
                 dealDamage(amt) {
