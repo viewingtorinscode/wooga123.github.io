@@ -1,7 +1,7 @@
 <html id="html">
     <head>
         <title>Google Docs</title>
-        <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico"> <!-- Google Docs's icon -->
+        <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
         <style>
             html {
                 color: white;
@@ -158,6 +158,7 @@
                 <button id="modalRelic3" class="tt" onclick="getId('bossModal').style.display = 'none'; finishAddRelic(2);"></button>
             </div>
         </div>
+        
         <span id="damageNumber0" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
         <span id="damageNumber1" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
         <span id="damageNumber2" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
@@ -168,6 +169,18 @@
         <span id="damageNumber7" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
         <span id="damageNumber8" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
         <span id="damageNumber9" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        
+        <span id="buffSayer0" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer1" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer2" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer3" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer4" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer5" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer6" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer7" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer8" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        <span id="buffSayer9" style="position:absolute; opacity:0; color:yellow; pointer-events: none;"></span>
+        
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
             <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist copied to clipboard.');">View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
@@ -216,7 +229,7 @@ R/S             rest/smith at rest sites
                     <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View D<span style="text-decoration:underline">i</span>scard Pile</button>
                     <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name)).join(', '))">View Draw <span style="text-decoration:underline">P</span>ile</button>
                     <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View E<span style="text-decoration:underline">x</span>haust Pile</button>
-                    | <button onclick="endTurn()"><span style="text-decoration:underline">E</span>nd Turn</button>
+                    | <button id="turnEnder"><span style="text-decoration:underline">E</span>nd Turn</button>
                 </td>
                 <td id="enemiesTd">
                     <div id="enemies"></div>
@@ -255,7 +268,7 @@ R/S             rest/smith at rest sites
                 }
                 return array;
             }
-            let getId = x => document.getElementById(x);
+            let getId = x => document.getElementById(x); getId("turnEnder").onclick = async () => endTurn();
             let choice = x => x[Math.floor(Math.random()*x.length)];
             let resolvePromise;
             let modalNames = [];
@@ -352,7 +365,7 @@ R/S             rest/smith at rest sites
                 } else if(e.keyCode == 120 && getId("gameScreen").style.display != "none") { // x
                     alert(exhaustPile.map(x=>x.name).join(', '));
                 } else if(e.keyCode == 101 && getId("gameScreen").style.display != "none") { // e
-                    endTurn();
+                    await endTurn();
                 // numbers
                 } else if(e.keyCode == 49) {await numberKey(1);}
                 else if(e.keyCode == 50) {await numberKey(2);}
@@ -532,23 +545,65 @@ R/S             rest/smith at rest sites
                     for(let b of this.buffs) {if(b.name == name) {return b.amt;}}
                     return 0;
                 }
-                gainBuff(name, amt) {
-                    if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {this.loseBuff("Artifact", 1); return;}
+                async gainBuff(name, amt) {
+                    if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {await this.loseBuff("Artifact", 1); return;}
                     let newAmt = amt;
                     if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                     if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
                     if(this.hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Minus Dexterity");}
-                    for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt;return;}}
+                    for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt;}}
                     this.buffs.push({name: name, amt: newAmt});
-                    if(name=="Vulnerable") {for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}}
+                    if(name=="Vulnerable" && newAmt > 0) {for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}}
+                    
+                    let idx = enemies.indexOf(this);
+                    let dn = getId("buffSayer"+idx);
+                    if(newAmt > 0) {
+                        setTimeout(function() {
+                            let str = "+"+newAmt+" "+name;
+                            dn.innerHTML = str;
+                            //alert("getId(enemy_"+idx+") --> "+getId("enemy_"+idx));
+                            dn.style.top = getId("enemy_"+idx).getBoundingClientRect().top;
+                            dn.style.left = getId("enemy_"+idx).getBoundingClientRect().left - (10 + str.length * 18);
+                            dn.style.fontSize = "30px";
+                            if(debuffs.includes(name)) {dn.style.color = "#f00";} else {dn.style.color = "lime";}
+                            for(let i of buffTimeouts[idx]) {clearTimeout(i);}
+                            buffTimeouts[idx] = [];
+                            dn.style.opacity = "1";
+                            for(let i=0; i<50; i++) {
+                                buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
+                            }
+                            buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
+                        }, 200);
+                    }
                 }
-                loseBuff(name, amt=9999) {
+                async loseBuff(name, amt=9999) {
+                    let prevAmt;
                     for(let b of this.buffs) {
                         if(b.name == name) {
-                            let prevAmt = b.amt;
+                            prevAmt = b.amt;
                             if(amt >= b.amt) {this.buffs.splice(this.buffs.indexOf(b), 1);} else {b.amt -= amt;}
-                            return;
+                            break;
                         }
+                    }
+                    
+                    let idx = enemies.indexOf(this);
+                    let dn = getId("buffSayer"+idx);
+                    if(amt > 0 && prevAmt > 0) {
+                        setTimeout(function() {
+                            let str = (prevAmt > amt ? "-"+amt+" "+name : "Lost "+name);
+                            dn.innerHTML = str;
+                            dn.style.top = getId("enemy_"+idx).getBoundingClientRect().top;
+                            dn.style.left = getId("enemy_"+idx).getBoundingClientRect().left - (10 + str.length * 18);
+                            dn.style.fontSize = "30px";
+                            if(debuffs.includes(name)) {dn.style.color = "#f00";} else {dn.style.color = "lime";}
+                            for(let i of buffTimeouts[idx]) {clearTimeout(i);}
+                            buffTimeouts[idx] = [];
+                            dn.style.opacity = "1";
+                            for(let i=0; i<50; i++) {
+                                buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
+                            }
+                            buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
+                        }, 200);
                     }
                 }
                 dealDamage(amt) {
@@ -614,6 +669,7 @@ R/S             rest/smith at rest sites
             }
             let timeouts = [];
             let prevNum = 0;
+            let buffTimeouts = [];
             function dealDamage(actor, amt, shiv=false) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
@@ -639,8 +695,8 @@ R/S             rest/smith at rest sites
                 if(dealt > 0) {
                     prevNum = prevNum + dealt;
                     dn.innerHTML = prevNum; // dealt has already been added to prevNum
-                    dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top - 10;
-                    dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left -
+                    dn.style.top = getId("enemy_"+num).getBoundingClientRect().top - 10;
+                    dn.style.left = getId("enemy_"+num).getBoundingClientRect().left -
                         (10 + prevNum.toString().length * 25); // dealt has already been added to prevNum
                     dn.style.fontSize = "50px";
                     dn.style.color = "yellow";
@@ -654,8 +710,8 @@ R/S             rest/smith at rest sites
                 } else if(finalAmt > 0) {
                     prevNum = 0;
                     dn.innerHTML = "Block";
-                    dn.style.top = getId("enemy_"+actor.number).getBoundingClientRect().top;
-                    dn.style.left = getId("enemy_"+actor.number).getBoundingClientRect().left - 90;
+                    dn.style.top = getId("enemy_"+num).getBoundingClientRect().top;
+                    dn.style.left = getId("enemy_"+num).getBoundingClientRect().left - 90;
                     dn.style.fontSize = "30px";
                     dn.style.color = "skyblue";
                     for(let i of timeouts[num]) {clearTimeout(i);}
@@ -667,7 +723,12 @@ R/S             rest/smith at rest sites
                     timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 }
                 
-                actor.loseBuff("Block", finalAmt);
+                for(let b of actor.buffs) {
+                    if(b.name == "Block") {
+                        if(finalAmt >= b.amt) {actor.buffs.splice(actor.buffs.indexOf(b), 1);} else {b.amt -= finalAmt;}
+                        break;
+                    }
+                }
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {actor.dealDamage(actor.hasBuff("Thorns")); updateHtml();}
             }
             let buffDesc = {
@@ -730,14 +791,13 @@ R/S             rest/smith at rest sites
                     maxEnergy += 1;
                     if(actNum == 1) {
                         actNum = 2;
-                        alert("Congratulations! You completed Act I! That's 1/3 of the game!");
+                        alert("Congratulations! You completed Act One! That's a third of the game!");
                     } else if(actNum == 2) {
                         actNum = 3;
-                        alert("Congratulations! You completed Act II! That's 2/3 of the game!");
+                        alert("Congratulations! You completed Act Two! That's two thirds of the game!");
                     } else if(actNum == 3) {
-                        actNum = 999;
-                        alert("Congratulations! You completed Act III! You Win!");
-                        timerRunning = false; updateStatusLine();
+                        alert("Congratulations! You completed Act Three! You Win!");
+                        timerRunning = false; updateStatusLine(); return;
                     }
                 }
                 updateStatLine();
@@ -754,10 +814,10 @@ R/S             rest/smith at rest sites
                         if(map[floor][node] != "") {
                             let nodeButton = document.createElement("button");
                             nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
-                                (map[floor][node]=="enemy" ? "Fight some monsters. Gain gold and add a card if you win." : 
-                                  (map[floor][node]=="elite" ? "Fight a strong monster. Gain gold, add a card, and get a relic if you win." : 
-                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP." : 
-                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop.<br/>Costs around $60 for a card, $200 for a relic." : "Fight a Boss. Cool stuff if you win.")))
+                                (map[floor][node]=="enemy" ? "Fight some monsters. Get gold, a card and maybe a potion if you win." : 
+                                  (map[floor][node]=="elite" ? "Fight a strong monster. Get gold, a rare card, a relic, and maybe a potion if you win." : 
+                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP or upgrade a card." : 
+                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop." : "Fight a Boss. Cool stuff if you win.")))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt notbig");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
@@ -801,6 +861,7 @@ R/S             rest/smith at rest sites
                     
                     for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
                     timeouts = enemies.map(x=>[]);
+                    buffTimeouts = enemies.map(x=>[]);
                     startTurn();
                 }
                 if(map[y][x] == "enemy") {
@@ -1005,8 +1066,8 @@ updateShopScreen();
             let defend = () => new Card("Defend", 1, "Skill", "Gain [BLK5] Block.", function(enemy){
                 gainBuff("Block", 5);
             });
-            let bash = () => new Card("Bash", 2, "Attack", "Deal [DAM8] damage, apply 2 Vulnerable.", function(enemy){
-                dealDamage(enemy, 8); enemy.gainBuff("Vulnerable", 2);
+            let bash = () => new Card("Bash", 2, "Attack", "Deal [DAM8] damage, apply 2 Vulnerable.", async function(enemy){
+                dealDamage(enemy, 8); await enemy.gainBuff("Vulnerable", 2);
             });
             
             //
@@ -1021,8 +1082,8 @@ updateShopScreen();
             let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let e of enemies){dealDamage(e, 8);}
             });
-            let clothesline = () => new Card("Clothesline", 2, "Attack", "Deal [DAM12] damage, apply 2 Weak.", function(enemy){
-                dealDamage(enemy, 12); enemy.gainBuff("Weak", 2);
+            let clothesline = () => new Card("Clothesline", 2, "Attack", "Deal [DAM12] damage, apply 2 Weak.", async function(enemy){
+                dealDamage(enemy, 12); await enemy.gainBuff("Weak", 2);
             });
             let flex = () => new Card("Flex", 0, "Skill", "Gain 2 Strength. At the end of your turn, lose 2 Strength.", function(enemy){
                 gainBuff("Strength", 2); gainBuff("Strength Down", 2);
@@ -1052,8 +1113,8 @@ updateShopScreen();
                 let boom = () => dealDamage(choice(enemies), 3);
                 boom(); boom(); boom();
             });
-            let thunderclap = () => new Card("Thunderclap", 1, "Attack", "Deal [DAM4] damage and apply 1 Vulnerable to ALL enemies.", function(enemy){
-                for(let e of enemies){dealDamage(e, 4); e.gainBuff("Vulnerable", 1);}
+            let thunderclap = () => new Card("Thunderclap", 1, "Attack", "Deal [DAM4] damage and apply 1 Vulnerable to ALL enemies.", async function(enemy){
+                for(let e of enemies){dealDamage(e, 4); await e.gainBuff("Vulnerable", 1);}
             });
             let trueGrit = () => new Card("True Grit", 1, "Skill", "Gain [BLK7] Block. Exhaust a random card in your hand.", function(enemy){
                 gainBuff("Block", 7); let c=choice(hand); hand.splice(hand.indexOf(c), 1); exhaustPile.push(c);
@@ -1145,13 +1206,13 @@ updateShopScreen();
             let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength.", function(enemy){
                 gainBuff("Strength", 2);
             }, ["exhausted"]);
-            let intimidate = () => new Card("Intimidate", 0, "Skill", "Apply 1 Weak to ALL enemies. Exhaust.", function(enemy){
-                for(let e of enemies) {e.gainBuff("Weak", 1);}
+            let intimidate = () => new Card("Intimidate", 0, "Skill", "Apply 1 Weak to ALL enemies. Exhaust.", async function(enemy){
+                for(let e of enemies) {await e.gainBuff("Weak", 1);}
             }, ["exhausted"]);
             let metallicize = () => new Card("Metallicize", 1, "Power", "Start each turn with [BLK3] Block.", function(enemy){
                 gainBuff("Metallicize", 3);
             }, ["exhausted"]);
-            let powerThrough = () => new Card("Power Through",1,"Skill","Add 2 Wounds to your hand. Gain [BLK15] Block.",function(enemy){
+            let powerThrough = () => new Card("Power Through", 1, "Skill","Add 2 Wounds to your hand. Gain [BLK15] Block.", function(enemy){
                 hand.push(statusCards["Wound"]()); hand.push(statusCards["Wound"]()); gainBuff("Block", 15);
             });
             let pummel = () => new Card("Pummel", 2, "Attack", "Deal [DAM2] damage 6 times.", function(enemy){
@@ -1194,8 +1255,8 @@ updateShopScreen();
                     alert("Failed to play Spot Weakness: That enemy does not intend to attack.");
                 }
             });
-            let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", function(enemy){
-                dealDamage(enemy, 13); enemy.gainBuff("Weak", 1); enemy.gainBuff("Vulnerable", 1);
+            let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", async function(enemy){
+                dealDamage(enemy, 13); await enemy.gainBuff("Weak", 1); await enemy.gainBuff("Vulnerable", 1);
             });
             let whirlwind = () => new Card("Whirlwind", "X", "Attack", "Deal [DAM5] damage to ALL enemies X times.", function(enemy){
                 for(let e of enemies){dealDamage(e, 5);}
@@ -1288,8 +1349,8 @@ updateShopScreen();
                     updateHtml();
                 }
             });
-            let deadlyPoison = () => new Card("Deadly Poison", 1, "Skill", "Apply 5 Poison.", function(enemy){
-                enemy.gainBuff("Poison", 5);
+            let deadlyPoison = () => new Card("Deadly Poison", 1, "Skill", "Apply 5 Poison.", async function(enemy){
+                await enemy.gainBuff("Poison", 5);
             });
             let deflect = () => new Card("Deflect", 0, "Skill", "Gain [BLK4] Block.", function(enemy){
                 gainBuff("Block", 4);
@@ -1303,8 +1364,8 @@ updateShopScreen();
             let outmaneuver = () => new Card("Outmaneuver", 1, "Skill", "Gain 2 more energy next turn.", function(enemy){
                 gainBuff("Next Turn Energy", 2);
             });
-            let poisonedStab = () => new Card("Poisoned Stab", 1, "Attack", "Deal [DAM6] damage. Apply 3 Poison.", function(enemy){
-                dealDamage(enemy, 6); enemy.gainBuff("Poison", 3);
+            let poisonedStab = () => new Card("Poisoned Stab", 1, "Attack", "Deal [DAM6] damage. Apply 3 Poison.", async function(enemy){
+                dealDamage(enemy, 6); await enemy.gainBuff("Poison", 3);
             });
             let prepared = () => new Card("Prepared", 0, "Skill", "Draw a card. Discard a card.", async function(enemy){
                 drawCard(1);
@@ -1321,8 +1382,8 @@ updateShopScreen();
             let slice = () => new Card("Slice", 0, "Attack", "Deal [DAM6] damage.", function(enemy){
                 dealDamage(enemy, 6);
             });
-            let suckerPunch = () => new Card("Sucker Punch", 1, "Attack", "Deal [DAM7] damage. Apply 1 Weak.", function(enemy){
-                dealDamage(enemy, 7); enemy.gainBuff("Weak", 1);
+            let suckerPunch = () => new Card("Sucker Punch", 1, "Attack", "Deal [DAM7] damage. Apply 1 Weak.", async function(enemy){
+                dealDamage(enemy, 7); await enemy.gainBuff("Weak", 1);
             });
             
             //
@@ -1343,14 +1404,14 @@ updateShopScreen();
             let blur = () => new Card("Blur", 1, "Skill", "Gain [BLK5] Block. Block is not removed next turn.", function(enemy){
                 gainBuff("Blur", 1); gainBuff("Block", 5);
             });
-            let bouncingFlask = () => new Card("Bouncing Flask", 2, "Skill", "Apply 9 Poison to a random enemy.", function(enemy){
-                choice(enemies).gainBuff("Poison", 9);
+            let bouncingFlask = () => new Card("Bouncing Flask", 2, "Skill", "Apply 9 Poison to a random enemy.", async function(enemy){
+                await choice(enemies).gainBuff("Poison", 9);
             });
             let caltrops = () => new Card("Caltrops", 1, "Skill", "Gain 3 Thorns. Exhaust.", function(enemy){
                 gainBuff("Thorns", 3);
             }, ["exhausted"]);
-            let catalyst = () => new Card("Catalyst", 1, "Skill", "Double the enemy's Poison. Exhaust.", function(enemy){
-                enemy.gainBuff("Poison", enemy.hasBuff("Poison"));
+            let catalyst = () => new Card("Catalyst", 1, "Skill", "Double the enemy's Poison. Exhaust.", async function(enemy){
+                await enemy.gainBuff("Poison", enemy.hasBuff("Poison"));
             }, ["exhausted"]);
             let concentrate = () => new Card("Concentrate", 0, "Skill", "Discard 3 cards. Gain 2 energy.", async function(enemy){
                 let chosen = await choose(hand.filter(x=>x.name!="Prepared"), "Choose a card to discard.");
@@ -1373,8 +1434,8 @@ updateShopScreen();
                 }
                 energy += 2;
             });
-            let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
-                for(let e of enemies) {e.gainBuff("Poison", 4); e.gainBuff("Weak", 2);}
+            let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", async function(enemy){
+                for(let e of enemies) {await e.gainBuff("Poison", 4); await e.gainBuff("Weak", 2);}
             }, ["exhausted"]);
             let dash = () => new Card("Dash", 2, "Attack", "Deal 10 damage. Gain 10 Block.", function(enemy){
                 gainBuff("Block", 10); dealDamage(enemy, 10);
@@ -1404,8 +1465,8 @@ updateShopScreen();
             let infiniteBlades = () => new Card("Infinite Blades", 1, "Power", "At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
             }, ["exhausted"]);
-            let legSweep = () => new Card("Leg Sweep", 2, "Skill", "Apply 2 Weak. Gain [DAM11] Block.", function(enemy){
-                gainBuff("Block", 11); enemy.gainBuff("Weak", 2);
+            let legSweep = () => new Card("Leg Sweep", 2, "Skill", "Apply 2 Weak. Gain [BLK11] Block.", async function(enemy){
+                gainBuff("Block", 11); await enemy.gainBuff("Weak", 2);
             });
             let noxiousFumes = () => new Card("Noxious Fumes", 1, "Power", "At the start of your turn, apply 2 Poison to ALL enemies.", function(enemy){
                 gainBuff("Noxious Fumes", 2);
@@ -1416,8 +1477,8 @@ updateShopScreen();
             let skewer = () => new Card("Skewer", "X", "Attack", "Deal [DAM7] damage X times.", function(enemy){
                 dealDamage(enemy, 7);
             });
-            let terror = () => new Card("Terror", 1, "Skill", "Apply 999 Vulnerable. Exhaust.", function(enemy){
-                enemy.gainBuff("Vulnerable", 999);
+            let terror = () => new Card("Terror", 1, "Skill", "Apply 999 Vulnerable. Exhaust.", async function(enemy){
+                await enemy.gainBuff("Vulnerable", 999);
             }, ["exhausted"]);
             
             //
@@ -1428,16 +1489,16 @@ updateShopScreen();
                     dealDamage(enemy, 9);
                 }), "Defend": () => new Card("Defend+", 1, "Skill", "Gain [BLK8] Block.", function(enemy){
                     gainBuff("Block", 8);
-                }), "Bash": () => new Card("Bash+", 2, "Attack", "Deal [DAM10] damage, apply 3 Vulnerable.", function(enemy){
-                    dealDamage(enemy, 10); enemy.gainBuff("Vulnerable", 3);
+                }), "Bash": () => new Card("Bash+", 2, "Attack", "Deal [DAM10] damage, apply 3 Vulnerable.", async function(enemy){
+                    dealDamage(enemy, 10); await enemy.gainBuff("Vulnerable", 3);
                 }), "Body Slam": () => new Card("Body Slam+", 0, "Attack", "Deal damage equal to your Block. ([BLOCK] damage)", function(enemy){
                     dealDamage(enemy, hasBuff("Block"));
                 }), "Clash": () => new Card("Clash+", 0, "Attack","Deal [DAM18] damage if all cards in your hand are Attacks.", function(enemy){
                     if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 18);}
                 }), "Cleave": () => new Card("Cleave+", 1, "Attack", "Deal [DAM11] damage to ALL enemies.", function(enemy){
                     for(let e of enemies){dealDamage(e, 11);}
-                }), "Clothesline": () => new Card("Clothesline+", 2, "Attack", "Deal [DAM14] damage, apply 3 Weak.", function(enemy){
-                    dealDamage(enemy, 14); enemy.gainBuff("Weak", 3);
+                }), "Clothesline": () => new Card("Clothesline+", 2, "Attack", "Deal [DAM14] damage, apply 3 Weak.", async function(enemy){
+                    dealDamage(enemy, 14); await enemy.gainBuff("Weak", 3);
                 }), "Flex": () => new Card("Flex+", 0, "Skill", "Gain 4 Strength. At the end of your turn, lose 4 Strength.", function(enemy){
                     gainBuff("Strength", 4); gainBuff("Strength Down", 4);
                 }), "Headbutt": () => new Card("Headbutt", 1, "Attack", "Deal [DAM12] damage. Put a card from your discard pile on top of your draw pile.", async function(enemy){
@@ -1458,8 +1519,8 @@ updateShopScreen();
                     gainBuff("Block", 11); drawCard();
                 }), "Sword Boomerang": () => new Card("Sword Boomerang+", 1, "Attack", "Deal [DAM3] damage to a random enemy 4 times.", function(enemy){
                     dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3);
-                }), "Thunderclap": () => new Card("Thunderclap+", 1, "Attack", "Deal [DAM7] damage and apply 1 Vulnerable to ALL enemies.", function(enemy){
-                    for(let e of enemies){dealDamage(e, 7); e.gainBuff("Vulnerable", 1);}
+                }), "Thunderclap": () => new Card("Thunderclap+", 1, "Attack", "Deal [DAM7] damage and apply 1 Vulnerable to ALL enemies.", async function(enemy){
+                    for(let e of enemies){dealDamage(e, 7); await e.gainBuff("Vulnerable", 1);}
                 }), "True Grit": () => new Card("True Grit+", 1, "Skill", "Gain [BLK7] Block. Exhaust a card in your hand.", async function(enemy){
                     gainBuff("Block", 7);
                     let chosen = await choose(hand, "Choose a card to Exhaust.");
@@ -1494,8 +1555,8 @@ updateShopScreen();
                     gainBuff("Combust", 7);
                 }, ["exhausted"]), "Dark Embrace+": () => new Card("Dark Embrace+", 1, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
                     gainBuff("Dark Embrace", 1);
-                }, ["exhausted"]), "Disarm": () => new Card("Disarm+", 1, "Skill", "Enemy gets -3 Strength. Exhaust.", function(enemy){
-                    enemy.gainBuff("Minus Strength", 3);
+                }, ["exhausted"]), "Disarm": () => new Card("Disarm+", 1, "Skill", "Enemy gets -3 Strength. Exhaust.", async function(enemy){
+                    await enemy.gainBuff("Minus Strength", 3);
                 }, ["exhausted"]), "Dropkick": () => new Card("Dropkick+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
                     dealDamage(enemy, 8);
                     if(enemy.hasBuff("Vulnerable") > 0) {
@@ -1534,8 +1595,8 @@ updateShopScreen();
                     hand.push(extraCard2);
                 }, ["exhausted"]), "Enflame": () => new Card("Enflame+", 1, "Power", "Gain 3 Strength.", function(enemy){
                     gainBuff("Strength", 3);
-                }, ["exhausted"]), "Intimidate": () => new Card("Intimidate+", 0, "Skill", "Apply 2 Weak to ALL enemies. Exhaust.", function(enemy){
-                    for(let e of enemies) {e.gainBuff("Weak", 2);}
+                }, ["exhausted"]), "Intimidate": () => new Card("Intimidate+", 0, "Skill", "Apply 2 Weak to ALL enemies. Exhaust.", async function(enemy){
+                    for(let e of enemies) {await e.gainBuff("Weak", 2);}
                 }, ["exhausted"]), "Metallicize": () => new Card("Metallicize+", 1, "Power", "Start each turn with [BLK4] Block.", function(enemy){
                     gainBuff("Metallicize", 4);
                 }, ["exhausted"]), "Power Through": () => new Card("Power Through+", 1, "Skill", "Add 2 Wounds to your hand. Gain [BLK20] Block.", function(enemy){
@@ -1572,8 +1633,8 @@ updateShopScreen();
                     } else {
                         alert("That enemy does not intend to attack.");
                     }
-                }), "Uppercut": () => new Card("Uppercut+", 2, "Attack", "Deal [DAM13] damage. Apply 2 Weak and Vulnerable.", function(enemy){
-                    dealDamage(enemy, 13); enemy.gainBuff("Weak", 2); enemy.gainBuff("Vulnerable", 2);
+                }), "Uppercut": () => new Card("Uppercut+", 2, "Attack", "Deal [DAM13] damage. Apply 2 Weak and Vulnerable.", async function(enemy){
+                    dealDamage(enemy, 13); await enemy.gainBuff("Weak", 2); await enemy.gainBuff("Vulnerable", 2);
                 }), "Whirlwind": () => new Card("Whirlwind+", "X", "Attack", "Deal [DAM8] damage to ALL enemies X times.", function(enemy){
                     for(let e of enemies){dealDamage(e, 8);}
                 }), "Barricade": () => new Card("Barricade+", 2, "Power", "Block is not removed at the start of your turn.", function(enemy){
@@ -1636,8 +1697,8 @@ updateShopScreen();
                     hand.splice(hand.indexOf(chosen), 1);
                     updateHtml();
                 }
-            }), "Deadly Poison": () => new Card("Deadly Poison+", 1, "Skill", "Apply 7 Poison.", function(enemy){
-                enemy.gainBuff("Poison", 7);
+            }), "Deadly Poison": () => new Card("Deadly Poison+", 1, "Skill", "Apply 7 Poison.", async function(enemy){
+                await enemy.gainBuff("Poison", 7);
             }), "Deflect": () => new Card("Deflect+", 0, "Skill", "Gain [BLK7] Block.", function(enemy){
                 gainBuff("Block", 7);
             }), "Dodge and Roll": () => new Card("Dodge and Roll+", 1, "Skill", "Gain [BLK5] Block. Next turn, gain [BLK8] Block.", function(enemy){
@@ -1646,8 +1707,8 @@ updateShopScreen();
                 dealDamage(enemy, 11); gainBuff("Next Turn Energy", 1);
             }), "Outmaneuver": () => new Card("Outmaneuver+", 1, "Skill", "Gain 3 more energy next turn.", function(enemy){
                 gainBuff("Next Turn Energy", 3);
-            }), "Poisoned Stab": () => new Card("Poisoned Stab+", 1, "Attack", "Deal [DAM8] damage. Apply 4 Poison.", function(enemy){
-                dealDamage(enemy, 8); enemy.gainBuff("Poison", 4);
+            }), "Poisoned Stab": () => new Card("Poisoned Stab+", 1, "Attack", "Deal [DAM8] damage. Apply 4 Poison.", async function(enemy){
+                dealDamage(enemy, 8); await enemy.gainBuff("Poison", 4);
             }), "Prepared": () => new Card("Prepared+", 0, "Skill", "Draw 2 cards. Discard 2 cards.", async function(enemy){
                 drawCard(2);
                 let chosen = await choose(hand.filter(x=>x.name!="Prepared+"), "Choose a card to discard.");
@@ -1666,8 +1727,8 @@ updateShopScreen();
                 dealDamage(enemy, 12); drawCard();
             }), "Slice": () => new Card("Slice+", 0, "Deal [DAM9] damage.", function(enemy){
                 dealDamage(enemy, 9);
-            }), "Sucker Punch": () => new Card("Sucker Punch+", 1, "Attack", "Deal [DAM9] damage. Apply 2 Weak.", function(enemy){
-                dealDamage(enemy, 9); enemy.gainBuff("Weak", 2);
+            }), "Sucker Punch": () => new Card("Sucker Punch+", 1, "Attack", "Deal [DAM9] damage. Apply 2 Weak.", async function(enemy){
+                dealDamage(enemy, 9); await enemy.gainBuff("Weak", 2);
             }), "Accuracy": () => new Card("Accuracy+", 1, "Power", "Shivs deal 6 more damage.", function(enemy){
                 gainBuff("Accuracy", 6);
             }, ["exhausted"]), "All-Out Attack": () => new Card("All-Out Attack+", 1, "Attack", "Deal [DAM14] damage to ALL enemies. Discard a random card.", function(enemy){
@@ -1679,12 +1740,12 @@ updateShopScreen();
                 dealDamage(enemy, 15);
             }, ["exhausted", "innate"]), "Blur": () => new Card("Blur+", 1, "Skill", "Gain [BLK8] Block. Block is not removed next turn.", function(enemy){
                 gainBuff("Blur", 1); gainBuff("Block", 8);
-            }), "Bouncing Flask": () => new Card("Bouncing Flask+", 2, "Skill", "Apply 12 Poison to a random enemy.", function(enemy){
-                choice(enemies).gainBuff("Poison", 12);
+            }), "Bouncing Flask": () => new Card("Bouncing Flask+", 2, "Skill", "Apply 12 Poison to a random enemy.", async function(enemy){
+                await choice(enemies).gainBuff("Poison", 12);
             }), "Caltrops": () => new Card("Caltrops+", 1, "Skill", "Gain 5 Thorns. Exhaust.", function(enemy){
                 gainBuff("Thorns", 5);
-            }, ["exhausted"]), "Catalyst": () => new Card("Catalyst+", 1, "Skill", "Triple the enemy's Poison. Exhaust.", function(enemy){
-                enemy.gainBuff("Poison", enemy.hasBuff("Poison") * 2);
+            }, ["exhausted"]), "Catalyst": () => new Card("Catalyst+", 1, "Skill", "Triple the enemy's Poison. Exhaust.", async function(enemy){
+                await enemy.gainBuff("Poison", enemy.hasBuff("Poison") * 2);
             }, ["exhausted"]), "Concentrate": () => new Card("Concentrate+", 0, "Skill", "Discard 2 cards. Gain 2 energy.", async function(enemy){
                 let chosen = await choose(hand.filter(x=>x.name!="Prepared"), "Choose a card to discard.");
                 if(chosen) {
@@ -1699,8 +1760,8 @@ updateShopScreen();
                     updateHtml();
                 }
                 energy += 2;
-            }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
-                for(let e of enemies) {e.gainBuff("Poison", 7); e.gainBuff("Weak", 2);}
+            }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", async function(enemy){
+                for(let e of enemies) {await e.gainBuff("Poison", 7); await e.gainBuff("Weak", 2);}
             }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Attack", "Deal 13 damage. Gain 13 Block.", function(enemy){
                 gainBuff("Block", 13); dealDamage(enemy, 13);
             }), "Distraction": () => new Card("Distraction+", 0, "Skill", "Add 2 random Skills to your hand. Exhaust.", function(enemy){
@@ -1724,16 +1785,16 @@ updateShopScreen();
                 if(enemy.hasBuff("Weak") > 0) {energy += 1; drawCard();}
             }), "Infinite Blades": () => new Card("Infinite Blades+", 1, "Power", "Innate. At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
-            }, ["exhausted", "innate"]), "Leg Sweep": () => new Card("Leg Sweep+", 2, "Skill", "Apply 3 Weak. Gain 14 Block.", function(enemy){
-                gainBuff("Block", 14); enemy.gainBuff("Weak", 3);
+            }, ["exhausted", "innate"]), "Leg Sweep": () => new Card("Leg Sweep+", 2, "Skill", "Apply 3 Weak. Gain [BLK14] Block.", async function(enemy){
+                gainBuff("Block", 14); await enemy.gainBuff("Weak", 3);
             }), "Noxious Fumes": () => new Card("Noxious Fumes+", 1, "Power", "At the start of your turn, apply 3 Poison to ALL enemies.", function(enemy){
                 gainBuff("Noxious Fumes", 3);
             }, ["exhausted"]), "Predator": () => new Card("Predator+", 2, "Attack", "Deal [DAM20] damage. Next turn, draw 2 more cards.", function(enemy){
                 dealDamage(enemy, 2); gainBuff("Next Turn Cards", 2);
             }), "Skewer": () => new Card("Skewer+", "X", "Attack", "Deal [DAM10] damage X times.", function(enemy){
                 dealDamage(enemy, 10);
-            }), "Terror": () => new Card("Terror+", 0, "Skill", "Apply 999 Vulnerable. Exhaust.", function(enemy){
-                enemy.gainBuff("Vulnerable", 999);
+            }), "Terror": () => new Card("Terror+", 0, "Skill", "Apply 999 Vulnerable. Exhaust.", async function(enemy){
+                await enemy.gainBuff("Vulnerable", 999);
             }, ["exhausted"])
             };
             
@@ -1825,7 +1886,7 @@ updateShopScreen();
             function r_anchor() {gainBuff("Next Turn Block", 10);}
             function r_tea() {energy += 2;}
             function r_artOfWar() {gainBuff("Next Turn Energy", 1);}
-            function r_bagOfMarbles() {for(let x of enemies){x.gainBuff("Vulnerable",1);}}
+            async function r_bagOfMarbles() {for(let x of enemies){await x.gainBuff("Vulnerable",1);}}
             function r_bloodVial() {hp = Math.min(maxHp, hp+2);}
             function r_bronzeScales() {gainBuff("Thorns", 3);}
             function r_ceramicFish() {gold += 9;}
@@ -1850,7 +1911,7 @@ updateShopScreen();
             function r_strikeDummy() {dealDamage(target, 3);}
             function r_toxicEgg(c) {if(c.type=="Skill"){upgradeCard(c);}}
             function r_birdFacedUrn() {hp = Math.min(maxHp, hp+2);}
-            function r_championsBelt() {target.gainBuff("Weak", 1);}
+            async function r_championsBelt() {await target.gainBuff("Weak", 1);}
             function r_deadBranch() {hand.push(randCard()());}
             function r_helixFossil() {gainBuff("Buffer", 1);}
             function r_mango() {maxHp += 14; hp += 14;}
@@ -1909,7 +1970,7 @@ updateShopScreen();
                 {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"},
                 {name: "Iron", desc: "Gain 3 Metallicize.", effect: "gainBuff('Metallicize', 3)"},
                 {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: "for(let e of enemies){dealDamage(e, 10);}"},
-                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: "tgt.gainBuff('Vulnerable', 3)"},
+                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: "await tgt.gainBuff('Vulnerable', 3)"},
                 {name: "Fire", desc: "Deal 20 damage to target.", effect: "dealDamage(tgt, 20)"},
                 {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: "gainBuff('Strength', 5); gainBuff('Strength Down', 5)"},
                 {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: "maxHp += 5; hp += 5"},
@@ -1963,21 +2024,21 @@ updateShopScreen();
             
             // These make writing attacks *much* easier.
             let attack = amt => function(me){ me.dealDamage(amt); }
-            let block = amt => function(me){ me.gainBuff("Block", amt); }
-            let block_random = amt => function(me){ choice(enemies).gainBuff("Block", amt); }
-            let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
-            let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
+            let block = amt => async function(me){ await me.gainBuff("Block", amt); }
+            let block_random = amt => async function(me){ await choice(enemies).gainBuff("Block", amt); }
+            let buff = (what, amt) => async function(me){ await me.gainBuff(what, amt); }
+            let all_buff = (what, amt) => async function(me){ for(let e of enemies){await e.gainBuff(what, amt);}}
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
             let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
             let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
-            let multi_buff = (lst) => function(me){ for(let x of lst){me.gainBuff(x[0], x[1]);} }
-            let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
+            let multi_buff = (lst) => async function(me){ for(let x of lst){await me.gainBuff(x[0], x[1]);} }
+            let attack_block = (atk, blk) => async function(me){ me.dealDamage(atk); await me.gainBuff("Block", blk); }
             let attack_apply = (atk, what, amt) => function(me){ me.dealDamage(atk); gainBuff(what, amt); }
-            let attack_buff = (atk, what, amt) => function(me){ me.dealDamage(atk); me.gainBuff(what, amt); }
-            let block_buff = (blk, what, amt) => function(me){ me.gainBuff("Block", blk); me.gainBuff(what, amt); }
-            let block_multinerf = (blk, lst) => function(me){ me.gainBuff("Block", blk); for(let x of lst){gainBuff(x[0], x[1]);}}
+            let attack_buff = (atk, what, amt) => async function(me){ me.dealDamage(atk); await me.gainBuff(what, amt); }
+            let block_buff = (blk, what, amt) => async function(me){ me.gainBuff("Block", blk); await me.gainBuff(what, amt); }
+            let block_multinerf = (blk, lst) => async function(me){ await me.gainBuff("Block", blk); for(let x of lst){gainBuff(x[0], x[1]);}}
             let attack_status = (atk, what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} me.dealDamage(atk); }
-            let buff_apply = (b, bamt, n, namt) => function(me){ me.gainBuff(b, bamt); gainBuff(n, namt); }
+            let buff_apply = (b, bamt, n, namt) => async function(me){ await me.gainBuff(b, bamt); gainBuff(n, namt); }
             
             let possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
@@ -2183,7 +2244,7 @@ updateShopScreen();
             let timerRunning = true;
             let currentTimer = 0;
             let beforeTime = Date.now();
-            function updateHtml() {
+            async function updateHtml() {
                 timerRunning = true;
                 updateStatLine();
                 if(hasBuff("Strength") > 0 && hasBuff("Minus Strength") > 0) {
@@ -2299,17 +2360,17 @@ updateShopScreen();
                     let e = enemies[eIndex];
                     if(e.hasBuff("Strength") > 0 && e.hasBuff("Minus Strength") > 0) {
                         if(e.hasBuff("Strength") >= e.hasBuff("Minus Strength")) {
-                            e.loseBuff("Strength", e.hasBuff("Minus Strength"));
-                            e.loseBuff("Minus Strength");
+                            await e.loseBuff("Strength", e.hasBuff("Minus Strength"));
+                            await e.loseBuff("Minus Strength");
                         } else {
-                            e.loseBuff("Minus Strength", e.hasBuff("Strength"));
-                            e.loseBuff("Strength");
+                            await e.loseBuff("Minus Strength", e.hasBuff("Strength"));
+                            await e.loseBuff("Strength");
                         }
                     }
                     let enemyElem = document.createElement("span");
                     enemyElem.setAttribute("class", "tt");
                     let enemyButton = document.createElement("button");
-                    enemyButton.setAttribute("id", "enemy_"+e.number);
+                    enemyButton.setAttribute("id", "enemy_"+eIndex);
                     enemyButton.setAttribute("onclick", `target = enemies[${eIndex}]; updateHtml();`);
                     let intentType = e.intent.intent.split(" ")[0];
                     let intentNumber = "";
@@ -2470,7 +2531,7 @@ updateShopScreen();
                 }
             }
             
-            function startTurn() {
+            async function startTurn() {
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
@@ -2501,11 +2562,11 @@ updateShopScreen();
                 if(hasBuff("Next Turn Block")>0){gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
                 if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
-                if(hasBuff("Noxious Fumes")>0){for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}}
+                if(hasBuff("Noxious Fumes")>0){for(let e of enemies){await e.gainBuff("Poison", hasBuff("Noxious Fumes"));}}
                 updateHtml();
             }
             
-            function endTurn() {
+            async function endTurn() {
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
@@ -2532,20 +2593,20 @@ updateShopScreen();
                 updateHtml();
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
-                    if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
+                    if(e.hasBuff("Metallicize")>0){await e.gainBuff("Block", e.hasBuff("Metallicize"));}
                     if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
                     if(e.hp > 0){e.attack();}
-                    e.loseBuff("Vulnerable", 1);
-                    e.loseBuff("Weak", 1);
+                    await e.loseBuff("Vulnerable", 1);
+                    await e.loseBuff("Weak", 1);
                     e.hp = Math.min(e.maxHp, e.hp + e.hasBuff("Regen"));
-                    e.loseBuff("Regen", 1);
-                    e.gainBuff("Strength", e.hasBuff("Ritual"));
-                    e.loseBuff("Strength", e.hasBuff("Strength Down"));
-                    e.loseBuff("Strength Down");
-                    e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
-                    e.loseBuff("Dexterity Down");
+                    await e.loseBuff("Regen", 1);
+                    await e.gainBuff("Strength", e.hasBuff("Ritual"));
+                    await e.loseBuff("Strength", e.hasBuff("Strength Down"));
+                    await e.loseBuff("Strength Down");
+                    await e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
+                    await e.loseBuff("Dexterity Down");
                 }
-                startTurn();
+                await startTurn();
             }
             window.setInterval(updateStatLine, 300);
         </script>
