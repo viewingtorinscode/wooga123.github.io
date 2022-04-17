@@ -723,7 +723,7 @@ R/S             rest/smith at rest sites
                 let newAmt = Math.min(amt, prevAmt);
                 let dn = getId("buffSayerForPlayer");
                 if(newAmt > 0) {
-                    let str = (prevAmt > amt ? "-"+amt+" "+name : "Lost "+name);
+                    let str = (prevAmt > amt ? "-"+amt+" "+name : name+" Wears Off");
                     dn.innerHTML = str;
                     dn.style.top = getId("statusLine").getBoundingClientRect().bottom;
                     dn.style.left = getId("statusLine").getBoundingClientRect().left;
@@ -746,8 +746,10 @@ R/S             rest/smith at rest sites
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
-                finalAmt += hasBuff("Strength");
-                finalAmt -= hasBuff("Minus Strength");
+                if(finalAmt > 0) {
+                    finalAmt += hasBuff("Strength");
+                    finalAmt -= hasBuff("Minus Strength");
+                }
                 actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(finalAmt - actor.hasBuff("Block") > 0) {
                     if(stats.hasAttacked == false) {
