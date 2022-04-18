@@ -2678,11 +2678,11 @@ updateShopScreen();
                     let goldAmt = Math.round(Math.random()*10)+25;
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
-                    if(Math.random() < 1) { // set to 1 (always drop) for testing
+                    if(Math.random() < 0.5) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
                         let potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: "${potionDrop.effect}"}); updateStatLine(); getId('potionReward').style.display = 'none';}`);
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: '${potionDrop.effect}'}); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
