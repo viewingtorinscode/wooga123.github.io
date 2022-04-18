@@ -2030,7 +2030,7 @@ updateShopScreen();
             }
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
-            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger]);
+            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
@@ -2513,7 +2513,7 @@ updateShopScreen();
                     for(let x of buffs) {
                         let buffStuff = "";
                         if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts"].includes(x.name)) {
-                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
+                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_").replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
                         }
