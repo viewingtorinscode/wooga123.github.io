@@ -193,7 +193,7 @@
         <br /><br />
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1">Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
-            <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Play</button>
+            <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; showMap(); beforeTime = Date.now(); currentTimer = 0;">Play <span style="font-size: 13px;color:red;">(sound)</span></button>
             <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('keyScreen').style.display = 'none';">Instructions</button>
             <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
             <pre id="rulesScreen" style="display: none;">
@@ -433,11 +433,11 @@ R/S             rest/smith at rest sites
             let playerBuffTimeouts = [];
             
             let music = {
-                boss1: new Audio("ShovelKnight/thedecadentdandy.mp3"),
-                boss2: new Audio("ShovelKnight/theschemer.mp3"),
+                boss1: new Audio("ShovelKnight/therival.mp3"),
+                boss2: new Audio("ShovelKnight/therival.mp3"),
                 boss3: new Audio("ShovelKnight/therival.mp3"),
                 enemy: new Audio("ShovelKnight/fightingwithallofourmight.mp3"),
-                elite: new Audio("ShovelKnight/striketheearth.mp3"),
+                elite: new Audio("ShovelKnight/thedecadentdandy.mp3"),
                 rest: new Audio("ShovelKnight/noweaponshere.mp3"),
                 shop: new Audio("ShovelKnight/onefatefulknight.mp3"),
                 menu: new Audio("ShovelKnight/maintheme.mp3"), // Doesn't seem to work, unused right now
@@ -603,7 +603,7 @@ R/S             rest/smith at rest sites
                     return 0;
                 }
                 async gainBuff(name, amt) {
-                    if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {await this.loseBuff("Artifact", 1); return;}
+                    if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {await this.loseBuff("Artifact", 1); updateHtml(); return;}
                     let newAmt = amt;
                     if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                     if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
@@ -732,7 +732,7 @@ R/S             rest/smith at rest sites
                 return 0;
             }
             async function gainBuff(name, amt) {
-                if(debuffs.includes(name) && hasBuff("Artifact") > 0) {await loseBuff("Artifact", 1); return;}
+                if(debuffs.includes(name) && hasBuff("Artifact") > 0) {await loseBuff("Artifact", 1); updateHtml(); return;}
                 let newAmt = amt;
                 if(hasBuff("Frail") > 0           && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
                 if(hasBuff("Dexterity") > 0       && name == "Block") {newAmt += hasBuff("Dexterity");}
@@ -836,15 +836,20 @@ R/S             rest/smith at rest sites
                 } else if(finalAmt > 0) {
                     let GBCR = getId("enemy_"+num).getBoundingClientRect();
                     dn.innerHTML = "Blocked";
-                    dn.style.top = GBCR.top - 5;
-                    dn.style.left = GBCR.left - 140;
+                    dn.style.top = GBCR.top - 10;
+                    dn.style.left = GBCR.left + 0.5*(GBCR.right - GBCR.left) - (dealt.toString().length * 15);
                     dn.style.fontSize = "30px";
                     dn.style.color = "skyblue";
                     for(let i of timeouts[num]) {clearTimeout(i);}
                     timeouts[num] = [];
                     dn.style.opacity = "1";
+                    for(let i=0; i<100; i++) {
+                        timeouts[num].push(setTimeout(function(){
+                            let i2 = 100-i; dn.style.transform = "translate(0px, "+(i2*i2*0.5 + i2*1.5 - 5049)*(30/5050)+"px)";
+                        }, i*5));
+                    }
                     for(let i=0; i<50; i++) {
-                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*20));
+                        timeouts[num].push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
                     }
                     timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 }
@@ -1245,7 +1250,7 @@ updateShopScreen();
                 dealDamage(enemy, 9); drawCard();
             });
             let shrugItOff = () => new Card("Shrug it Off", 1, "Skill", "Gain [BLK8] Block. Draw a card.", async function(enemy){
-                await gainBuff("Block", 8); drawCard();
+                drawCard(); await gainBuff("Block", 8);
             });
             let swordBoomerang = () => new Card("Sword Boomerang", 1, "Attack", "Deal [DAM3] damage to a random enemy 3 times.", function(enemy){
                 let boom = () => dealDamage(choice(enemies), 3);
@@ -1464,7 +1469,7 @@ updateShopScreen();
                 }
             });
             let backflip = () => new Card("Backflip", 1, "Skill", "Gain [BLK5] Block. Draw 2 cards.", async function(enemy){
-                await gainBuff("Block", 5); drawCard(2);
+                drawCard(2); await gainBuff("Block", 5);
             });
             let bane = () => new Card("Bane", 1, "Attack", "Deal [DAM7] damage, twice if enemy has Poison.", function(enemy){
                 dealDamage(enemy, 7); if(enemy.hasBuff("Poison")) {dealDamage(enemy, 7);}
@@ -1654,7 +1659,7 @@ updateShopScreen();
                 }), "Pommel Strike": () => new Card("Pommel Strike+", 1, "Attack", "Deal [DAM10] damage. Draw 2 cards.", function(enemy){
                     dealDamage(enemy, 10); drawCard(2);
                 }), "Shrug it Off": () => new Card("Shrug it Off+", 1, "Skill", "Gain [BLK11] Block. Draw a card.", async function(enemy){
-                    await gainBuff("Block", 11); drawCard();
+                    drawCard(); await gainBuff("Block", 11);
                 }), "Sword Boomerang": () => new Card("Sword Boomerang+", 1, "Attack", "Deal [DAM3] damage to a random enemy 4 times.", function(enemy){
                     dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3); dealDamage(choice(enemies), 3);
                 }), "Thunderclap": () => new Card("Thunderclap+", 1, "Attack", "Deal [DAM7] damage and apply 1 Vulnerable to ALL enemies.", async function(enemy){
@@ -1818,7 +1823,7 @@ updateShopScreen();
                     updateHtml();
                 }
             }), "Backflip": () => new Card("Backflip+", 1, "Skill", "Gain [BLK8] Block. Draw 2 cards.", async function(enemy){
-                await gainBuff("Block", 8); drawCard(2);
+                drawCard(2); await gainBuff("Block", 8);
             }), "Bane": () => new Card("Bane+", 1, "Attack", "Deal [DAM10] damage, twice if enemy has Poison.", function(enemy){
                 dealDamage(enemy, 10); if(enemy.hasBuff("Poison")) {dealDamage(enemy, 10);}
             }), "Blade Dance": () => new Card("Blade Dance+", 1, "Skill", "Add 4 Shivs to your hand.", function(enemy){
