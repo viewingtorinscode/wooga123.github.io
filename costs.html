@@ -527,6 +527,8 @@ R/S             rest/smith at rest sites
                     updateHtml();
                 }
                 async play_success() {
+                    if(hasBuff("Thousand Cuts") > 0) {for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}}
+                    if(hasBuff("After Image") > 0) {await gainBuff("Block", hasBuff("After Image"));}
                     if(this.type == "Skill") {
                         stats.skillsThisTurn += 1;
                         for(let e of enemies) {
@@ -535,6 +537,13 @@ R/S             rest/smith at rest sites
                         for(let r of relics) {
                             if(r.trigger == "on_skill") {r.effect();}
                             if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {r.effect();}
+                        }
+                        if(hasBuff("Burst") > 0) {
+                            await loseBuff("Burst", 1);
+                            hand.push(this);
+                            discardPile.splice(discardPile.indexOf(this), 1);
+                            if(this.cost != "X") {energy += this.cost;}
+                            await this.play();
                         }
                     }
                     if(this.type == "Power") {
@@ -905,7 +914,10 @@ R/S             rest/smith at rest sites
                 "Blur": "Keep your Block for [AMT] turn[s].",
                 "Infinite Blades": "Get [AMT] Shiv[s] each turn.",
                 "Noxious Fumes": "At the start of your turn, apply [AMT] Poison to ALL enemies.",
-                "Next Turn Cards": "Draw [AMT] more card[s] next turn."
+                "Next Turn Cards": "Draw [AMT] more card[s] next turn.",
+                "Thousand Cuts": "Whenever you play a card, deal [DAMT] damage to ALL enemies.",
+                "After Image": "Whenever you play a card, gain [BAMT] Block.",
+                "Burst": "Your next [AMT] Skill[s] are played twice."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
@@ -1626,6 +1638,28 @@ updateShopScreen();
             }, ["exhausted"]);
             
             //
+            // Silent Rares
+            //
+            let thousandCuts = () => new Card("A Thousand Cuts", 2, "Power", "Whenever you play a card, deal [DAM1] damage to ALL enemies.", async function(enemy) {
+                await gainBuff("Thousand Cuts", 1);
+            }, ["exhausted"]);
+            let adrenaline = () => new Card("Adrenaline", 0, "Skill", "Gain 1 energy. Draw 2 cards. Exhaust.", function(enemy){
+                energy += 1; drawCard(2);
+            }, ["exhausted"]);
+            let afterImage = () => new Card("After Image", 1, "Power", "Whenever you play a card, gain [BLK1] Block.", async function(enemy){
+                await gainBuff("After Image", 1);
+            }, ["exhausted"]);
+            let burst = () => new Card("Burst", 1, "Skill", "Your next Skill is played twice.", async function(enemy){
+                await gainBuff("Burst", 1);
+            });
+            let dieDieDie = () => new Card("Die Die Die", 1, "Attack", "Deal [DAM13] damage to ALL enemies. Exhaust.", function(enemy){
+                for(let e of enemies) {dealDamage(e, 13);}
+            }, ["exhausted"]);
+            let doppelganger = () => new Card("Doppelganger", "X", "Skill", "Next turn, draw X more cards and gain X more energy. Exhaust.", async function(enemy){
+                await gainBuff("Next Turn Cards", 1); await gainBuff("Next Turn Energy", 1);
+            }, ["exhausted"]);
+            
+            //
             // Upgraded Cards
             //
             let upgradedCards = {
@@ -1939,7 +1973,19 @@ updateShopScreen();
                 dealDamage(enemy, 10);
             }), "Terror": () => new Card("Terror+", 0, "Skill", "Apply 999 Vulnerable. Exhaust.", async function(enemy){
                 await enemy.gainBuff("Vulnerable", 999);
-            }, ["exhausted"])
+            }, ["exhausted"]), "A Thousand Cuts": () => new Card("A Thousand Cuts+", 2, "Power", "Whenever you play a card, deal [DAM2] damage to ALL enemies.", async function(enemy) {
+                await gainBuff("Thousand Cuts", 2);
+            }, ["exhausted"]), "Adrenaline": () => new Card("Adrenaline+", 0, "Skill", "Gain 2 energy. Draw 2 cards. Exhaust.", function(enemy){
+                energy += 2; drawCard(2);
+            }, ["exhausted"]), "After Image": () => new Card("After Image+", 1, "Power", "Innate. Whenever you play a card, gain [BLK1] Block.", async function(enemy){
+                await gainBuff("After Image", 1);
+            }, ["exhausted", "innate"]), "Burst": () => new Card("Burst+", 1, "Skill", "Your next Skill is played 3 times.", async function(enemy){
+                await gainBuff("Burst", 2);
+            }), "Die Die Die": () => new Card("Die Die Die+", 1, "Attack", "Deal [DAM17] damage to ALL enemies. Exhaust.", function(enemy){
+                for(let e of enemies) {dealDamage(e, 17);}
+            }, ["exhausted"]), "Doppelganger": () => new Card("Doppelganger+", "X", "Skill", "Next turn, draw X more cards and gain X more energy.", async function(enemy){
+                await gainBuff("Next Turn Cards", 1); await gainBuff("Next Turn Energy", 1);
+            })
             };
             
             function upgradeCard(c) {
@@ -1957,7 +2003,7 @@ updateShopScreen();
             }
             
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
-            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper]);
+            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger]);
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
@@ -2107,21 +2153,21 @@ updateShopScreen();
             ];
             
             let potionPool = [
-                {name: "Block", desc: "Gain 12 Block.", effect: "await gainBuff('Block', 12)"},
-                {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: "hp = Math.min(maxHp, hp + Math.round(0.2 * maxHp))"},
-                {name: "Cultist", desc: "Gain 1 Ritual.", effect: "await gainBuff('Ritual', 1)"},
-                {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: "await gainBuff('Dexterity', 2)"},
-                {name: "Energy", desc: "Gain 2 energy.", effect: "energy += 2"},
-                {name: "Iron", desc: "Gain 3 Metallicize.", effect: "await gainBuff('Metallicize', 3)"},
-                {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: "for(let e of enemies){dealDamage(e, 10);}"},
-                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: "await tgt.gainBuff('Vulnerable', 3)"},
-                {name: "Fire", desc: "Deal 20 damage to target.", effect: "dealDamage(tgt, 20)"},
-                {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: "await gainBuff('Strength', 5); await gainBuff('Strength Down', 5)"},
-                {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: "maxHp += 5; hp += 5"},
-                {name: "Steel", desc: "Gain 5 Metallicize.", effect: "await gainBuff('Metallicize', 5)"},
-                {name: "Bronze", desc: "Gain 3 Thorns.", effect: "await gainBuff('Thorns', 3)"},
-                {name: "Regen", desc: "Gain 5 Regen.", effect: "await gainBuff('Regen', 5)"},
-                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: "await gainBuff('Dexterity', 5); await gainBuff('Dexterity Down', 5)"},
+                {name: "Block", desc: "Gain 12 Block.", effect: 'await gainBuff("Block", 12)'},
+                {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: 'hp = Math.min(maxHp, hp + Math.round(0.2 * maxHp))'},
+                {name: "Cultist", desc: "Gain 1 Ritual.", effect: 'await gainBuff("Ritual", 1)'},
+                {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: 'await gainBuff("Dexterity", 2)'},
+                {name: "Energy", desc: "Gain 2 energy.", effect: 'energy += 2'},
+                {name: "Iron", desc: "Gain 3 Metallicize.", effect: 'await gainBuff("Metallicize", 3)'},
+                {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: 'for(let e of enemies){dealDamage(e, 10);}'},
+                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: 'await tgt.gainBuff("Vulnerable", 3)'},
+                {name: "Fire", desc: "Deal 20 damage to target.", effect: 'dealDamage(tgt, 20)'},
+                {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: 'await gainBuff("Strength", 5); await gainBuff("Strength Down", 5)'},
+                {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: 'maxHp += 5; hp += 5'},
+                {name: "Steel", desc: "Gain 5 Metallicize.", effect: 'await gainBuff("Metallicize", 5)'},
+                {name: "Bronze", desc: "Gain 3 Thorns.", effect: 'await gainBuff("Thorns", 3)'},
+                {name: "Regen", desc: "Gain 5 Regen.", effect: 'await gainBuff("Regen", 5)'},
+                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'await gainBuff("Dexterity", 5); await gainBuff("Dexterity Down", 5)'}
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
@@ -2183,6 +2229,7 @@ updateShopScreen();
             let block_multinerf = (blk, lst) => async function(me){ await me.gainBuff("Block", blk); for(let x of lst){await gainBuff(x[0], x[1]);}}
             let attack_status = (atk, what, amt) => async function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} await me.dealDamage(atk); }
             let buff_apply = (b, bamt, n, namt) => async function(me){ await me.gainBuff(b, bamt); await gainBuff(n, namt); }
+            let passTurn = () => async function(me){ await me.dealDamage(0); }
             
             let possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
@@ -2264,11 +2311,24 @@ updateShopScreen();
                     {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
-                            () => new Enemy("Fat Gremlin", 15, [{intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}]),
-                            () => new Enemy("Mad Gremlin", 20, [{intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}]),
-                            () => new Enemy("Shield Gremlin", 15, [{intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}, {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}]),
-                            () => new Enemy("Sneaky Gremlin", 10, [{intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}]),
-                            () => new Enemy("Wizard Gremlin", 25, [{intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "unknown", desc: "charge a powerful attack", effect: function(me){}}, {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}])
+                            () => new Enemy("Fat Gremlin", 15, [
+                                {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
+                            ]),
+                            () => new Enemy("Mad Gremlin", 20, [
+                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                            ]),
+                            () => new Enemy("Shield Gremlin", 15, [
+                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
+                                {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
+                            ]),
+                            () => new Enemy("Sneaky Gremlin", 10, [
+                                {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
+                            ]),
+                            () => new Enemy("Wizard Gremlin", 25, [
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
+                                {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
+                            ])
                         ];
                         if(enemies.length <= 8) {enemies = [choice(gremlins)(), choice(gremlins)(), ...enemies];}
                     }}
@@ -2363,7 +2423,7 @@ updateShopScreen();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt) { ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){ ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -2618,7 +2678,7 @@ updateShopScreen();
                     let goldAmt = Math.round(Math.random()*10)+25;
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
-                    if(Math.random() < 0.5) { // set to 1 (always drop) for testing
+                    if(Math.random() < 1) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
                         let potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
@@ -2771,7 +2831,7 @@ updateShopScreen();
                 }
                 await startTurn();
             }
-            window.setInterval(updateStatLine, 300);
+            window.setInterval(updateStatLine, 700);
         </script>
     </body>
 </html>
