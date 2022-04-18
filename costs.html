@@ -462,10 +462,10 @@ R/S             rest/smith at rest sites
             music.boss3.volume = 0.5;
             music.enemy.volume = 0.5;
             music.elite.volume = 0.5;
-            music.rest.volume = 0.5;
-            music.shop.volume = 0.5;
-            music.menu.volume = 0.5;
-            music.map.volume = 0.2;
+            music.rest.volume = 0.4;
+            music.shop.volume = 0.4;
+            music.menu.volume = 0.4;
+            music.map.volume = 0.25;
             music.death.volume = 0.5;
             music.win.volume = 0.5;
             music.bossDead.volume = 0.5;
@@ -2590,8 +2590,16 @@ updateShopScreen();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
                 if(enemies.length == 0) {
-                    music.enemy.pause(); music.elite.pause(); music.boss1.pause(); music.boss2.pause(); music.boss3.pause(); 
+                    music.boss1.pause(); music.boss2.pause(); music.boss3.pause(); 
                     if(bossBattle) {music.bossDead.play();}
+                    else {
+                        for(let i=0; i<50; i++) {
+                            setTimeout(function(){music.enemy.volume -= 0.01; music.elite.volume -= 0.01;}, i*50);
+                        }
+                        setTimeout(function(){
+                            music.enemy.pause(); music.elite.pause(); music.enemy.volume = 0.5; music.elite.volume = 0.5;
+                        }, 2000);
+                    }
                     getId("rewardsScreen").style.display = "block";
                     getId("goldReward").style.display = "block";
                     getId("cardReward").style.display = "block";
