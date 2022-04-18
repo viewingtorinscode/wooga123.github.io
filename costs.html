@@ -809,8 +809,9 @@ R/S             rest/smith at rest sites
                     finalAmt += hasBuff("Strength");
                     finalAmt -= hasBuff("Minus Strength");
                 }
-                actor.hp -= Math.max(0, finalAmt - actor.hasBuff("Block"));
-                if(finalAmt - actor.hasBuff("Block") > 0) {
+                let dealt = Math.max(0, finalAmt - actor.hasBuff("Block"));
+                actor.hp -= dealt;
+                if(dealt > 0) {
                     if(stats.hasAttacked == false) {
                         stats.hasAttacked = true;
                         for(let r of relics) {if(r.trigger == "first_attack") {r.effect();}}
@@ -819,11 +820,11 @@ R/S             rest/smith at rest sites
                             Promise.resolve(loseBuff("Vigor"));
                         }
                     }
+                    if(hasBuff("Envenom") > 0) {Promise.resolve(actor.gainBuff("Poison"), hasBuff("Envenom"));}
                 }
                 
                 let num = enemies.indexOf(actor);
                 let dn = getId("damageNumber"+num);
-                let dealt = Math.max(0, finalAmt - actor.hasBuff("Block"));
                 if(dealt > 0) {
                     let GBCR = getId("enemy_"+num).getBoundingClientRect();
                     dn.innerHTML = "-"+dealt;
@@ -917,7 +918,8 @@ R/S             rest/smith at rest sites
                 "Next Turn Cards": "Draw [AMT] more card[s] next turn.",
                 "Thousand Cuts": "Whenever you play a card, deal [DAMT] damage to ALL enemies.",
                 "After Image": "Whenever you play a card, gain [BAMT] Block.",
-                "Burst": "Your next [AMT] Skill[s] are played twice."
+                "Burst": "Your next [AMT] Skill[s] are played twice.",
+                "Envenom": "When you deal unblocked damage, apply [AMT] Poison."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
@@ -1658,6 +1660,9 @@ updateShopScreen();
             let doppelganger = () => new Card("Doppelganger", "X", "Skill", "Next turn, draw X more cards and gain X more energy. Exhaust.", async function(enemy){
                 await gainBuff("Next Turn Cards", 1); await gainBuff("Next Turn Energy", 1);
             }, ["exhausted"]);
+            let envenom = () => new Card("Envenom", 2, "Power", "Whenever you deal unblocked damage, apply 1 Poison.", async function(enemy){
+                await gainBuff("Envenom", 1);
+            }, ["exhausted"]);
             
             //
             // Upgraded Cards
@@ -2353,16 +2358,19 @@ updateShopScreen();
                 ]),
                 () => new Enemy("Spiker", 50, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
-                        if(enemies.length <= 8) {enemies = [new Enemy("Exploder", 30, [
-                            {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
-                            {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
-                            {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: async function(me){
-                                await me.dealDamage(20);me.hp=0;}
-                            }
-                        ]),
-                        new Enemy("Repulsor", 30, [
-                            {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
-                        ]), ...enemies];}
+                        if(enemies.length <= 8) {
+                            let exploder = new Enemy("Exploder", 30, [
+                                {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
+                                {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
+                                {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: async function(me){
+                                    await me.dealDamage(20);me.hp=0;}
+                                }
+                            ]);
+                            let repulsor = new Enemy("Repulsor", 30, [
+                                {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
+                            ]);
+                            enemies = [exploder, repulsor, ...enemies];
+                        }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
                 ], ["no-repeat"]),
