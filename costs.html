@@ -911,6 +911,7 @@ R/S             rest/smith at rest sites
             
             function showMap() {
                 music.shop.pause(); music.rest.pause();
+                music.shop.currentTime = 0; music.rest.currentTime = 0;
                 if(mapY >= 15) {
                     mapY = 0;
                     hp = maxHp;
@@ -964,6 +965,7 @@ R/S             rest/smith at rest sites
                 mapX = x;
                 timerRunning = true; updateStatLine();
                 music.map.pause();
+                music.map.currentTime = 0;
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
@@ -2590,14 +2592,17 @@ updateShopScreen();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
                 if(enemies.length == 0) {
-                    music.boss1.pause(); music.boss2.pause(); music.boss3.pause(); 
+                    music.boss1.pause(); music.boss2.pause(); music.boss3.pause();
+                    music.boss1.currentTime = 0; music.boss2.currentTime = 0; music.boss3.currentTime = 0;
                     if(bossBattle) {music.bossDead.play();}
                     else {
                         for(let i=0; i<50; i++) {
                             setTimeout(function(){music.enemy.volume -= 0.01; music.elite.volume -= 0.01;}, i*50);
                         }
                         setTimeout(function(){
-                            music.enemy.pause(); music.elite.pause(); music.enemy.volume = 0.5; music.elite.volume = 0.5;
+                            music.enemy.pause(); music.elite.pause();
+                            music.enemy.currentTime = 0; music.elite.currentTime = 0;
+                            music.enemy.volume = 0.5; music.elite.volume = 0.5;
                         }, 2000);
                     }
                     getId("rewardsScreen").style.display = "block";
@@ -2636,6 +2641,8 @@ updateShopScreen();
                     alert("You died! D:\nReload to try again");
                     getId("gameScreen").style.display = "none";
                     music.enemy.pause(); music.elite.pause(); music.boss1.pause(); music.boss2.pause(); music.boss3.pause();
+                    music.enemy.currentTime = 0; music.elite.currentTime = 0;
+                    music.boss1.currentTime = 0; music.boss2.currentTime = 0; music.boss3.currentTime = 0;
                     music.death.play();
                     timerRunning = false; updateStatusLine();
                 }
