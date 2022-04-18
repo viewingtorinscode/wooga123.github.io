@@ -990,7 +990,7 @@ R/S             rest/smith at rest sites
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
-                    if(eliteBattle) {music.elite.play(); announceMusic("Strike The Earth!");}
+                    if(eliteBattle == true) {music.elite.play(); announceMusic("Strike The Earth!");}
                     else if(bossBattle && actNum == 1) {music.boss1.play(); announceMusic("The Decadent Dandy");}
                     else if(bossBattle && actNum == 2) {music.boss2.play(); announceMusic("The Schemer");}
                     else if(bossBattle && actNum == 3) {music.boss3.play(); announceMusic("The Rival");}
@@ -1022,11 +1022,11 @@ R/S             rest/smith at rest sites
                 if(map[y][x] == "enemy") {
                     let nme;
                     if(actNum == 1) {
-                        nme = () => choice(possibleEnemies.slice(0))();
+                        nme = () => choice(possibleEnemies)();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleEnemies_act2.slice(0))();
+                        nme = () => choice(possibleEnemies_act2)();
                     } else {
-                        nme = () => choice(possibleEnemies_act3.slice(0))();
+                        nme = () => choice(possibleEnemies_act3)();
                     }
                     if(mapY >= 2) {enemies = [nme(), nme()]}
                     else {enemies = [nme()]}
@@ -1036,11 +1036,11 @@ R/S             rest/smith at rest sites
                 } else if(map[y][x] == "elite") {
                     let nme;
                     if(actNum == 1) {
-                        nme = () => choice(possibleElites.slice(0))();
+                        nme = () => choice(possibleElites)();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleElites_act2.slice(0))();
+                        nme = () => choice(possibleElites_act2)();
                     } else {
-                        nme = () => choice(possibleElites_act3.slice(0))();
+                        nme = () => choice(possibleElites_act3)();
                     }
                     enemies = [nme()];
                     eliteBattle = true;
@@ -1049,11 +1049,11 @@ R/S             rest/smith at rest sites
                 } else if(map[y][x].includes("BOSS")) {
                     let nme;
                     if(actNum == 1) {
-                        nme = () => choice(possibleBosses.slice(0))();
+                        nme = () => choice(possibleBosses)();
                     } else if(actNum == 2) {
-                        nme = () => choice(possibleBosses_act2.slice(0))();
+                        nme = () => choice(possibleBosses_act2)();
                     } else {
-                        nme = () => choice(possibleBosses_act3.slice(0))();
+                        nme = () => choice(possibleBosses_act3)();
                     }
                     enemies = [nme()];
                     eliteBattle = false;
@@ -2339,25 +2339,30 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 15, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ]),
                             () => new Enemy("Mad Gremlin", 20, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
                             ]),
                             () => new Enemy("Shield Gremlin", 15, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
                             ]),
                             () => new Enemy("Sneaky Gremlin", 10, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ]),
                             () => new Enemy("Wizard Gremlin", 25, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies = [choice(gremlins)(), choice(gremlins)(), ...enemies];}
+                        if(enemies.length <= 8) {enemies.push(choice(gremlins)); enemies.push(choice(gremlins));}
                     }}
                 ], ["randomize"])
             ];
@@ -2381,17 +2386,20 @@ updateShopScreen();
                 () => new Enemy("Spiker", 50, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
-                            let exploder = new Enemy("Exploder", 30, [
+                            let exploder = () => new Enemy("Exploder", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                                 {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                                 {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: async function(me){
-                                    await me.dealDamage(20);me.hp=0;}
+                                    enemies.splice(enemies.indexOf(me), 1); await me.dealDamage(20);}
                                 }
-                            ]);
-                            let repulsor = new Enemy("Repulsor", 30, [
+                            ], ["no-repeat"]);
+                            let repulsor = () => new Enemy("Repulsor", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
-                            ]);
-                            enemies = [exploder, repulsor, ...enemies];
+                            ], ["no-repeat"]);
+                            enemies.push(repulsor());
+                            enemies.push(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -2507,7 +2515,7 @@ updateShopScreen();
                 else {energyElem.style.background = "yellow";}
                 
                 let playerElem = getId("player");
-                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand ("+hand.length+"):";
+                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand ("+hand.length+"/10 cards):";
                 if(buffs.length > 0) {
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
@@ -2753,6 +2761,26 @@ updateShopScreen();
                 for(let i=0; i<num; i++) {
                     if(hand.length < 10) {
                         hand.push(new Card("Shiv", 0, "Attack", "Deal [SHIV] damage. Exhaust.", function(e){dealDamage(e,4,true);}, ["exhausted"]));
+                    } else {
+                        let dn = getId("playerDamageNumber");
+                        let GBCR = getId("statusLine").getBoundingClientRect();
+                        dn.innerHTML = "Hand Full!";
+                        dn.style.top = GBCR.top - 10;
+                        dn.style.left = GBCR.left;
+                        dn.style.fontSize = "50px";
+                        dn.style.color = "yellow";
+                        for(let i of playerTimeouts) {clearTimeout(i);}
+                        playerTimeouts = [];
+                        dn.style.opacity = "1";
+                        for(let i=0; i<100; i++) {
+                            playerTimeouts.push(setTimeout(function(){
+                                let i2 = 100-i; dn.style.transform = "translate(0px, "+(i2*i2*-0.5+i2*-1.5+5049)*(30/5050)+"px)";
+                            }, i*5));
+                        }
+                        for(let i=0; i<50; i++) {
+                            playerTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
+                        }
+                        playerTimeouts.push(setTimeout(function(){playerTimeouts = [];}, 1000));
                     }
                 }
             }
@@ -2760,6 +2788,26 @@ updateShopScreen();
                 for(let i=0; i<num; i++) {
                     if(hand.length < 10) {
                         hand.push(new Card("Shiv+", 0, "Attack", "Deal [SHIV+] damage. Exhaust.", function(e){dealDamage(e,6,true);}, ["exhausted"]));
+                    } else {
+                        let dn = getId("playerDamageNumber");
+                        let GBCR = getId("statusLine").getBoundingClientRect();
+                        dn.innerHTML = "Hand Full!";
+                        dn.style.top = GBCR.top - 10;
+                        dn.style.left = GBCR.left;
+                        dn.style.fontSize = "50px";
+                        dn.style.color = "yellow";
+                        for(let i of playerTimeouts) {clearTimeout(i);}
+                        playerTimeouts = [];
+                        dn.style.opacity = "1";
+                        for(let i=0; i<100; i++) {
+                            playerTimeouts.push(setTimeout(function(){
+                                let i2 = 100-i; dn.style.transform = "translate(0px, "+(i2*i2*-0.5+i2*-1.5+5049)*(30/5050)+"px)";
+                            }, i*5));
+                        }
+                        for(let i=0; i<50; i++) {
+                            playerTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
+                        }
+                        playerTimeouts.push(setTimeout(function(){playerTimeouts = [];}, 1000));
                     }
                 }
             }
@@ -2780,6 +2828,26 @@ updateShopScreen();
                                 dealDamage(e, hasBuff("Fire Breathing"));
                             }
                         }
+                    } else if(hand.length >= 10) {
+                        let dn = getId("playerDamageNumber");
+                        let GBCR = getId("statusLine").getBoundingClientRect();
+                        dn.innerHTML = "Hand Full!";
+                        dn.style.top = GBCR.top - 10;
+                        dn.style.left = GBCR.left;
+                        dn.style.fontSize = "50px";
+                        dn.style.color = "yellow";
+                        for(let i of playerTimeouts) {clearTimeout(i);}
+                        playerTimeouts = [];
+                        dn.style.opacity = "1";
+                        for(let i=0; i<100; i++) {
+                            playerTimeouts.push(setTimeout(function(){
+                                let i2 = 100-i; dn.style.transform = "translate(0px, "+(i2*i2*-0.5+i2*-1.5+5049)*(30/5050)+"px)";
+                            }, i*5));
+                        }
+                        for(let i=0; i<50; i++) {
+                            playerTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50;}, i*5 + 750));
+                        }
+                        playerTimeouts.push(setTimeout(function(){playerTimeouts = [];}, 1000));
                     }
                 }
             }
@@ -2852,7 +2920,6 @@ updateShopScreen();
                 await loseBuff("Strength Down");
                 await loseBuff("Dexterity", hasBuff("Dexterity Down"));
                 await loseBuff("Dexterity Down");
-                updateHtml();
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){await e.loseBuff("Block");}
                     if(e.hasBuff("Metallicize")>0){await e.gainBuff("Block", await e.hasBuff("Metallicize"));}
@@ -2868,6 +2935,7 @@ updateShopScreen();
                     await e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
                     await e.loseBuff("Dexterity Down");
                 }
+                updateHtml();
                 await startTurn();
             }
             window.setInterval(updateStatLine, 700);
