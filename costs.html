@@ -597,6 +597,7 @@ R/S             rest/smith at rest sites
                         // Else if we have something to go to: go to it.
                         this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
                     }
+                    updateHtml();
                 }
                 hasBuff(name) {
                     for(let b of this.buffs) {if(b.name == name) {return b.amt;}}
@@ -1478,7 +1479,7 @@ updateShopScreen();
                 addShivs(3);
             });
             let cloakAndDagger = () => new Card("Cloak and Dagger", 1, "Skill", "Gain [BLK6] Block. Add a Shiv to your hand.", async function(enemy){
-                await gainBuff("Block", 6); addShivs(1);
+                addShivs(1); await gainBuff("Block", 6);
             });
             let daggerSpray = () => new Card("Dagger Spray", 1, "Attack", "Deal [DAM4] damage to ALL enemies twice.", function(enemy){
                 for(let e of enemies){dealDamage(e, 4);dealDamage(e, 4);}
@@ -1829,7 +1830,7 @@ updateShopScreen();
             }), "Blade Dance": () => new Card("Blade Dance+", 1, "Skill", "Add 4 Shivs to your hand.", function(enemy){
                 addShivs(4);
             }), "Cloak and Dagger": () => new Card("Cloak and Dagger+", 1, "Skill", "Gain [BLK6] Block. Add 2 Shivs to your hand.", async function(enemy){
-                await gainBuff("Block", 6); addShivs(2);
+                addShivs(2); await gainBuff("Block", 6);
             }), "Dagger Spray": () => new Card("Dagger Spray+", 1, "Attack", "Deal [DAM6] damage to ALL enemies twice.", function(enemy){
                 for(let e of enemies){dealDamage(e, 6);dealDamage(e, 6);}
             }), "Dagger Throw": () => new Card("Dagger Throw+", 1, "Attack", "Deal [DAM12] damage. Draw a card. Discard a card.", async function(enemy){
