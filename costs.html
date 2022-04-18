@@ -910,8 +910,7 @@ R/S             rest/smith at rest sites
             };
             
             function showMap() {
-                for(let i=0; i<50; i++) {setTimeout(function(){music.rest.volume -= 0.008; music.shop.volume -= 0.008;}, i*80)}
-                setTimeout(function(){music.rest.pause(); music.shop.pause(); music.rest.volume = 0.4; music.shop.volume = 0.4;}, 2000);
+                music.shop.pause(); music.rest.pause();
                 if(mapY >= 15) {
                     mapY = 0;
                     hp = maxHp;
@@ -2595,7 +2594,7 @@ updateShopScreen();
                     if(bossBattle) {music.bossDead.play();}
                     else {
                         for(let i=0; i<50; i++) {
-                            setTimeout(function(){music.enemy.volume -= 0.01; music.elite.volume -= 0.01;}, i*80);
+                            setTimeout(function(){music.enemy.volume -= 0.01; music.elite.volume -= 0.01;}, i*50);
                         }
                         setTimeout(function(){
                             music.enemy.pause(); music.elite.pause(); music.enemy.volume = 0.5; music.elite.volume = 0.5;
