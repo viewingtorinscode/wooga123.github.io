@@ -224,12 +224,15 @@ C               continue (from shop, combat, rest)
 R/S             rest/smith at rest sites
             </pre>
             <pre id="ascensionScreen" style="display: none;">
-Your Ascension Level adds various modifiers to the game. The current max is level 3.
+Your Ascension Level adds various modifiers to the game. The current max is level 6.
 Note that the modifiers from lower levels stack.
 Modifiers:
 * 1 - Elites spawn more often.
 * 2 - Normal enemies deal more damage.
 * 3 - Elites deal more damage.
+* 4 - Bosses deal more damage.
+* 5 - Heal less after bosses.
+* 6 - Start the run damaged.
 Selected level: <input id="ascensionLevel" value="0">
             </pre>
         </div>
@@ -951,7 +954,7 @@ Selected level: <input id="ascensionLevel" value="0">
                 music.shop.currentTime = 0; music.rest.currentTime = 0;
                 if(mapY >= 15) {
                     mapY = 0;
-                    hp = maxHp;
+                    hp = (getId("ascensionLevel").value >= 5 ? hp+0.75*(maxHp-hp) : maxHp);
                     mapGen();
                     maxEnergy += 1;
                     if(actNum == 1) {
@@ -959,6 +962,7 @@ Selected level: <input id="ascensionLevel" value="0">
                     } else if(actNum == 2) {
                         actNum = 3;
                     } else if(actNum == 3) {
+                        actNum = 10;
                         timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); return;
                     }
                 }
@@ -966,6 +970,7 @@ Selected level: <input id="ascensionLevel" value="0">
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("merchantScreen").style.display = "none";
+                if(actNum > 3) {return;} // I don't really need this, right?
                 getId("mapScreen").style.display = "block";
                 music.map.play();
                 announceMusic("Steel Thy Shovel");
@@ -2423,8 +2428,8 @@ updateShopScreen();
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor());
-                            enemies.push(exploder());
+                            enemies.push(repulsor);
+                            enemies.push(exploder);
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -3120,6 +3125,35 @@ updateShopScreen();
                 ], ["no-repeat"])
                     ];
                 }
+                if(lv >= 4) {
+                    possibleBosses = [
+                () => new Enemy("Slime Boss", 190, [
+                    {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
+                    {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
+                    {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
+                ])
+                    ];
+                    possibleBosses_act2 = [
+                () => new Enemy("The Champ", 530, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
+                ], ["randomize"])
+                    ];
+                    possibleBosses_act3 = [
+                () => new Enemy("Time Eater", 666, [
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 2], ["Weak", 1]])},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
+                ], ["randomize"])
+                    ];
+                }
+                if(lv >= 6) {hp = 0.9 * maxHp;}
             });
             window.setInterval(updateStatLine, 700);
         </script>
