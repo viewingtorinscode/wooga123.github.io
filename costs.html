@@ -366,17 +366,16 @@ R/S             rest/smith at rest sites
             }
             document.onkeypress = async function(e) {
                 e = e || window.event;
-                //alert("You just pressed "+e.keyCode);
                 if(e.keyCode == 100) { // d
-                    let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist maybe copied to clipboard??');
+                    let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 116) { // t
                     if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}
                 } else if(e.keyCode == 112 && getId("gameScreen").style.display != "none") { // p
-                    alert(shuffle(drawPile.map(x=>x.name)).join(', '));
+                    let d=drawPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 105 && getId("gameScreen").style.display != "none") { // i
-                    alert(discardPile.map(x=>x.name).join(', '));
+                    let d=discardPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 120 && getId("gameScreen").style.display != "none") { // x
-                    alert(exhaustPile.map(x=>x.name).join(', '));
+                    let d=exhaustPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 101 && getId("gameScreen").style.display != "none") { // e
                     await endTurn();
                 // numbers
@@ -516,7 +515,6 @@ R/S             rest/smith at rest sites
                         }
                         if(energy >= newCost && !(this.flags.includes("unplayable"))) {
                             energy -= newCost;
-                            if(!this.use) {alert("Uh oh! Seems like card [" + (this.name ? this.name : "unnamed") + "] has no `use` function");}
                             Promise.resolve(this.use(target));
                             played = true;
                         }
@@ -637,7 +635,6 @@ R/S             rest/smith at rest sites
                     if(newAmt > 0) {
                         let str = "+"+newAmt+" "+name;
                         dn.innerHTML = str;
-                        //alert("getId(enemy_"+idx+") --> "+getId("enemy_"+idx));
                         dn.style.top = getId("enemy_"+idx).getBoundingClientRect().top;
                         dn.style.left = getId("enemy_"+idx).getBoundingClientRect().left - (10 + str.length * 18);
                         dn.style.fontSize = "30px";
@@ -2063,20 +2060,12 @@ updateShopScreen();
             function finishAddCard(cardNumber) {
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let c = possibleCards[cardNumber];
-                    if(!c || !c.name) {
-                        alert("something is broken, the picked card doesn't seem to exist");
-                    }
-                    if(!c.use) {
-                        alert("card added (" + c.name + ") doesn't have a use() function!!");
-                    }
                     deck.push(c);
                     for(let r of relics) {if(r.trigger == "add_card") {r.effect(c);}}
                     updateStatLine();
                 } else if(cardNumber == -1) {
                     for(let r of relics) {if(r.trigger == "no_card") {r.effect();}}
                     updateStatLine();
-                } else {
-                    alert("got to impossible place when adding a card");
                 }
             }
             
@@ -2101,8 +2090,6 @@ updateShopScreen();
                     relics.push(r);
                     if(r.trigger == "on_pickup") {r.effect();}
                     updateStatLine();
-                } else {
-                    alert("error in logic of adding boss relic");
                 }
             }
             let possibleCards = [];
