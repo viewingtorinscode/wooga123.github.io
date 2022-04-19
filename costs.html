@@ -187,7 +187,7 @@
         
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
-            <button onclick="let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+'x '+x[0]).join('\n');let c=[new ClipboardItem({'text/plain':new Blob([T],{type:'text/plain'})})];navigator.clipboard.write(c);alert(T+'\nDecklist maybe copied to clipboard??');">View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
+            <button onclick='let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
             <span id="statusLine"></span>
         </span>
         <br /><br />
@@ -230,9 +230,9 @@ R/S             rest/smith at rest sites
                     <br />
                     <span id="energy" class="tt"></span>&nbsp;&nbsp;&nbsp;<span id="hand"></span>
                     <br /><br />
-                    <button id="discardPile" onclick="alert(discardPile.map(x => x.name).join(', '))">View D<span style="text-decoration:underline">i</span>scard Pile</button>
-                    <button id="drawPile" onclick="alert(shuffle(drawPile.map(x => x.name)).join(', '))">View Draw <span style="text-decoration:underline">P</span>ile</button>
-                    <button id="exhaustPile" onclick="alert(exhaustPile.map(x => x.name).join(', '))">View E<span style="text-decoration:underline">x</span>haust Pile</button>
+                    <button id="discardPile" onclick='let d=discardPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View D<span style="text-decoration:underline">i</span>scard Pile</button>
+                    <button id="drawPile" onclick='let d=drawPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View Draw <span style="text-decoration:underline">P</span>ile</button>
+                    <button id="exhaustPile" onclick='let d=exhaustPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View E<span style="text-decoration:underline">x</span>haust Pile</button>
                     | <button id="turnEnder"><span style="text-decoration:underline">E</span>nd Turn</button>
                 </td>
                 <td id="enemiesTd">
@@ -276,6 +276,15 @@ R/S             rest/smith at rest sites
             let choice = x => x[Math.floor(Math.random()*x.length)];
             let resolvePromise;
             let modalNames = [];
+            function showPopup(displayText) {
+                getId("selectionModal").style.display = "block";
+                getId("selectionModalContent").innerHTML = "";
+                let text = document.createElement("pre");
+                text.setAttribute("onclick", "getId('selectionModal').style.display = 'none';");
+                if(!displayText) {displayText="Nothing here..."}
+                text.innerHTML = displayText+"\n(Click to close)";
+                getId("selectionModalContent").appendChild(text);
+            }
             async function showCardChoiceModal(displayCards, prompt) {
                 getId("selectionModal").style.display = "block";
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
@@ -2240,13 +2249,33 @@ updateShopScreen();
             mapGen();
             
             // These make writing attacks *much* easier.
+            async function addStatus(name, amt) {
+                let dn = getId("buffSayerForPlayer");
+                if(amt > 0) {
+                    let str = "+"+amt+" "+name;
+                    dn.innerHTML = str;
+                    dn.style.top = getId("statusLine").getBoundingClientRect().bottom;
+                    dn.style.left = getId("statusLine").getBoundingClientRect().left;
+                    dn.style.fontSize = "30px";
+                    dn.style.color = "#f00";
+                    for(let i of playerBuffTimeouts) {clearTimeout(i);}
+                    playerBuffTimeouts = [];
+                    dn.style.opacity = "1";
+                    for(let i=0; i<50; i++) {
+                        playerBuffTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
+                    }
+                    playerBuffTimeouts.push(setTimeout(function(){playerBuffTimeouts = [];}, 1000));
+                    return new Promise(resolve => setTimeout(() => resolve(0), 300));
+                }
+                for(let x=0; x<amt; x++) {discardPile.push(statusCards[name]());}
+            }
             let attack = amt => async function(me){ await me.dealDamage(amt); }
             let block = amt => async function(me){ await me.gainBuff("Block", amt); }
             let block_random = amt => async function(me){ await choice(enemies).gainBuff("Block", amt); }
             let buff = (what, amt) => async function(me){ await me.gainBuff(what, amt); }
             let all_buff = (what, amt) => async function(me){ for(let e of enemies){await e.gainBuff(what, amt);}}
             let apply = (what, amt) => async function(me){ await gainBuff(what, amt); }
-            let status = (what, amt) => function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} }
+            let status = (what, amt) => async function(me){ await addStatus(what, amt); }
             let multi_apply = (lst) => async function(me){ for(let x of lst){await gainBuff(x[0], x[1]);} }
             let multi_buff = (lst) => async function(me){ for(let x of lst){await me.gainBuff(x[0], x[1]);} }
             let attack_block = (atk, blk) => async function(me){ await me.dealDamage(atk); await me.gainBuff("Block", blk); }
@@ -2254,7 +2283,7 @@ updateShopScreen();
             let attack_buff = (atk, what, amt) => async function(me){ await me.dealDamage(atk); await me.gainBuff(what, amt); }
             let block_buff = (blk, what, amt) => async function(me){ me.gainBuff("Block", blk); await me.gainBuff(what, amt); }
             let block_multinerf = (blk, lst) => async function(me){ await me.gainBuff("Block", blk); for(let x of lst){await gainBuff(x[0], x[1]);}}
-            let attack_status = (atk, what, amt) => async function(me){ for(let x=0; x<amt; x++) {discardPile.push(statusCards[what]());} await me.dealDamage(atk); }
+            let attack_status = (atk, what, amt) => async function(me){ await addStatus(what, amt); await me.dealDamage(atk); }
             let buff_apply = (b, bamt, n, namt) => async function(me){ await me.gainBuff(b, bamt); await gainBuff(n, namt); }
             let passTurn = () => async function(me){ await me.dealDamage(0); }
             
