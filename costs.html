@@ -23,6 +23,7 @@
             .Skill {border: 2px solid skyblue; color: skyblue;}
             .Power {border: 2px solid yellow; color: yellow;}
             .Status {border: 2px solid lightgreen; color: lightgreen;}
+            .Curse {border: 2px solid #666; color: #666;}
             .unplayable {border: 2px solid #555; color: #555;}
             button:hover:not(.unplayable) {background-color: #444;}
             button:hover > span {font-size: 13px;}
@@ -2037,7 +2038,7 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", async function(enemy){
                 await gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"])
+            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Playable.", function(enemy){})
             };
             
             function upgradeCard(c) {
@@ -2478,7 +2479,7 @@ updateShopScreen();
                 let deckNumber = getId("deckSize");
                 let statusElem = getId("statusLine");
                 statusElemB4.innerHTML=(hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
-                statusElemB4.innerHTML+=" | "+gold+" gold | Act "+"I".repeat(actNum)+", Floor "+mapY;
+                statusElemB4.innerHTML+=" | "+gold+" gold | Act "+"I".repeat(actNum)+", Floor "+mapY+", A"+getId("ascensionLevel").value;
                 deckNumber.innerHTML=deck.length;
                 statusElem.innerHTML="<span id='relics'><b>Relics: </b></span>";
                 for(let relic of relics) {
@@ -2495,7 +2496,7 @@ updateShopScreen();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt){ ${potion.effect} }; x(target); potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){ ${potion.effect} }; if(getId("gameScreen").style.display != "none") {x(target);} potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -3341,7 +3342,7 @@ updateShopScreen();
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable.", function(enemy){}, ["unplayable"]))}
             });
-            window.setInterval(updateStatLine, 700);
+            window.setInterval(updateStatLine, 1000);
         </script>
     </body>
 </html>
