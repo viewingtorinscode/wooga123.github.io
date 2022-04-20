@@ -249,7 +249,7 @@ Modifiers:
 * 19- Elites have stronger abilities.
 * 20- Bosses have stronger abilities.
 
-Selected level: <input id="ascensionLevel" value="0">
+Selected level: <input id="ascensionLevel" value="0" type="number" style="width: 70px">
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -2973,7 +2973,8 @@ updateShopScreen();
                     if(e.hasBuff("Barricade")==0){await e.loseBuff("Block");}
                     if(e.hasBuff("Metallicize")>0){await e.gainBuff("Block", await e.hasBuff("Metallicize"));}
                     if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); await e.loseBuff("Poison", 1);}
-                    if(e.hp > 0){await e.attack();}
+                    let func = async function() {await e.attack(); updateHtml();}
+                    if(e.hp > 0){func();}
                     await e.loseBuff("Vulnerable", 1);
                     await e.loseBuff("Weak", 1);
                     e.hp = Math.min(e.maxHp, e.hp + e.hasBuff("Regen"));
@@ -3349,7 +3350,7 @@ updateShopScreen();
                     ];
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable.", function(enemy){}, ["unplayable"]))}
-                if(lv >= 14) {maxHp -= 5;}
+                if(lv >= 14) {maxHp -= 5; hp -= 5;}
                 if(lv >= 15) {randomThing = () => choice(["elite","elite","enemy","enemy","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
                 if(lv >= 17) {
                     deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
