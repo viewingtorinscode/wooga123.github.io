@@ -282,7 +282,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt">Heal 30% of your Max HP.</span></button>
+            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="upgradeDialog();" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
                 <p id="cardDesc"></p>
@@ -1101,6 +1101,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
+                    getId("rest_txt").innerHTML = "Heal 30% of your max HP. (currently "+Math.round(0.3 * maxHp)+" HP)";
                     music.rest.play();
                     announceMusic("No Weapons Here");
                 } else if(map[y][x] == "shop&nbsp;") {
@@ -2249,23 +2250,42 @@ updateShopScreen();
             let map;
             function mapGen() {
                 map = [
-                ["",            "",            "start",       "",            ""          ],
-                ["",            randomThing(), randomThing(), randomThing(), ""          ],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  "rest&nbsp;",  randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), "rest&nbsp;",  maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                [maybeThing(),  randomThing(), randomThing(), randomThing(), maybeThing()],
-                ["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ],
-                ["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]
-            ];
+                    ["",            "",            "start",       "",            ""          ],
+                    ["",            "enemy",       "enemy",       "enemy",       ""          ]
+                ];
+                let middleFloors = [];
+                for(let i=0; i<12; i++) {
+                    middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                }
+                let numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                while(numRests > 6) {
+                    let rowsWithRests = middleFloors.filter(x=>x.includes("rest&nbsp;"));
+                    let rowWithRest = choice(rowsWithRests);
+                    let restSites = rowWithRest.filter(x=>x=="rest&nbsp;");
+                    let restSite = choice(restSites.map(x=>rowWithRest.indexOf(x)));
+                    let newNode = randomThing();
+                    let rowIndex = middleFloors.indexOf(rowWithRest);
+                    middleFloors[rowIndex][restSite] = newNode;
+                    numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                }
+                while(numRests < 4) {
+                    let row = Math.round(Math.random()*12);
+                    let col = Math.round(Math.random()*5);
+                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.round(Math.random()*5);}
+                    middleFloors[row][col] = "rest&nbsp;";
+                    numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                }
+                let numElites = middleFloors.flat().filter(x=>x=="elite").length;
+                while(numElites < 4) {
+                    let row = Math.round(Math.random()*12);
+                    let col = Math.round(Math.random()*5);
+                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.round(Math.random()*5);}
+                    middleFloors[row][col] = "elite";
+                    numElites = middleFloors.flat().filter(x=>x=="elite").length;
+                }
+                for(let i of middleFloors) {map.push(i);}
+                map.push(["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ]);
+                map.push(["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]);
             }
             
             // These make writing attacks *much* easier.
