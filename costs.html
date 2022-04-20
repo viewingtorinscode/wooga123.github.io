@@ -2181,7 +2181,7 @@ updateShopScreen();
                 () => new Relic("Self-Forming Clay","When you lose HP in combat, gain 3 Block next turn.","lose_hp",r_selfFormingClay),
                 () => new Relic("Shuriken","When you play 3 Attacks in a single turn, gain 1 Strength.","3_attacks",r_vajra),
                 () => new Relic("Singing Bowl","When you view but decline the card reward, gain 2 Max HP.","no_card",r_singingBowl),
-                () => new Relic("Strike Dummy","Cards containing 'Strike' deal 3 more damage.","strike",r_strikeDummy),
+                () => new Relic("Strike Dummy","Cards containing Strike deal 3 more damage.","strike",r_strikeDummy),
                 () => new Relic("Toxic Egg","When you add a Skill to your deck, it is upgraded.","add_card",r_toxicEgg)
             ];
             let rareRelicPool = [
@@ -2196,21 +2196,21 @@ updateShopScreen();
             ];
             
             let potionPool = [
-                {name: "Block", desc: "Gain 12 Block.", effect: 'await gainBuff("Block", 12)'},
+                {name: "Block", desc: "Gain 12 Block.", effect: 'Promise.resolve(gainBuff("Block", 12))'},
                 {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: 'hp = Math.min(maxHp, hp + Math.round(0.2 * maxHp))'},
-                {name: "Cultist", desc: "Gain 1 Ritual.", effect: 'await gainBuff("Ritual", 1)'},
-                {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: 'await gainBuff("Dexterity", 2)'},
+                {name: "Cultist", desc: "Gain 1 Ritual.", effect: 'Promise.resolve(gainBuff("Ritual", 1))'},
+                {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: 'Promise.resolve(gainBuff("Dexterity", 2))'},
                 {name: "Energy", desc: "Gain 2 energy.", effect: 'energy += 2'},
-                {name: "Iron", desc: "Gain 3 Metallicize.", effect: 'await gainBuff("Metallicize", 3)'},
+                {name: "Iron", desc: "Gain 3 Metallicize.", effect: 'Promise.resolve(gainBuff("Metallicize", 3))'},
                 {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: 'for(let e of enemies){dealDamage(e, 10);}'},
-                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: 'await tgt.gainBuff("Vulnerable", 3)'},
+                {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: 'Promise.resolve(tgt.gainBuff("Vulnerable", 3))'},
                 {name: "Fire", desc: "Deal 20 damage to target.", effect: 'dealDamage(tgt, 20)'},
-                {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: 'await gainBuff("Strength", 5); await gainBuff("Strength Down", 5)'},
+                {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: 'Promise.resolve(gainBuff("Strength", 5)); Promise.resolve(gainBuff("Strength Down", 5))'},
                 {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: 'maxHp += 5; hp += 5'},
-                {name: "Steel", desc: "Gain 5 Metallicize.", effect: 'await gainBuff("Metallicize", 5)'},
-                {name: "Bronze", desc: "Gain 3 Thorns.", effect: 'await gainBuff("Thorns", 3)'},
-                {name: "Regen", desc: "Gain 5 Regen.", effect: 'await gainBuff("Regen", 5)'},
-                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'await gainBuff("Dexterity", 5); await gainBuff("Dexterity Down", 5)'}
+                {name: "Steel", desc: "Gain 5 Metallicize.", effect: 'Promise.resolve(gainBuff("Metallicize", 5))'},
+                {name: "Bronze", desc: "Gain 3 Thorns.", effect: 'Promise.resolve(gainBuff("Thorns", 3))'},
+                {name: "Regen", desc: "Gain 5 Regen.", effect: 'Promise.resolve(gainBuff("Regen", 5))'},
+                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'Promise.resolve(gainBuff("Dexterity", 5)); Promise.resolve(gainBuff("Dexterity Down", 5))'}
             ];
             
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
@@ -2397,7 +2397,7 @@ updateShopScreen();
                                 {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)); enemies.push(choice(gremlins));}
+                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
                     }}
                 ], ["randomize"])
             ];
@@ -2433,8 +2433,8 @@ updateShopScreen();
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor);
-                            enemies.push(exploder);
+                            enemies.push(repulsor());
+                            enemies.push(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -2474,6 +2474,9 @@ updateShopScreen();
             let bossBattle = false;
             let target = enemies[0];
             
+            let potionDrop;
+            function getPotion() {potions.push(potionDrop);}
+            
             function updateStatLine() {
                 let statusElemB4 = getId("statusLineB4");
                 let deckNumber = getId("deckSize");
@@ -2496,7 +2499,7 @@ updateShopScreen();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt){ ${potion.effect} }; if(getId("gameScreen").style.display != "none") {x(target);} potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target);} potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -2753,9 +2756,9 @@ updateShopScreen();
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
                     if(Math.random() < 0.5) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
-                        let potionDrop = choice(potionPool);
+                        potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){potions.push({name: "${potionDrop.name}", desc: "${potionDrop.desc}", effect: '${potionDrop.effect}'}); updateStatLine(); getId('potionReward').style.display = 'none';}`);
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
@@ -3047,8 +3050,8 @@ updateShopScreen();
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor);
-                            enemies.push(exploder);
+                            enemies.push(repulsor());
+                            enemies.push(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -3110,7 +3113,7 @@ updateShopScreen();
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)); enemies.push(choice(gremlins));}
+                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()()); enemies.push(choice(gremlins)()());}
                     }}
                 ], ["randomize"])
                     ];
@@ -3229,8 +3232,8 @@ updateShopScreen();
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor);
-                            enemies.push(exploder);
+                            enemies.push(repulsor());
+                            enemies.push(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -3292,7 +3295,7 @@ updateShopScreen();
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)); enemies.push(choice(gremlins));}
+                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
                     }}
                 ], ["randomize"])
                     ];
