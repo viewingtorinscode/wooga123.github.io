@@ -2268,7 +2268,7 @@ updateShopScreen();
                     middleFloors[rowIndex][restSite] = newNode;
                     numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
                 }
-                while(numRests < 5) {
+                while(numRests < (getId("ascensionLevel").value >= 15 ? 3 : 5)) {
                     let row = Math.round(Math.random()*12);
                     let col = Math.round(Math.random()*5);
                     while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.round(Math.random()*5);}
