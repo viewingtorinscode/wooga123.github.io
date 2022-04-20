@@ -2769,7 +2769,7 @@ updateShopScreen();
                         getId("potionReward").style.display = "block";
                         potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `if(potions.length < ((getId("ascensionLevel").value >= 11 ? 2 : 3)){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < (getId("ascensionLevel").value >= 11 ? 2 : 3)){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
