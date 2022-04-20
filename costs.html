@@ -3353,7 +3353,7 @@ updateShopScreen();
                 if(lv >= 15) {randomThing = () => choice(["elite","elite","enemy","enemy","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
                 if(lv >= 17) {
                     deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
-                    deck.push(new Card("Defend", 1, "Curse", "Gain [BLK5] Block.", async function(enemy){await gainBuff("Block",5);}))
+                    deck.push(new Card("Defend", 1, "Skill", "Gain [BLK5] Block.", async function(enemy){await gainBuff("Block",5);}))
                 }
                 if(lv >= 18) {
                     possibleEnemies = [
