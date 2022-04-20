@@ -225,19 +225,30 @@ C               continue (from shop, combat, rest)
 R/S             rest/smith at rest sites
             </pre>
             <pre id="ascensionScreen" style="display: none;">
-Your Ascension Level adds various modifiers to the game. The current max is level 10.
+Your Ascension Level adds various modifiers to the game. The current max is level 20.
 Note that the modifiers from lower levels stack.
 Modifiers:
 * 1 - Elites spawn more often.
-* 2 - Normal enemies deal more damage.
-* 3 - Elites deal more damage.
-* 4 - Bosses deal more damage.
+* 2 - Normal enemies are stronger.
+* 3 - Elites are stronger.
+* 4 - Bosses are stronger.
 * 5 - Heal less after bosses.
 * 6 - Start the run damaged.
 * 7 - Normal enemies are tougher.
 * 8 - Elites are tougher.
 * 9 - Bosses are tougher.
 * 10- Start the run cursed.
+* 11- One less potion slot.
+* 12- No rares from elites.
+* 13- Less money.
+* 14- Lower Max HP.
+* 15- Fewer rests and shops.
+* 16- Higher prices.
+* 17- Bigger starting deck.
+* 18- Normal enemies have stronger abilities.
+* 19- Elites have stronger abilities.
+* 20- Bosses have stronger abilities.
+
 Selected level: <input id="ascensionLevel" value="0">
             </pre>
         </div>
@@ -772,6 +783,7 @@ Selected level: <input id="ascensionLevel" value="0">
                 if(hasBuff("Dexterity") > 0       && name == "Block") {newAmt += hasBuff("Dexterity");}
                 if(hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Minus Dexterity");}
                 if(hasBuff("Juggernaut") > 0      && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
+                if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
                 if(!foundIt) {buffs.push({name: name, amt: newAmt});}
                 
@@ -944,7 +956,8 @@ Selected level: <input id="ascensionLevel" value="0">
                 "After Image": "Whenever you play a card, gain [BAMT] Block.",
                 "Burst": "Your next [AMT] Skill[s] are played twice.",
                 "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
-                "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card."
+                "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
+                ".": "You weren't supposed to see this. Just ignore it."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
             let statusCards = {
@@ -1099,7 +1112,8 @@ Selected level: <input id="ascensionLevel" value="0">
                     offers = [];
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
-                        let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 82g
+                        let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 81g
+                        if(getId("ascensionLevel").value >= 16) {cardCost = Math.round(Math.random()*43 + 51);} // cost: 51g to 93g
                         offers.push({index: i, price: cardCost, offer: offer});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
                         if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
@@ -1453,8 +1467,8 @@ updateShopScreen();
             let barricade = () => new Card("Barricade", 3, "Power", "Block is not removed at the start of your turn.", async function(enemy){
                 await gainBuff("Barricade", 1);
             }, ["exhausted"]);
-            let berserk = () => new Card("Berserk", 0, "Power", "Gain Vulnerable for 2 turns, but gain 1 more energy each turn.", async function(enemy){
-                await gainBuff("Vulnerable", 3); await gainBuff("Berserk", 1);
+            let berserk = () => new Card("Berserk", 0, "Power", "Gain 2 Vulnerable, but gain 1 more energy each turn.", async function(enemy){
+                await gainBuff("Vulnerable", 2); await gainBuff("Berserk", 1);
             }, ["exhausted"]);
             let bludgeon = () => new Card("Bludgeon", 3, "Attack", "Deal [DAM32] damage.", function(enemy){
                 dealDamage(enemy, 32);
@@ -1860,8 +1874,8 @@ updateShopScreen();
                     for(let e of enemies){dealDamage(e, 8);}
                 }), "Barricade": () => new Card("Barricade+", 2, "Power", "Block is not removed at the start of your turn.", async function(enemy){
                     await gainBuff("Barricade", 1);
-                }, ["exhausted"]), "Berserk": () => new Card("Berserk+", 0, "Power", "Gain Vulnerable for 1 turn, but gain 1 more energy each turn.", async function(enemy){
-                    await gainBuff("Vulnerable", 2); await gainBuff("Berserk", 1);
+                }, ["exhausted"]), "Berserk": () => new Card("Berserk+", 0, "Power", "Gain 1 Vulnerable, but gain 1 more energy each turn.", async function(enemy){
+                    await gainBuff("Vulnerable", 1); await gainBuff("Berserk", 1);
                 }, ["exhausted"]), "Bludgeon": () => new Card("Bludgeon+", 3, "Attack", "Deal [DAM42] damage.", function(enemy){
                     dealDamage(enemy, 42);
                 }), "Brutality": new Card("Brutality+", 0, "Power", "Innate. At the start of your turn, lose 1 HP and draw 1 more card.", async function(enemy){
@@ -2060,7 +2074,7 @@ updateShopScreen();
             
             function addCard(newCards="random") {
                 if(newCards == "random") {
-                    if(eliteBattle == true || bossBattle == true) {
+                    if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
                         newCards = [randRareCard()(), randRareCard()(), randRareCard()()];
                     } else {
                         newCards = [randCard()(), randCard()(), randCard()()];
@@ -2321,7 +2335,7 @@ updateShopScreen();
                     {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 2)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 1)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
@@ -2347,14 +2361,11 @@ updateShopScreen();
                 () => new Enemy("The Chosen", 95, [
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
                     {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)},
-                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
-                    {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)}
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 1)}
                 ]),
                 () => new Enemy("Shelled Parasite", 70, [
                     {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
@@ -2405,7 +2416,7 @@ updateShopScreen();
                 () => new Enemy("The Champ", 530, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 3)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
-                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
@@ -2462,7 +2473,7 @@ updateShopScreen();
             let possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 666, [
                     {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
-                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 2], ["Weak", 1]])},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)},
                     {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)}
@@ -2507,7 +2518,7 @@ updateShopScreen();
                     potionElem.appendChild(potionTooltip);
                     getId("potions").appendChild(potionElem);
                 }
-                for(let i=0; i<(3-potions.length); i++) {
+                for(let i=0; i<((getId("ascensionLevel").value >= 11 ? 2 : 3)-potions.length); i++) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "nonbutton");
                     potionElem.innerHTML = "Empty Slot";
@@ -2714,7 +2725,7 @@ updateShopScreen();
                     let newDesc = e.intent.desc;
                     for(let i=1; i<300; i++) {
                         let newI = i;
-                        if(hasBuff("Vulnerable") > 1) {newI = Math.round(newI*1.5);}
+                        if(hasBuff("Vulnerable") > 0) {newI = Math.round(newI*1.5);}
                         if(e.hasBuff("Weak") > 0) {newI = Math.round(newI*0.75);}
                         newI += e.hasBuff("Strength");
                         newI -= e.hasBuff("Minus Strength");
@@ -2751,14 +2762,14 @@ updateShopScreen();
                     getId("goldReward").style.display = "block";
                     getId("cardReward").style.display = "block";
                     getId("gameScreen").style.display = "none";
-                    let goldAmt = Math.round(Math.random()*10)+25;
+                    let goldAmt = Math.round(Math.random()*10) + (getId("ascensionLevel").value >= 13 ? 19 : 25);
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
                     if(Math.random() < 0.5) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
                         potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `if(potions.length < 3){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < ((getId("ascensionLevel").value >= 11 ? 2 : 3)){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
@@ -2917,6 +2928,7 @@ updateShopScreen();
                 stats.skillsThisTurn = 0;
                 if(hasBuff("Barricade")==0 && hasBuff("Blur")==0){await loseBuff("Block");}
                 await loseBuff("Blur", 1);
+                if(hasBuff(".") > 0) {await loseBuff(".");} else {await loseBuff("Vulnerable", 1);}
                 if(hasBuff("Metallicize")>0){await gainBuff("Block", hasBuff("Metallicize"));}
                 if(hasBuff("Next Turn Block")>0){await gainBuff("Block", hasBuff("Next Turn Block")); await loseBuff("Next Turn Block");}
                 if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
@@ -2946,7 +2958,6 @@ updateShopScreen();
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
-                await loseBuff("Vulnerable", 1);
                 await loseBuff("Weak", 1);
                 await loseBuff("Frail", 1);
                 await loseBuff("No Draw", 1);
@@ -3013,14 +3024,11 @@ updateShopScreen();
                 () => new Enemy("The Chosen", 95, [
                     {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
                     {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
-                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 2)},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)},
                     {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 2)},
-                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
-                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)}
                 ]),
                 () => new Enemy("Shelled Parasite", 70, [
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 10)},
@@ -3068,7 +3076,7 @@ updateShopScreen();
                     {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
@@ -3145,7 +3153,7 @@ updateShopScreen();
                 () => new Enemy("The Champ", 530, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
-                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
@@ -3154,7 +3162,7 @@ updateShopScreen();
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 666, [
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
-                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 2], ["Weak", 1]])},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
@@ -3195,14 +3203,11 @@ updateShopScreen();
                 () => new Enemy("The Chosen", 115, [
                     {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
                     {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
-                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 2)},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)},
                     {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 2)},
-                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
-                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)}
                 ]),
                 () => new Enemy("Shelled Parasite", 85, [
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
@@ -3250,7 +3255,7 @@ updateShopScreen();
                     {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 2)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 130, [
@@ -3327,7 +3332,7 @@ updateShopScreen();
                 () => new Enemy("The Champ", 635, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(18, "Metallicize", 3)},
-                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 2], ["Frail", 2]])},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
@@ -3336,7 +3341,7 @@ updateShopScreen();
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 800, [
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
-                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 2], ["Weak", 1]])},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
@@ -3344,6 +3349,197 @@ updateShopScreen();
                     ];
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable.", function(enemy){}, ["unplayable"]))}
+                if(lv >= 14) {maxHp -= 5;}
+                if(lv >= 15) {randomThing = () => choice(["elite","elite","enemy","enemy","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
+                if(lv >= 17) {
+                    deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
+                    deck.push(new Card("Defend", 1, "Curse", "Gain [BLK5] Block.", async function(enemy){await gainBuff("Block",5);}))
+                }
+                if(lv >= 18) {
+                    possibleEnemies = [
+                () => new Enemy("Cultist", 60, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
+                ], ["no-repeat"]),
+                () => new Enemy("Jaw Worm", 50, [
+                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
+                    {intent: "attack-block 6", desc: "deal [DAM6] damage and block", effect: attack_block(6, 6)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(6, "Strength", 2)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(6, "Strength", 2)}
+                ], ["randomize"]),
+                () => new Enemy("Louse", 40, [
+                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 2)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Weak", 3)}
+                ], ["randomize"]),
+                () => new Enemy("Spike Slime", 55, [
+                    {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: attack_status(11, "Slimed", 1)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Frail", 2)}
+                ]),
+                () => new Enemy("Gremlin", 30, [
+                    {intent: "attack-nerf 11", desc: "deal [DAM11] damage and apply a negative effect", effect: attack_apply(11, "Weak", 1)}
+                ])
+                    ];
+                    possibleEnemies_act2 = [
+                () => new Enemy("Spheric Guardian", 70, [
+                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 30], ["Artifact", 4]])},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Frail", 5)},
+                    {intent: "attack-block 12", desc: "deal [DAM12] damage and block", effect: attack_block(12, 8)}
+                ], ["no-repeat"]),
+                () => new Enemy("The Chosen", 115, [
+                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 2)},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)},
+                    {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)},
+                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Vulnerable", 1)}
+                ]),
+                () => new Enemy("Shelled Parasite", 85, [
+                    {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
+                    {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
+                    {intent: "attack-nerf 14", desc: "deal [DAM14] damage and apply a negative effect", effect: attack_apply(14, "Frail", 3)}
+                ])
+                    ];
+                    possibleEnemies_act3 = [
+                () => new Enemy("Huge Jaw Worm", 85, [
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(10, "Strength", 2)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(10, "Strength", 2)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(10, "Strength", 2)},
+                    {intent: "attack-block 7", desc: "deal [DAM7] damage and block", effect: attack_block(7, 7)}
+                ]),
+                () => new Enemy("Spiker", 60, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let exploder = () => new Enemy("Exploder", 35, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
+                                {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
+                                {intent: "unknown 24", desc: "deal [DAM24] damage and die", effect: async function(me){
+                                    enemies.splice(enemies.indexOf(me), 1); await me.dealDamage(24);}
+                                }
+                            ], ["no-repeat"]);
+                            let repulsor = () => new Enemy("Repulsor", 35, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 3)}
+                            ], ["no-repeat"]);
+                            enemies.push(repulsor());
+                            enemies.push(exploder());
+                        }
+                    }},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 4)}
+                ], ["no-repeat"]),
+                () => new Enemy("Orb Walker", 110, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                    {intent: "attack-nerf 8", desc: "deal [DAM8] damage and generate Status cards", effect: attack_status(8, "Burn", 2)}
+                ], ["no-repeat"])
+                    ];
+                }
+                if(lv >= 19) {
+                    possibleElites = [
+                () => new Enemy("Gremlin Nob", 100, [
+                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 3)},
+                    {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
+                    {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
+                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
+                    {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
+                ], ["no-repeat"]),
+                () => new Enemy("Lagavulin", 130, [
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "blocking", desc: "block", effect: block(10)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])}
+                ])
+                    ];
+                    possibleElites_act2 = [
+                () => new Enemy("Book of Stabbing", 190, [
+                    {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
+                    {intent: "attack-buff 10", desc: "deal [DAM10] damage and gain a buff", effect: attack_buff(10, "Strength", 5)},
+                    {intent: "attack-buff 10", desc: "deal [DAM10] damage and gain a buff", effect: attack_buff(10, "Strength", 5)},
+                    {intent: "attack-buff 10", desc: "deal [DAM10] damage and gain a buff", effect: attack_buff(10, "Strength", 5)}
+                ]),
+                () => new Enemy("Gremlin Leader", 180, [
+                    {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 4)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "unknown", desc: "summon allies", effect: function(me){
+                        let gremlins = [
+                            () => new Enemy("Fat Gremlin", 20, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
+                            ]),
+                            () => new Enemy("Mad Gremlin", 25, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                            ]),
+                            () => new Enemy("Shield Gremlin", 20, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
+                                {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
+                            ]),
+                            () => new Enemy("Sneaky Gremlin", 10, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
+                            ]),
+                            () => new Enemy("Wizard Gremlin", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
+                                {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
+                            ], ["no-repeat"])
+                        ];
+                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
+                    }}
+                ], ["randomize"])
+                    ];
+                    possibleElites_act3 = [
+                () => new Enemy("Nemesis", 220, [
+                    {intent: "nerfing", desc: "generate Status cards", effect: status("Burn", 3)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 36", desc: "deal [DAM36] damage", effect: attack(36)}
+                ], ["randomize"]),
+                () => new Enemy("Giant Head", 385, [
+                    {intent: "attacking 11", desc: "deal [DAM11] damage", effect: attack(11)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Weak", 2)},
+                    {intent: "attacking 11", desc: "deal [DAM11] damage", effect: attack(11)},
+                    {intent: "nerfing", desc: "apply a negative effect", effect: apply("Weak", 2)},
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 3)}
+                ], ["no-repeat"])
+                    ];
+                }
+                if(lv >= 20) {
+                    possibleBosses = [
+                () => new Enemy("Slime Boss", 230, [
+                    {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 4)},
+                    {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
+                    {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
+                ])
+                    ];
+                    possibleBosses_act2 = [
+                () => new Enemy("The Champ", 635, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(18, "Metallicize", 3)},
+                    {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 3], ["Frail", 3]])},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
+                    {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
+                ], ["randomize"])
+                    ];
+                    possibleBosses_act3 = [
+                () => new Enemy("Time Eater", 800, [
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
+                ], ["randomize"])
+                    ];
+                }
             });
             window.setInterval(updateStatLine, 1000);
         </script>
