@@ -841,6 +841,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
                 if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
+                if(target.hasBuff("Flight")) { finalAmt = Math.round(finalAmt*0.5); actor.loseBuff("Flight", 1); }
                 if(finalAmt > 0) {
                     finalAmt += hasBuff("Strength");
                     finalAmt -= hasBuff("Minus Strength");
@@ -910,6 +911,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {Promise.resolve(actor.dealDamage(actor.hasBuff("Thorns"))); updateHtml();}
             }
             let buffDesc = {
+                ".": "You weren't supposed to see this. Just ignore it.",
                 "Block": "Until next turn, prevents [AMT] damage.",
                 "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
                 "Weak": "Deal 25% less damage for [AMT] turn[s].",
@@ -957,9 +959,10 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 "Burst": "Your next [AMT] Skill[s] are played twice.",
                 "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
                 "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
-                ".": "You weren't supposed to see this. Just ignore it."
+                "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
+                "Confused": "All card costs become randomized."
             };
-            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison"];
+            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused"];
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -980,7 +983,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     } else if(actNum == 2) {
                         actNum = 3;
                     } else if(actNum == 3) {
-                        actNum = 10;
                         timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); return;
                     }
                 }
@@ -988,7 +990,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("merchantScreen").style.display = "none";
-                if(actNum > 3) {return;} // I don't really need this, right?
                 getId("mapScreen").style.display = "block";
                 music.map.play();
                 announceMusic("Steel Thy Shovel");
@@ -2269,17 +2270,17 @@ updateShopScreen();
                     numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
                 }
                 while(numRests < (getId("ascensionLevel").value >= 15 ? 3 : 5)) {
-                    let row = Math.round(Math.random()*12);
-                    let col = Math.round(Math.random()*5);
-                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.round(Math.random()*5);}
+                    let row = Math.floor(Math.random()*12);
+                    let col = Math.floor(Math.random()*5);
+                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.floor(Math.random()*5);}
                     middleFloors[row][col] = "rest&nbsp;";
                     numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
                 }
                 let numElites = middleFloors.flat().filter(x=>x=="elite").length;
                 while(numElites < 4) {
-                    let row = Math.round(Math.random()*12);
-                    let col = Math.round(Math.random()*5);
-                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.round(Math.random()*5);}
+                    let row = Math.floor(Math.random()*12);
+                    let col = Math.floor(Math.random()*5);
+                    while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.floor(Math.random()*5);}
                     middleFloors[row][col] = "elite";
                     numElites = middleFloors.flat().filter(x=>x=="elite").length;
                 }
@@ -2391,6 +2392,17 @@ updateShopScreen();
                     {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
                     {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
                     {intent: "attack-nerf 12", desc: "deal [DAM12] damage and apply a negative effect", effect: attack_apply(12, "Frail", 2)}
+                ]),
+                () => new Enemy("Byrd", 70, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Flight", 6)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)}
+                ]),
+                () => new Enemy("Snecko", 115, [
+                    {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)}
                 ])
             ];
             let possibleElites_act2 = [
@@ -2598,6 +2610,7 @@ updateShopScreen();
                             let newI = n;
                             if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                             if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                            if(target.hasBuff("Flight")) {newI = Math.round(newI*0.5);}
                             newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");
                             if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
                             else if(newI < n) {return "<span style='color:#f00'>"+newI+"</span>";}
@@ -2640,6 +2653,7 @@ updateShopScreen();
                         let newI = i;
                         if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
                         if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
+                        if(target.hasBuff("Flight")) {newI = Math.round(newI*0.5);}
                         if(!hasBuff(c.name)) {newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");}
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                         else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
@@ -2890,6 +2904,7 @@ updateShopScreen();
                     }
                     if(drawPile.length > 0 && hand.length < 10) {
                         let toDraw = drawPile.pop(0);
+                        if(hasBuff("Confused")) {toDraw.cost = Math.floor(Math.random()*4);}
                         hand.push(toDraw);
                         if(toDraw.type == "Status") {
                             drawCard(hasBuff("Evolve"));
@@ -3055,6 +3070,17 @@ updateShopScreen();
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 10)},
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 10)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and apply a negative effect", effect: attack_apply(14, "Frail", 2)}
+                ]),
+                () => new Enemy("Byrd", 70, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Flight", 6)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)}
+                ]),
+                () => new Enemy("Snecko", 115, [
+                    {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
                 ])
                     ];
                     possibleEnemies_act3 = [
@@ -3234,6 +3260,17 @@ updateShopScreen();
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and apply a negative effect", effect: attack_apply(14, "Frail", 2)}
+                ]),
+                () => new Enemy("Byrd", 85, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Flight", 6)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)}
+                ]),
+                () => new Enemy("Snecko", 140, [
+                    {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
                 ])
                     ];
                     possibleEnemies_act3 = [
@@ -3425,6 +3462,17 @@ updateShopScreen();
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 12)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and apply a negative effect", effect: attack_apply(14, "Frail", 3)}
+                ]),
+                () => new Enemy("Byrd", 85, [
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Flight", 8)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
+                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(14)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)}
+                ]),
+                () => new Enemy("Snecko", 140, [
+                    {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
                 ])
                     ];
                     possibleEnemies_act3 = [
