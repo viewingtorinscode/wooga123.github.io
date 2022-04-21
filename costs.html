@@ -1,9 +1,9 @@
-<html id="html">
+<html id="html" style="color: white; background: #222; font-family: monospace;">
     <head>
         <title>Google Docs</title>
         <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
         <style>
-            html, input {
+            input {
                 color: white;
                 background: #222;
                 font-family: monospace;
@@ -2419,22 +2419,22 @@ updateShopScreen();
                             () => new Enemy("Fat Gremlin", 15, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 15, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 25, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
@@ -2661,7 +2661,7 @@ updateShopScreen();
                         if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
                         if(!hasBuff(c.name)) {blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");}
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
-                        else if(blockI < i) {blockI = "<span style='color:#f66'>"+blockI+"</span>";}
+                        else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
                         
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
                         newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
@@ -3147,22 +3147,22 @@ updateShopScreen();
                             () => new Enemy("Fat Gremlin", 15, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 15, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ]),
                             () => new Enemy("Wizard Gremlin", 25, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
@@ -3337,22 +3337,22 @@ updateShopScreen();
                             () => new Enemy("Fat Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 25, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
@@ -3542,20 +3542,20 @@ updateShopScreen();
                             () => new Enemy("Fat Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 25, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 20, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
-                            ]),
+                            ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 30, [
                                 {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
