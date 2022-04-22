@@ -967,7 +967,8 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
                 "Slimed": () => new Card("Slimed", 1, "Status", "Exhaust.", function(enemy){}, ["exhausted"]),
-                "Burn": () => new Card("Burn", 0, "Status", "Unplayable. Lose 1 HP at end of turn.", function(enemy){}, ["unplayable", "burning"])
+                "Burn": () => new Card("Burn", 0, "Status", "Unplayable. Lose 1 HP at end of turn.", function(enemy){}, ["unplayable", "burning"]),
+                "Burn+": () => new Card("Burn+", 0, "Status", "Unplayable. Lose 2 HP at end of turn.", function(enemy){}, ["unplayable", "burning+"])
             };
             
             function showMap() {
@@ -2353,7 +2354,7 @@ updateShopScreen();
             ];
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
-                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
+                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and apply a negative effect", effect: attack_apply(6, "Vulnerable", 1)},
@@ -2369,13 +2370,32 @@ updateShopScreen();
             let possibleBosses = [
                 () => new Enemy("Slime Boss", 190, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
-                    {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
+                    {intent: "unknown", desc: "prepare for a strong attack", effect: passTurn()},
                     {intent: "attacking 35", desc: "deal [DAM35] damage", effect: attack(35)}
+                ]),
+                () => new Enemy("Hexaghost", 340, [
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(6,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 2)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(6,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and generate Status cards", effect: attack_status(12, "Burn+", 4)}
+                ]),
+                () => new Enemy("Guardian", 325, [
+                    {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
+                    {intent: "attacking 32", desc: "deal [DAM32] damage", effect: attack(32)},
+                    {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(20, "Thorns", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
                 ])
             ];
             let possibleEnemies_act2 = [
                 () => new Enemy("Spheric Guardian", 60, [
-                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
+                    {intent: "block-buff", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Frail", 5)},
                     {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
                 ], ["no-repeat"]),
@@ -2986,6 +3006,7 @@ updateShopScreen();
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
                     if(c.flags.includes("burning")) {hp -= 1;}
+                    if(c.flags.includes("burning+")) {hp -= 2;}
                 }
                 for(let r of relics) {if(r.trigger == "turn_end") {r.effect();}}
                 hand = [];
@@ -3053,7 +3074,7 @@ updateShopScreen();
                     ];
                     possibleEnemies_act2 = [
                 () => new Enemy("Spheric Guardian", 60, [
-                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
+                    {intent: "block-buff", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
                     {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Frail", 5)},
                     {intent: "attack-block 12", desc: "deal [DAM12] damage and block", effect: attack_block(12, 7)}
                 ], ["no-repeat"]),
@@ -3120,7 +3141,7 @@ updateShopScreen();
                 if(lv >= 3) {
                     possibleElites = [
                 () => new Enemy("Gremlin Nob", 85, [
-                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
+                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
@@ -3194,6 +3215,25 @@ updateShopScreen();
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
+                ]),
+                () => new Enemy("Hexaghost", 340, [
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 2)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
+                ]),
+                () => new Enemy("Guardian", 325, [
+                    {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
+                    {intent: "attacking 32", desc: "deal [DAM32] damage", effect: attack(38)},
+                    {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(24)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(20, "Thorns", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(11)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(19)}
                 ])
                     ];
                     possibleBosses_act2 = [
@@ -3243,7 +3283,7 @@ updateShopScreen();
                     ];
                     possibleEnemies_act2 = [
                 () => new Enemy("Spheric Guardian", 70, [
-                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 30], ["Artifact", 3]])},
+                    {intent: "block-buff", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 30], ["Artifact", 3]])},
                     {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Frail", 5)},
                     {intent: "attack-block 12", desc: "deal [DAM12] damage and block", effect: attack_block(12, 8)}
                 ], ["no-repeat"]),
@@ -3310,7 +3350,7 @@ updateShopScreen();
                 if(lv >= 8) {
                     possibleElites = [
                 () => new Enemy("Gremlin Nob", 100, [
-                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
+                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 2)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
@@ -3384,6 +3424,25 @@ updateShopScreen();
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
+                ]),
+                () => new Enemy("Hexaghost", 410, [
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 2)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
+                ]),
+                () => new Enemy("Guardian", 390, [
+                    {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
+                    {intent: "attacking 32", desc: "deal [DAM32] damage", effect: attack(38)},
+                    {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(24)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(20, "Thorns", 1)},
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(11)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(19)}
                 ])
                     ];
                     possibleBosses_act2 = [
@@ -3445,7 +3504,7 @@ updateShopScreen();
                     ];
                     possibleEnemies_act2 = [
                 () => new Enemy("Spheric Guardian", 70, [
-                    {intent: "block-buff +", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 30], ["Artifact", 4]])},
+                    {intent: "block-buff", desc: "gain <b>multiple buffs</b>", effect: multi_buff([["Barricade", 1], ["Block", 30], ["Artifact", 4]])},
                     {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Frail", 5)},
                     {intent: "attack-block 12", desc: "deal [DAM12] damage and block", effect: attack_block(12, 8)}
                 ], ["no-repeat"]),
@@ -3514,7 +3573,7 @@ updateShopScreen();
                 if(lv >= 19) {
                     possibleElites = [
                 () => new Enemy("Gremlin Nob", 100, [
-                    {intent: "buffing +", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 3)},
+                    {intent: "buffing", desc: "gain a <b>powerful buff</b>", effect: buff("Enrage", 3)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
@@ -3589,6 +3648,25 @@ updateShopScreen();
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 4)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
+                ]),
+                () => new Enemy("Hexaghost", 410, [
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(22)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",2)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 2)},
+                    {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(7,"Burn",2)},
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(12)},
+                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
+                ]),
+                () => new Enemy("Guardian", 390, [
+                    {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
+                    {intent: "attacking 32", desc: "deal [DAM32] damage", effect: attack(38)},
+                    {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(24)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(20, "Thorns", 2)},
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(11)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(19)}
                 ])
                     ];
                     possibleBosses_act2 = [
