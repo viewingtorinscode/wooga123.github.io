@@ -292,6 +292,10 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
         <table id="merchantScreen" style="display: none;">
         </table>
         <script>
+            // LIST OF SAVE DATA
+            // Lines 2235-2253 and 2256
+            // I think that's it
+            
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
                 while(currentIndex != 0) {
@@ -716,10 +720,14 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
                     finalAmt += this.hasBuff("Strength");
+                    finalAmt -= this.hasBuff("Minus Strength");
                     if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = 0; Promise.resolve(loseBuff("Buffer", 1));}
                     
-                    hp -= Math.max(0, finalAmt - hasBuff("Block"));
-                    if(finalAmt - hasBuff("Block") > 0) {
+                    let dealt = Math.max(0, finalAmt - hasBuff("Block"));
+                    hp -= dealt;
+                    setTimeout(function(){Promise.resolve(loseBuff("Block", finalAmt))}, 250);
+                    
+                    if(dealt > 0) {
                         stats.timesLostHp++;
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
                         for(let r of relics) {if(r.trigger == "lose_hp") {r.effect();}}
@@ -733,7 +741,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                         setTimeout(normalColor3, 120);
                         setTimeout(normalColor4, 160);
                         let dn = getId("playerDamageNumber");
-                        let dealt = finalAmt - hasBuff("Block");
                         if(dealt > 0) {
                             let GBCR = getId("statusLine").getBoundingClientRect();
                             dn.innerHTML = "-"+dealt;
@@ -755,7 +762,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                             playerTimeouts.push(setTimeout(function(){playerTimeouts = [];}, 1000));
                         }
                     }
-                    Promise.resolve(loseBuff("Block", finalAmt));
                     return new Promise((resolve, reject) => setTimeout(function() {resolve(0);}, 300));
                 }
             }
@@ -984,6 +990,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     } else if(actNum == 2) {
                         actNum = 3;
                     } else if(actNum == 3) {
+                        actNum = 0;
                         timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); return;
                     }
                 }
@@ -991,7 +998,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("merchantScreen").style.display = "none";
-                getId("mapScreen").style.display = "block";
+                if(actNum != 0) {getId("mapScreen").style.display = "block";} else {return;}
                 music.map.play();
                 announceMusic("Steel Thy Shovel");
                 getId("mapScreen").innerHTML = "Select your next room...";
@@ -2055,7 +2062,7 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", async function(enemy){
                 await gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Playable.", function(enemy){})
+            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"])
             };
             
             function upgradeCard(c) {
@@ -2230,6 +2237,7 @@ updateShopScreen();
                 {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'Promise.resolve(gainBuff("Dexterity", 5)); Promise.resolve(gainBuff("Dexterity Down", 5))'}
             ];
             
+            // Starting deck, relics, etc...
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
             let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
             let potions = [];
@@ -2289,6 +2297,9 @@ updateShopScreen();
                 map.push(["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ]);
                 map.push(["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]);
             }
+            
+            // Saving
+            let betterStringify = function(obj) {let ret = "{"; for (let k in obj) {let v = obj[k]; if (typeof v === "function") {v = v.toString();} else if (v instanceof Array) {v = JSON.stringify(v);} else if (typeof v === "object") {v = betterStringify(v);} else {v = `"${v}"`;} ret += `${k}:${v},`;} ret += "}"; return ret;}
             
             // These make writing attacks *much* easier.
             async function addStatus(name, amt) {
@@ -2654,7 +2665,7 @@ updateShopScreen();
                     let cardElem = document.createElement("button");
                     let playcard = async () => { await c.play(); }
                     cardElem.onclick = playcard;
-                    if(c.flags.includes("unplayable") || energy < c.cost) {cardElem.setAttribute("class", "tt unplayable "+c.type);}
+                    if(c.flags.includes("unplayable") || energy < (c.flags.includes("blood4blood") ? Math.max(0, 4-stats.timesLostHp) : c.cost)) {cardElem.setAttribute("class", "tt unplayable "+c.type);}
                     else {cardElem.setAttribute("class", "tt "+c.type);}
                     cardElem.innerHTML = c.name;
                     let cardTooltip = document.createElement("span");
@@ -3465,12 +3476,11 @@ updateShopScreen();
                 ], ["randomize"])
                     ];
                 }
-                if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable.", function(enemy){}, ["unplayable"]))}
+                if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
                 if(lv >= 14) {maxHp -= 5; hp -= 5;}
                 if(lv >= 15) {randomThing = () => choice(["elite","elite","enemy","enemy","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
                 if(lv >= 17) {
                     deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
-                    deck.push(new Card("Defend", 1, "Skill", "Gain [BLK5] Block.", async function(enemy){await gainBuff("Block",5);}))
                 }
                 if(lv >= 18) {
                     possibleEnemies = [
