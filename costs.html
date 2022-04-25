@@ -193,7 +193,7 @@
         </span>
         <br /><br />
         <div id="introScreen" style="width: 100%;">
-            <h1 id="h1">Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
+            <h1 id="h1"> Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
             <button id="startButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(sound)</span></button>
             <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none';">Instructions</button>
             <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
@@ -282,7 +282,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="await ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; await ifRelic('Dream Catcher', function(){addCard()}); showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
+            <button onclick="ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; ifRelic('Dream Catcher', function(){addCard()}); showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="upgradeDialog();" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
                 <p id="cardDesc"></p>
@@ -295,9 +295,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
             // LIST OF SAVE DATA
             // Lines 2235-2253 and 2256
             // I think that's it
-            function cheat(){
-                maxEnergy = energy = maxHp = hp = gold = 9999999
-            }
+            
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
                 while(currentIndex != 0) {
@@ -2622,7 +2620,7 @@ updateShopScreen();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target);} potions.splice(${potions.indexOf(potion)}, 1); await ifRelic("Toy Ornithopter", function(){hp = Math.min(maxHp, hp + 5)}); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target);} potions.splice(${potions.indexOf(potion)}, 1); ifRelic("Toy Ornithopter", function(){hp = Math.min(maxHp, hp + 5)}); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
