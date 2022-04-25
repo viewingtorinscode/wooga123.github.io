@@ -198,7 +198,6 @@
             <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none';">Instructions</button>
             <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
             <button id="keyButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Ascension</button>
-            <button id="keyButton" onclick="cheat() ">Cheats</button>
             <pre id="rulesScreen" style="display: none;">
 When you begin you will be on the Map. Click a highlighted node to travel there.
 In combat, your cards will be shown on the left and the enemies will be on the right.
@@ -3769,11 +3768,6 @@ updateShopScreen();
                 currentTimer = 0;
             }
             window.setInterval(updateStatLine, 1000);
-        function cheat(){
-            document.title = "I AM A BIG FAT CHEATER!";
-            maxEnergy = energy = maxHp = hp = gold = 9999999
-            document.body.style.backgroundColor = "#F2F2F2";
-        }
         </script>
     </body>
 </html>
