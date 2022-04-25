@@ -150,7 +150,7 @@
                 <button id="modalCard1" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(0);"></button>
                 <button id="modalCard2" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(1);"></button>
                 <button id="modalCard3" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(2);"></button>
-                <button id="modalSkipCard" class="Skill" onclick="getId('cardModal').style.display = 'none'; finishAddCard(-1);">Skip</button>
+                <button id="modalSkipCard" class="Skill" onclick="getId('cardModal').style.display = 'none'; ifRelic('Singing Bowl', function(){maxHp += 2; hp += 2;}); finishAddCard(-1);">Skip</button>
             </div>
         </div>
         <div id="bossModal" style="display: none;">
@@ -194,7 +194,7 @@
         <br /><br />
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1">Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
-            <button id="startButton" onclick="getId('introScreen').style.display = 'none'; getId('statusContainer').style.display = 'block'; mapGen(); showMap(); beforeTime = Date.now(); currentTimer = 0;">Play <span style="font-size: 13px;color:red;">(sound)</span></button>
+            <button id="startButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(sound)</span></button>
             <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none';">Instructions</button>
             <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
             <button id="keyButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Ascension</button>
@@ -272,17 +272,17 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
         <div id="rewardsScreen" style="display: none;">
             You won! Rewards:<br />
             <button id="goldReward"></button>
-            <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard('random');">Add a card to your deck</button>
+            <button id="cardReward" onclick="getId('cardReward').style.display = 'none'; addCard();">Add a card to your deck</button>
             <button id="potionReward"></button>
             <button id="relicReward" class="tt"></button>
             <button id="bossRelicReward" class="tt"></button>
-            <button id="closeRewards" onclick="showMap();"><span style='text-decoration:underline'>C</span>ontinue</button>
+            <button id="closeRewards" onclick="if(getId('cardReward').style.display != 'none'){ifRelic('Singing Bowl', function(){maxHp += 2; hp += 2;})} showMap();"><span style='text-decoration:underline'>C</span>ontinue</button>
         </div>
         <table id="mapScreen" style="display: none;"></table>
         <div id="restScreen" style="display: none;">
             <span>You are at a Rest Site. Choose an option below.</span>
             <br />
-            <button onclick="hp = Math.min(maxHp, Math.round(hp+0.3*maxHp)); stats.rested = true; showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
+            <button onclick="await ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; await ifRelic('Dream Catcher', function(){addCard()}); showMap();" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="upgradeDialog();" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
                 <p id="cardDesc"></p>
@@ -370,8 +370,13 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
             async function numberKey(num) {
                 let n = num - 1;
                 if(getId("cardModal").style.display != "none" && n<=2) {getId('cardModal').style.display='none'; finishAddCard(n);}
-                else if(getId("cardModal").style.display != "none" && n==3) {getId('cardModal').style.display='none';finishAddCard(-1);}
-                else if(getId("bossModal").style.display != "none" && n<=2) {getId('bossModal').style.display='none';finishAddRelic(n);}
+                else if(getId("cardModal").style.display != "none" && n==3) {
+                    getId('cardModal').style.display='none'; finishAddCard(-1);
+                }
+                else if(getId("bossModal").style.display != "none" && n<=2) {
+                    getId('bossModal').style.display='none'; finishAddRelic(n);
+                    ifRelic("Old Coin", function(){gold += 300});
+                }
                 else if(getId("selectionModal").style.display != "none" && n<modalNames.length) { resolvePromise(modalNames[n]); }
                 else if(getId("merchantScreen").style.display != "none" && n<offers.length) {
                     let offer = offers[n].offer;
@@ -379,9 +384,8 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     if(gold >= cost) {
                         gold -= cost;
                         if(offers[n].index >= 100 && getId("relicElem_"+(n-6))) {
-                            let r = new Relic(offer.name, offer.desc, offer.trigger, offer.use);
+                            let r = offer;
                             relics.push(r);
-                            if(r.trigger=='on_pickup') {r.effect();}
                             getId("relicElem_"+(n-6)).style.display = "none";
                             updateStatLine();
                             updateShopScreen();
@@ -558,7 +562,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             if(hasBuff("Feel No Pain") > 0) {await gainBuff("Block", hasBuff("Feel No Pain"));}
-                            for(let r of relics) {if(r.trigger == "on_exhaust") {r.effect();}}
+                            await ifRelic("Dead Branch", function(){hand.push(randCard()())});
                         } else {
                             discardPile.push(this);
                         }
@@ -567,16 +571,15 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     updateHtml();
                 }
                 async play_success() {
+                    if(hand.length == 0) {await ifRelic("Unceasing Top", function(){drawCard()})}
                     if(hasBuff("Thousand Cuts") > 0) {for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}}
                     if(hasBuff("After Image") > 0) {await gainBuff("Block", hasBuff("After Image"));}
+                    if(Math.random() < 0.1) {await ifRelic("Ink Bottle", function(){drawCard()})}
                     if(this.type == "Skill") {
                         stats.skillsThisTurn += 1;
+                        if(stats.skillsThisTurn % 3 == 0) {await ifRelic("Letter Opener", function(){for(let e of enemies){dealDamage(e, 5)}})}
                         for(let e of enemies) {
                             if(e.hasBuff("Enrage") > 0) {await e.gainBuff("Strength", e.hasBuff("Enrage"));}
-                        }
-                        for(let r of relics) {
-                            if(r.trigger == "on_skill") {r.effect();}
-                            if(r.trigger == "3_skills" && stats.skillsThisTurn % 3 == 0) {r.effect();}
                         }
                         if(hasBuff("Burst") > 0 && this.name != "Burst") {
                             await loseBuff("Burst", 1);
@@ -587,10 +590,15 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                         }
                     }
                     if(this.type == "Power") {
-                        for(let r of relics) {if(r.trigger == "on_power") {r.effect();}}
+                        await ifRelic("Bird-Faced Urn", function(){hp = Math.min(maxHp, hp + 2)});
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
+                        if(stats.attacksThisTurn % 3 == 0) {
+                            await ifRelic("Kunai", async function(){await gainBuff("Dexterity", 1)});
+                            await ifRelic("Shuriken", async function(){await gainBuff("Strength", 1)});
+                            await ifRelic("Ornamental Fan", async function(){await gainBuff("Block", 4)});
+                        }
                         if(hasBuff("Rage") > 0) {await gainBuff("Block", hasBuff("Rage"));}
                         if(hasBuff("Double Tap") > 0) {
                             await loseBuff("Double Tap", 1);
@@ -599,13 +607,9 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                             if(this.cost != "X") {energy += this.cost;}
                             await this.play();
                         }
-                        for(let r of relics) {
-                            if(r.trigger == "on_attack") {r.effect();}
-                            if(r.trigger == "3_attacks" && stats.attacksThisTurn % 3 == 0) {r.effect();}
-                        }
+                        await ifRelic("Pen Nib", async function(){await gainBuff("Pen Nib", 1)});
                     }
                     if(this.name.toLowerCase().includes("strike")) {
-                        for(let r of relics) {if(r.trigger == "strike") {r.effect();}}
                     }
                     if(this.type != "Attack") {
                         if(hasBuff("Hex") > 0) {
@@ -655,13 +659,11 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 async gainBuff(name, amt) {
                     if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {await this.loseBuff("Artifact", 1); updateHtml(); return;}
                     let newAmt = amt;
-                    if(this.hasBuff("Frail") > 0 && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
-                    if(this.hasBuff("Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Dexterity");}
-                    if(this.hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= this.hasBuff("Minus Dexterity");}
+                    if(name == "Block") {newAmt = this.calcBlock(amt);}
+                    if(name == "Poison") {await ifRelic("Snecko Skull", function(){newAmt += 1})}
                     let foundBuff = false;
                     for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt; foundBuff = true;}}
                     if(!foundBuff) {this.buffs.push({name: name, amt: newAmt});}
-                    if(name=="Vulnerable" && newAmt > 0) {for(let r of relics) {if(r.trigger == "apply_vulnerable") {r.effect();}}}
                     
                     let idx = enemies.indexOf(this);
                     let dn = getId("buffSayer"+idx);
@@ -679,9 +681,9 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                             buffTimeouts[idx].push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                         }
                         buffTimeouts[idx].push(setTimeout(function(){buffTimeouts[idx] = [];}, 1000));
-                        return new Promise(resolve => setTimeout(function() {resolve(0);}, 300));
+                        return new Promise(resolve => setTimeout(function() {resolve();}, 300));
                     } else {
-                        return new Promise(resolve => setTimeout(function(){resolve(0);}));
+                        return new Promise(resolve => setTimeout(function(){resolve();}, 0));
                     }
                 }
                 async loseBuff(name, amt=9999) {
@@ -715,22 +717,39 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                         return new Promise(resolve => setTimeout(function(){resolve(0);}));
                     }
                 }
-                async dealDamage(amt) {
+                
+                calcDamage(amt) {
                     let finalAmt = amt;
                     if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
                     finalAmt += this.hasBuff("Strength");
                     finalAmt -= this.hasBuff("Minus Strength");
-                    if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = 0; Promise.resolve(loseBuff("Buffer", 1));}
-                    
+                    let ub = finalAmt - hasBuff("Block");
+                    if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
+                    if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
+                    if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = hasBuff("Block"); Promise.resolve(loseBuff("Buffer", 1));}
+                    return finalAmt;
+                }
+                
+                calcBlock(amt) {
+                    let newAmt = amt;
+                    if(this.hasBuff("Frail") > 0          ) {newAmt = Math.round(newAmt * 0.75);}
+                    if(this.hasBuff("Dexterity") > 0      ) {newAmt += this.hasBuff("Dexterity");}
+                    if(this.hasBuff("Minus Dexterity") > 0) {newAmt -= this.hasBuff("Minus Dexterity");}
+                    return newAmt;
+                }
+                
+                async dealDamage(amt) {
+                    let finalAmt = this.calcDamage(amt);
                     let dealt = Math.max(0, finalAmt - hasBuff("Block"));
                     hp -= dealt;
                     setTimeout(function(){Promise.resolve(loseBuff("Block", finalAmt))}, 250);
                     
                     if(dealt > 0) {
+                        if(stats.timesLostHp == 0) {await ifRelic("Centennial Puzzle", function(){drawCard(3)})}
+                        await ifRelic("Self-Forming Clay", async function(){gainBuff("Next Turn Block", 3)});
                         stats.timesLostHp++;
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
-                        for(let r of relics) {if(r.trigger == "lose_hp") {r.effect();}}
                         getId("html").style.background = "#600";
                         let normalColor1 = function(){getId("html").style.background = "#511";}
                         let normalColor2 = function(){getId("html").style.background = "#411";}
@@ -766,18 +785,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 }
             }
             
-            class Relic {
-                constructor(name, desc, trigger, effect) {
-                    this.name = name;
-                    this.desc = desc;
-                    this.trigger = trigger;
-                    this.use = effect;
-                }
-                effect(n=undefined) {
-                    if(n) {this.use(n);} else {this.use();}
-                }
-            }
-            
             function hasBuff(name) {
                 for(let b of buffs) {if(b.name == name) {return b.amt;}}
                 return 0;
@@ -785,10 +792,10 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
             async function gainBuff(name, amt) {
                 if(debuffs.includes(name) && hasBuff("Artifact") > 0) {await loseBuff("Artifact", 1); updateHtml(); return;}
                 let newAmt = amt;
-                if(hasBuff("Frail") > 0           && name == "Block") {newAmt = Math.round(newAmt * 0.75);}
-                if(hasBuff("Dexterity") > 0       && name == "Block") {newAmt += hasBuff("Dexterity");}
-                if(hasBuff("Minus Dexterity") > 0 && name == "Block") {newAmt -= hasBuff("Minus Dexterity");}
-                if(hasBuff("Juggernaut") > 0      && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
+                if(name == "Block") {newAmt = calcYourBlock(amt);}
+                if(name == "Weak") {await ifRelic("Ginger", function(){newAmt = 0});}
+                if(name == "Frail") {await ifRelic("Turnip", function(){newAmt = 0});}
+                if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
                 if(!foundIt) {buffs.push({name: name, amt: newAmt});}
@@ -842,31 +849,43 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 return new Promise(resolve => setTimeout(function() {resolve(0);}, 0));
             }
             
-            function dealDamage(actor, amt, shiv=false) {
+            function calcYourDamage(enemy, amt, shiv=false, strike=false) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
-                if(actor.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
+                if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3})}
+                if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
-                if(target.hasBuff("Flight")) { finalAmt = Math.round(finalAmt*0.5); actor.loseBuff("Flight", 1); }
+                if(target.hasBuff("Flight")) { finalAmt = Math.round(finalAmt*0.5); enemy.loseBuff("Flight", 1); }
                 if(finalAmt > 0) {
-                    finalAmt += hasBuff("Strength");
+                    finalAmt += hasBuff("Strength") + hasBuff("Vigor");
                     finalAmt -= hasBuff("Minus Strength");
+                    if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
                 }
-                let dealt = Math.max(0, finalAmt - actor.hasBuff("Block"));
-                actor.hp -= dealt;
+                return finalAmt;
+            }
+            function calcYourBlock(amt) {
+                let newAmt = amt;
+                if(hasBuff("Frail") > 0          ) {newAmt = Math.round(newAmt * 0.75);}
+                if(hasBuff("Dexterity") > 0      ) {newAmt += hasBuff("Dexterity");}
+                if(hasBuff("Minus Dexterity") > 0) {newAmt -= hasBuff("Minus Dexterity");}
+                return newAmt;
+            }
+            
+            function dealDamage(enemy, amt, shiv=false, strike=false) {
+                let finalAmt = calcYourDamage(enemy, amt, shiv, strike);
+                let dealt = Math.max(0, finalAmt - enemy.hasBuff("Block"));
+                enemy.hp -= dealt;
+                Promise.resolve(enemy.loseBuff("Block", finalAmt));
+                if(hasBuff("Vigor") > 0) {Promise.resolve(loseBuff("Vigor"));}
                 if(dealt > 0) {
                     if(stats.hasAttacked == false) {
                         stats.hasAttacked = true;
-                        for(let r of relics) {if(r.trigger == "first_attack") {r.effect();}}
-                        if(hasBuff("Vigor") > 0) {
-                            Promise.resolve(loseBuff("Strength", hasBuff("Vigor")));
-                            Promise.resolve(loseBuff("Vigor"));
-                        }
                     }
-                    if(hasBuff("Envenom") > 0) {Promise.resolve(actor.gainBuff("Poison"), hasBuff("Envenom"));}
+                    if(hasBuff("Envenom") > 0) {Promise.resolve(enemy.gainBuff("Poison"), hasBuff("Envenom"));}
                 }
+                if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
                 
-                let num = enemies.indexOf(actor);
+                let num = enemies.indexOf(enemy);
                 let dn = getId("damageNumber"+num);
                 if(dealt > 0) {
                     let GBCR = getId("enemy_"+num).getBoundingClientRect();
@@ -907,15 +926,8 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     }
                     timeouts[num].push(setTimeout(function(){timeouts[num] = [];}, 1000));
                 }
-                
-                for(let b of actor.buffs) {
-                    if(b.name == "Block") {
-                        if(finalAmt >= b.amt) {actor.buffs.splice(actor.buffs.indexOf(b), 1);} else {b.amt -= finalAmt;}
-                        break;
-                    }
-                }
-                if(finalAmt > 0 && actor.hasBuff("Thorns") > 0) {Promise.resolve(actor.dealDamage(actor.hasBuff("Thorns"))); updateHtml();}
             }
+            
             let buffDesc = {
                 ".": "You weren't supposed to see this. Just ignore it.",
                 "Block": "Until next turn, prevents [AMT] damage.",
@@ -952,7 +964,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
                 "Buffer": "Prevent the first [AMT] unblocked hit[s].",
                 "Next Turn Block": "Gain [BAMT] Block next turn.",
-                "Vigor": "[AMT] of your Strength only applies to 1st attack.",
+                "Vigor": "Your first attack deals [AMT] more damage.",
                 "Next Turn Energy": "Gain [AMT] more energy next turn.",
                 "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
                 "Accuracy": "Shivs deal [AMT] more damage.",
@@ -1049,6 +1061,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     hand = [];
                     buffs = [];
                     energy = 0; // no ice cream hax
+                    turn = 0;
                     stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested};
                     target = enemies[0];
                     
@@ -1061,7 +1074,6 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                         }
                     }
                     
-                    for(let r of relics) {if(r.trigger == "combat_start") {r.effect();}}
                     timeouts = enemies.map(x=>[]);
                     buffTimeouts = enemies.map(x=>[]);
                     playerBuffTimeouts = [];
@@ -1106,10 +1118,12 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     enemies = [nme()];
                     eliteBattle = false;
                     bossBattle = true;
+                    ifRelic("Pantograph", function(){hp = Math.min(maxHp, hp + 25)});
                     readyBattle();
                 } else if(map[y][x] == "rest&nbsp;") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
+                    ifRelic("Eternal Feather", function(){hp = Math.min(maxHp, Math.round(hp + 0.6 * deck.length))});
                     getId("rest_txt").innerHTML = "Heal 30% of your max HP. (currently "+Math.round(0.3 * maxHp)+" HP)";
                     music.rest.play();
                     announceMusic("No Weapons Here");
@@ -1119,6 +1133,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     music.shop.play();
                     announceMusic("One Fateful Knight");
                     getId("merchantScreen").innerHTML = "";
+                    ifRelic("Meal Ticket", function(){hp = Math.min(maxHp, hp + 15)});
                     offers = [];
                     for(let i=0; i<6; i++) {
                         let offer = randCard()();
@@ -1168,7 +1183,7 @@ updateShopScreen();
                         getId("merchantScreen").appendChild(helpNumber);
                     }
                     for(let i=0; i<3; i++) {
-                        let offer = choice(relicPool)();
+                        let offer = choice(relicPool);
                         let relicCost = Math.round(Math.random()*119 + 143);
                         offers.push({index: i+100, price: relicCost, offer: offer});
                         let relicElem = document.createElement("tr");
@@ -1185,9 +1200,8 @@ updateShopScreen();
                         }
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
-let r = new Relic("${offer.name}", "${offer.desc}", "${offer.trigger}", ${offer.use});
+let r = ${JSON.stringify(offer)};
 relics.push(r);
-if(r.trigger=='on_pickup') {r.effect();}
 getId("relicElem_${i}").style.display = "none";
 updateStatLine();
 updateShopScreen();
@@ -1270,7 +1284,7 @@ updateShopScreen();
             // Basics
             //
             let strike = () => new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){
-                dealDamage(enemy, 6);
+                dealDamage(enemy, 6, false, true);
             });
             let defend = () => new Card("Defend", 1, "Skill", "Gain [BLK5] Block.", async function(enemy){
                 await gainBuff("Block", 5);
@@ -1313,7 +1327,7 @@ updateShopScreen();
                 dealDamage(enemy, 5); await gainBuff("Block", 5);
             });
             let pommelStrike = () => new Card("Pommel Strike", 1, "Attack", "Deal [DAM9] damage. Draw a card.", function(enemy){
-                dealDamage(enemy, 9); drawCard();
+                dealDamage(enemy, 9, false, true); drawCard();
             });
             let shrugItOff = () => new Card("Shrug it Off", 1, "Skill", "Gain [BLK8] Block. Draw a card.", async function(enemy){
                 drawCard(); await gainBuff("Block", 8);
@@ -1329,10 +1343,10 @@ updateShopScreen();
                await gainBuff("Block", 7); let c=choice(hand); hand.splice(hand.indexOf(c), 1); exhaustPile.push(c);
             });
             let twinStrike = () => new Card("Twin Strike", 1, "Attack", "Deal [DAM5] damage twice.", function(enemy){
-                dealDamage(enemy, 5); dealDamage(enemy, 5);
+                dealDamage(enemy, 5, false, true); dealDamage(enemy, 5, false, true);
             });
             let wildStrike = () => new Card("Wild Strike", 1, "Attack", "Deal [DAM12] damage. Shuffle a Wound into your discard pile.", function(enemy){
-                dealDamage(enemy, 12); discardPile.push(statusCards["Wound"]());
+                dealDamage(enemy, 12, false, true); discardPile.push(statusCards["Wound"]());
             });
             
             //
@@ -1731,7 +1745,7 @@ updateShopScreen();
             //
             let upgradedCards = {
                 "Strike": () => new Card("Strike+", 1, "Attack", "Deal [DAM9] damage.", function(enemy){
-                    dealDamage(enemy, 9);
+                    dealDamage(enemy, 9, false, true);
                 }), "Defend": () => new Card("Defend+", 1, "Skill", "Gain [BLK8] Block.", async function(enemy){
                     await gainBuff("Block", 8);
                 }), "Bash": () => new Card("Bash+", 2, "Attack", "Deal [DAM10] damage, apply 3 Vulnerable.", async function(enemy){
@@ -1759,7 +1773,7 @@ updateShopScreen();
                 }), "Iron Wave": () => new Card("Iron Wave+", 1, "Attack", "Gain [BLK7] Block. Deal [DAM7] damage.", async function(enemy){
                     dealDamage(enemy, 7); await gainBuff("Block", 7);
                 }), "Pommel Strike": () => new Card("Pommel Strike+", 1, "Attack", "Deal [DAM10] damage. Draw 2 cards.", function(enemy){
-                    dealDamage(enemy, 10); drawCard(2);
+                    dealDamage(enemy, 10, false, true); drawCard(2);
                 }), "Shrug it Off": () => new Card("Shrug it Off+", 1, "Skill", "Gain [BLK11] Block. Draw a card.", async function(enemy){
                     drawCard(); await gainBuff("Block", 11);
                 }), "Sword Boomerang": () => new Card("Sword Boomerang+", 1, "Attack", "Deal [DAM3] damage to a random enemy 4 times.", function(enemy){
@@ -1775,9 +1789,9 @@ updateShopScreen();
                         updateHtml();
                     }
                 }), "Twin Strike": () => new Card("Twin Strike+", 1, "Attack", "Deal [DAM7] damage twice.", function(enemy){
-                    dealDamage(enemy, 7); dealDamage(enemy, 7);
+                    dealDamage(enemy, 7, false, true); dealDamage(enemy, 7, false, true);
                 }), "Wild Strike": () => new Card("Wild Strike+", 1, "Attack", "Deal [DAM17] damage. Shuffle a Wound into your discard pile.", function(enemy){
-                    dealDamage(enemy, 17); discardPile.push(statusCards["Wound"]());
+                    dealDamage(enemy, 17, false, true); discardPile.push(statusCards["Wound"]());
                 }), "Battle Trance": () => new Card("Battle Trance+", 0, "Skill", "Draw 4 cards. You cannot draw additional cards this turn.", async function(enemy){
                     drawCard(4); await gainBuff("No Draw", 1);
                 }), "Blood for Blood": () => new Card("Blood for Blood+", 4, "Attack", "Deal [DAM26] damage. -1 cost each time you lose HP. (Costs [BLOOD4BLOOD] energy)", function(enemy){
@@ -2082,13 +2096,12 @@ updateShopScreen();
             let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
             let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
             
-            function addCard(newCards="random") {
-                if(newCards == "random") {
-                    if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
-                        newCards = [randRareCard()(), randRareCard()(), randRareCard()()];
-                    } else {
-                        newCards = [randCard()(), randCard()(), randCard()()];
-                    }
+            function addCard() {
+                let newCards;
+                if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
+                    newCards = shuffle([randCard()(), randRareCard()(), randRareCard()()]);
+                } else {
+                    newCards = [randCard()(), randCard()(), randCard()()];
                 }
                 possibleCards = newCards;
                 getId("cardModal").style.display = "block";
@@ -2105,18 +2118,24 @@ updateShopScreen();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let c = possibleCards[cardNumber];
                     deck.push(c);
-                    for(let r of relics) {if(r.trigger == "add_card") {r.effect(c);}}
+                    ifRelic("Ceramic Fish", function(){gold += 9});
+                    if(c.type == "Power") {
+                        ifRelic("Frozen Egg", function(){upgradeCard(deck.filter(e => e.number == c.number)[0])});
+                    }
+                    if(c.type == "Attack") {
+                        ifRelic("Molten Egg", function(){upgradeCard(deck.filter(e => e.number == c.number)[0])});
+                    }
+                    if(c.type == "Skill") {
+                        ifRelic("Toxic Egg", function(){upgradeCard(deck.filter(e => e.number == c.number)[0])});
+                    }
                     updateStatLine();
                 } else if(cardNumber == -1) {
-                    for(let r of relics) {if(r.trigger == "no_card") {r.effect();}}
                     updateStatLine();
                 }
             }
             
-            function addBossRelic(newCards="random") {
-                if(newCards == "random") {
-                    newCards = [choice(rareRelicPool)(), choice(rareRelicPool)(), choice(rareRelicPool)()];
-                }
+            function addBossRelic() {
+                let newCards = [choice(rareRelicPool), choice(rareRelicPool), choice(rareRelicPool)];
                 possibleCards = newCards;
                 getId("bossModal").style.display = "block";
                 for(let x=0; x<3; x++) {
@@ -2132,91 +2151,80 @@ updateShopScreen();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let r = possibleCards[cardNumber];
                     relics.push(r);
-                    if(r.trigger == "on_pickup") {r.effect();}
+                    ifRelic("Old Coin", function(){gold += 300});
                     updateStatLine();
                 }
             }
             let possibleCards = [];
             
-            function r_snakeRing() {drawCard(2);}
-            function r_akabeko() {Promise.resolve(gainBuff("Strength", 8)); Promise.resolve(gainBuff("Vigor", 8));}
-            function r_anchor() {Promise.resolve(gainBuff("Next Turn Block", 10));}
-            function r_tea() {energy += 2;}
-            function r_artOfWar() {Promise.resolve(gainBuff("Next Turn Energy", 1));}
-            function r_bagOfMarbles() {for(let x of enemies){Promise.resolve(x.gainBuff("Vulnerable",1));}}
-            function r_bloodVial() {hp = Math.min(maxHp, hp+2);}
-            function r_bronzeScales() {Promise.resolve(gainBuff("Thorns", 3));}
-            function r_ceramicFish() {gold += 9;}
-            function r_nunchaku() {if(Math.random()<0.1){energy += 1;}}
-            function r_smoothStone() {Promise.resolve(gainBuff("Dexterity", 1));}
-            function r_orichalcum() {if(hasBuff("Block")==0){Promise.resolve(gainBuff("Block", 6));}}
-            function r_penNib() {Promise.resolve(gainBuff("Pen Nib", 1)); if(hasBuff("Pen Nib") >= 10) {Promise.resolve(loseBuff("Pen Nib")); dealDamage(target, 10);}}
-            function r_preservedInsect() {if(eliteBattle==true){dealDamage(target,Math.round(0.25*target.hp));}}
-            function r_regalPillow() {hp = Math.min(maxHp, hp+15);}
-            function r_strawberry() {maxHp += 7; hp += 7;}
-            function r_vajra() {Promise.resolve(gainBuff("Strength", 1));}
-            function r_feather() {hp = Math.min(maxHp, hp+Math.round(0.5*deck.length));}
-            function r_frozenEgg(c) {if(c.type=="Power"){upgradeCard(c);}}
-            function r_letterOpener() {for(let x of enemies){dealDamage(x, 5);}}
-            function r_meatBone() {if(hp/maxHp <= 0.5) {hp = Math.min(maxHp, hp+12);}}
-            function r_mercuryHourglass() {for(let x of enemies){dealDamage(x, 3);}}
-            function r_moltenEgg(c) {if(c.type=="Attack"){upgradeCard(c);}}
-            function r_ornamentalFan() {Promise.resolve(gainBuff("Block", 4));}
-            function r_pear() {maxHp += 10; hp += 10;}
-            function r_selfFormingClay() {Promise.resolve(gainBuff("Next Turn Block", 3));}
-            function r_singingBowl() {maxHp += 2; hp += 2;}
-            function r_strikeDummy() {dealDamage(target, 3);}
-            function r_toxicEgg(c) {if(c.type=="Skill"){upgradeCard(c);}}
-            function r_birdFacedUrn() {hp = Math.min(maxHp, hp+2);}
-            function r_championsBelt() {Promise.resolve(target.gainBuff("Weak", 1));}
-            function r_deadBranch() {hand.push(randCard()());}
-            function r_helixFossil() {Promise.resolve(gainBuff("Buffer", 1));}
-            function r_mango() {maxHp += 14; hp += 14;}
-            function r_oldCoin() {gold += 300;}
-            function r_threadAndNeedle() {Promise.resolve(gainBuff("Metallicize", 3));}
+            let ifRelic = async function(rel, func) {
+                for(let r of relics) {
+                    if(r.name == rel) {await func();}
+                }
+            }
             let relicPool = [
-                () => new Relic("Akabeko","Your first attack each combat deals 8 more damage.","combat_start",r_akabeko),
-                () => new Relic("Anchor","Start each combat with 10 Block","combat_start",r_anchor),
-                () => new Relic("Ancient Tea Set","When you enter a Rest Site, start the next combat with 2 more energy.","rest",r_tea),
-                () => new Relic("Art of War","If you play no attacks in a turn, gain 1 energy next turn.","no_attacks",r_artOfWar),
-                () => new Relic("Bag of Marbles","ALL enemies start combat with 1 Vulnerable.","combat_start",r_bagOfMarbles),
-                () => new Relic("Blood Vial","At start of combat, heal 2 HP.","combat_start",r_bloodVial),
-                () => new Relic("Bronze Scales","When you take damage, deal 3 damage back.","combat_start",r_bronzeScales),
-                () => new Relic("Ceramic Fish","When you add a card to your deck, gain 9 gold.","add_card",r_ceramicFish),
-                () => new Relic("Lantern","Gain 1 energy at the start of each combat.","combat_start",r_artOfWar),
-                () => new Relic("Nunchaku","When you play an Attack, 10% chance to gain 1 energy.","on_attack",r_nunchaku),
-                () => new Relic("Oddly Smooth Stone","Start each combat with 1 Dexterity.","combat_start",r_smoothStone),
-                () => new Relic("Orichalcum","When you end your turn without Block, gain 6 Block.","turn_end",r_orichalcum),
-                () => new Relic("Pen Nib","Every 10th Attack you play deals 10 more damage.","on_attack",r_penNib),
-                () => new Relic("Preserved Insect","Elites have 25% less HP.","combat_start",r_preservedInsect),
-                () => new Relic("Regal Pillow","When you leave a Rest Site, heal 15 HP.","rest",r_regalPillow),
-                () => new Relic("Strawberry","Raise your max HP by 7 and heal 7 HP.","on_pickup",r_strawberry),
-                () => new Relic("Vajra","Start each combat with 1 Strength.","combat_start",r_vajra),
-                () => new Relic("Eternal Feather","When you rest, heal 1 HP for each 2 cards in your deck.","rest",r_feather),
-                () => new Relic("Frozen Egg","When you add a Power to your deck, it is upgraded.","add_card",r_frozenEgg),
-                () => new Relic("Ice Cream","You can keep excess energy between turns.","special",function(){}),
-                () => new Relic("Kunai","When you play 3 Attacks in a single turn, gain 1 Dexterity.","3_attacks",r_smoothStone),
-                () => new Relic("Letter Opener","When you play 3 Skills in a single turn, deal 5 damage to ALL enemies.","3_skills",r_letterOpener),
-                () => new Relic("Meat on the Bone","When you start combat with under 50% HP, heal 12 HP.","combat_start",r_meatBone),
-                () => new Relic("Mercury Hourglass","At start of turn, deal 3 damage to ALL enemies.","turn_start",r_mercuryHourglass),
-                () => new Relic("Molten Egg","When you add an Attack to your deck, it is upgraded.","add_card",r_moltenEgg),
-                () => new Relic("Ornamental Fan","When you play 3 Attacks in a single turn, gain 4 Block.","3_attacks",r_ornamentalFan),
-                () => new Relic("Pear","Raise your max HP by 10 and heal 10 HP.","on_pickup",r_pear),
-                () => new Relic("Self-Forming Clay","When you lose HP in combat, gain 3 Block next turn.","lose_hp",r_selfFormingClay),
-                () => new Relic("Shuriken","When you play 3 Attacks in a single turn, gain 1 Strength.","3_attacks",r_vajra),
-                () => new Relic("Singing Bowl","When you view but decline the card reward, gain 2 Max HP.","no_card",r_singingBowl),
-                () => new Relic("Strike Dummy","Cards containing Strike deal 3 more damage.","strike",r_strikeDummy),
-                () => new Relic("Toxic Egg","When you add a Skill to your deck, it is upgraded.","add_card",r_toxicEgg)
+                {name: "Akabeko", desc: "Your first attack each combat deals 8 more damage."},
+                {name: "Anchor", desc: "Start each combat with 10 Block."},
+                {name: "Ancient Tea Set", desc: "When you leave a Rest Site, start the next combat with 2 more energy."},
+                {name: "Art of War", desc: "If you play no Attacks in a turn, gain 1 more Energy next turn."},
+                {name: "Bag of Marbles", desc: "ALL enemies start combat with 1 Vulnerable."},
+                {name: "Ball Bearing", desc: "When you shuffle your deck, add a Flash of Steel into it."},
+                {name: "Blood Vial", desc: "At the start of each combat, heal 2 HP."},
+                {name: "Bronze Scales", desc: "When you take damage, deal 3 back."},
+                {name: "Centennial Puzzle", desc: "The first time you lose HP each combat, draw 3 cards."},
+                {name: "Ceramic Fish", desc: "When you add a card to your deck, gain 9 gold."},
+                {name: "Dream Catcher", desc: "When you Rest, you may add a card to your deck."},
+                {name: "Happy Flower", desc: "Gain 1 energy every 3rd turn."},
+                {name: "Lantern", desc: "Start each combat with 1 more energy."},
+                {name: "Meal Ticket", desc: "When you enter a shop, heal 15 HP."},
+                {name: "Oddly Smooth Stone", desc: "Start each combat with 1 Dexterity."},
+                {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
+                {name: "Pen Nib", desc: "Every 10th Attack you play deals 10 more damage."},
+                {name: "Preserved Insect", desc: "Elites have 25% less HP."},
+                {name: "Regal Pillow", desc: "Heal 15 more HP when you rest."},
+                {name: "Strawberry", desc: "On pickup, gain 7 max HP."},
+                {name: "The Boot", desc: "When you would deal 4 or less damage, deal 5 instead."},
+                {name: "Toy Ornithopter", desc: "When you use a Potion, heal 5 HP."},
+                {name: "Vajra", desc: "Start each combat with 1 Strength."},
+                {name: "Snecko Skull", desc: "When you apply Poison, apply 1 more."},
+                {name: "Eternal Feather", desc: "Heal 3 HP for each 5 cards in your deck when you rest."},
+                {name: "Frozen Egg", desc: "When you add a Power to your deck, upgrade it."},
+                {name: "Gremlin Horn", desc: "When an enemy dies, gain 1 energy and draw 1 card."},
+                {name: "Horn Cleat", desc: "Start turn 2 with 14 Block."},
+                {name: "Kunai", desc: "When you play 3 Attacks in a turn, gain 1 Dexterity."},
+                {name: "Letter Opener", desc: "When you play 3 Skills in a turn, deal 5 damage to ALL enemies."},
+                {name: "Meat on the Bone", desc: "At end of combat, heal 12 HP, up to 50% of max HP."},
+                {name: "Mercury Hourglass", desc: "At the start of your turn, deal 3 damage to ALL enemies."},
+                {name: "Molten Egg", desc: "When you add an Attack to your deck, upgrade it."},
+                {name: "Ornamental Fan", desc: "When you play 3 Attacks in a turn, gain 4 Block."},
+                {name: "Pantograph", desc: "Heal 25 HP at the start of Boss combats."},
+                {name: "Pear", desc: "On pickup, gain 10 max HP."},
+                {name: "Shuriken", desc: "When you play 3 Attacks in a turn, gain 1 Strength."},
+                {name: "Singing Bowl", desc: "When you skip the card reward, gain 2 max HP."},
+                {name: "Strike Dummy", desc: "Strikes deal 3 more damage."},
+                {name: "Sundial", desc: "When you shuffle your deck, gain 1 energy."},
+                {name: "Toxic Egg", desc: "When you add a Skill to your deck, upgrade it."},
+                {name: "White Beast Statue", desc: "Potions always drop after combat."},
+                {name: "Self-Forming Clay", desc: "When you lose HP in combat, gain 3 Block next turn."},
+                {name: "Ninja Scroll", desc: "Start each combat with 3 Shivs in hand."}
             ];
             let rareRelicPool = [
-                () => new Relic("Bird-Faced Urn","When you play a Power, heal 2 HP.","on_power",r_birdFacedUrn),
-                () => new Relic("Champion's Belt","When you apply Vulnerable, also apply 1 Weak.","apply_vulnerable",r_championsBelt),
-                () => new Relic("Charon's Ashes","When you Exhaust a card, deal 3 damage to ALL enemies.",r_mercuryHourglass),
-                () => new Relic("Dead Branch","When you Exhaust a card, add a random card to your hand.","on_exhaust",r_deadBranch),
-                () => new Relic("Fossilized Helix","Prevent the first HP loss each combat.","combat_start",r_helixFossil),
-                () => new Relic("Mango","Raise your max HP by 14 and heal 14 HP.","on_pickup",r_mango),
-                () => new Relic("Old Coin","Instantly gain 300 gold.","on_pickup",r_oldCoin),
-                () => new Relic("Thread and Needle","Start each combat with 3 Metallicize.","combat_start",r_threadAndNeedle)
+                {name: "Bird-Faced Urn", desc: "When you play a Power, heal 2 HP."},
+                {name: "Calipers", desc: "At the start of your turn, lose 15 Block rather than all your Block."},
+                {name: "Captain Wheel", desc: "Start turn 3 with 18 Block."},
+                {name: "Dead Branch", desc: "When you Exhaust a card, add a random card to your hand."},
+                {name: "Fossilized Helix", desc: "Prevent the first time you lose HP each combat."},
+                {name: "Ginger", desc: "You are immune to Weak."},
+                {name: "Ice Cream", desc: "You can save energy between turns."},
+                {name: "Mango", desc: "On pickup, gain 14 max HP."},
+                {name: "Old Coin", desc: "Instantly gain 300 gold."},
+                {name: "Pocketwatch", desc: "If you play 2 or fewer Attacks in a turn, draw 2 more cards next turn."},
+                {name: "Stone Calendar", desc: "At the end of turn 7, deal 52 damage to ALL enemies."},
+                {name: "Thread and Needle", desc: "Start each combat with 2 Metallicize."},
+                {name: "Torii", desc: "When you take 5 or less unblocked damage, reduce it to 1."},
+                {name: "Tungsten Rod", desc: "When you take unblocked damage, reduce it by 1."},
+                {name: "Turnip", desc: "You are immune to Frail."},
+                {name: "Unceasing Top", desc: "When your hand is empty during your turn, draw a card."}
             ];
             
             let potionPool = [
@@ -2239,7 +2247,7 @@ updateShopScreen();
             
             // Starting deck, relics, etc...
             let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
-            let relics = [new Relic("Ring of the Snake","At the start of each combat, draw 2 additional cards.","combat_start",r_snakeRing)];
+            let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
             let discardPile = [];
@@ -2255,13 +2263,14 @@ updateShopScreen();
             let mapX = 2;
             let mapY = 0;
             let actNum = 1;
+            let turn = 0;
             let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map;
             function mapGen() {
                 map = [
-                    ["",            "",            "start",       "",            ""          ],
-                    ["",            "enemy",       "enemy",       "enemy",       ""          ]
+                    ["","",     "start","",     ""],
+                    ["","enemy","enemy","enemy",""]
                 ];
                 let middleFloors = [];
                 for(let i=0; i<12; i++) {
@@ -2298,8 +2307,46 @@ updateShopScreen();
                 map.push(["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]);
             }
             
-            // Saving
-            let betterStringify = function(obj) {let ret = "{"; for (let k in obj) {let v = obj[k]; if (typeof v === "function") {v = v.toString();} else if (v instanceof Array) {v = JSON.stringify(v);} else if (typeof v === "object") {v = betterStringify(v);} else {v = `"${v}"`;} ret += `${k}:${v},`;} ret += "}"; return ret;}
+            /*
+            let gistContent;
+            function getGist() {
+                fetch("https://api.github.com/gists/e38c31fbf1881a826f776cdb7393b793", {
+                    method: "GET",
+                    headers: {
+                        "Authorization": "Basic "+btoa("wooga123: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"),
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    }
+                })
+                    .then(function(data){return data.json();})
+                    .then(function(resp){gistContent = resp["files"]["torinsgist.txt"]["content"];})
+                    .catch(error => alert("[Fetch Error] "+error));
+            }
+            getGist();
+            function updateGist(newContent) {
+                gistContent = newContent;
+                fetch("https://api.github.com/gists/e38c31fbf1881a826f776cdb7393b793", {
+                    method: "PATCH",
+                    headers: {
+                        "Authorization": "Basic "+btoa("wooga123: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"),
+                        "Accept": "application/vnd.github.v3+json",
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        "description": "I changed this description with fetch!",
+                        "public": true,
+                        "files": {
+                            "torinsgist.txt": {
+                                "content": newContent
+                            }
+                        }
+                    })
+                })
+                    .then(function(data){return data.json();})
+                    .then(function(resp){ })
+                    .catch(error => alert("[Fetch Error] "+error));
+            }
+            */
             
             // These make writing attacks *much* easier.
             async function addStatus(name, amt) {
@@ -2318,9 +2365,9 @@ updateShopScreen();
                         playerBuffTimeouts.push(setTimeout(function(){dn.style.opacity = (49-i)/50}, i*5 + 750));
                     }
                     playerBuffTimeouts.push(setTimeout(function(){playerBuffTimeouts = [];}, 1000));
-                    return new Promise(resolve => setTimeout(() => resolve(0), 300));
                 }
                 for(let x=0; x<amt; x++) {discardPile.push(statusCards[name]());}
+                //return new Promise(resolve => setTimeout(function(){resolve()}, 300));
             }
             let attack = amt => async function(me){ await me.dealDamage(amt); }
             let block = amt => async function(me){ await me.gainBuff("Block", amt); }
@@ -2334,7 +2381,7 @@ updateShopScreen();
             let attack_block = (atk, blk) => async function(me){ await me.dealDamage(atk); await me.gainBuff("Block", blk); }
             let attack_apply = (atk, what, amt) => async function(me){ await me.dealDamage(atk); await gainBuff(what, amt); }
             let attack_buff = (atk, what, amt) => async function(me){ await me.dealDamage(atk); await me.gainBuff(what, amt); }
-            let block_buff = (blk, what, amt) => async function(me){ me.gainBuff("Block", blk); await me.gainBuff(what, amt); }
+            let block_buff = (blk, what, amt) => async function(me){ await me.gainBuff("Block", blk); await me.gainBuff(what, amt); }
             let block_multinerf = (blk, lst) => async function(me){ await me.gainBuff("Block", blk); for(let x of lst){await gainBuff(x[0], x[1]);}}
             let attack_status = (atk, what, amt) => async function(me){ await addStatus(what, amt); await me.dealDamage(atk); }
             let buff_apply = (b, bamt, n, namt) => async function(me){ await me.gainBuff(b, bamt); await gainBuff(n, namt); }
@@ -2573,7 +2620,7 @@ updateShopScreen();
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target);} potions.splice(${potions.indexOf(potion)}, 1); updateHtml();`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target);} potions.splice(${potions.indexOf(potion)}, 1); await ifRelic("Toy Ornithopter", function(){hp = Math.min(maxHp, hp + 5)}); updateHtml();`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -2638,19 +2685,13 @@ updateShopScreen();
                             buffStuff += x.name+" ";
                         }
                         let adjustedDamage = function(n) {
-                            let newI = n;
-                            if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
-                            if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
-                            if(target.hasBuff("Flight")) {newI = Math.round(newI*0.5);}
-                            newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");
+                            let newI = calcYourDamage(target, n);
                             if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
                             else if(newI < n) {return "<span style='color:#f00'>"+newI+"</span>";}
                             else {return newI;}
                         }
                         let adjustedBlock = function(n) {
-                            let blockI = n;
-                            if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
-                            blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");
+                            let blockI = calcYourBlock(n);
                             if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
                             else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
@@ -2681,16 +2722,10 @@ updateShopScreen();
                     .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
                     .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]");
                     for(let i=1; i<300; i++) {
-                        let newI = i;
-                        if(target.hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
-                        if(hasBuff("Weak")) {newI = Math.round(newI*0.75);}
-                        if(target.hasBuff("Flight")) {newI = Math.round(newI*0.5);}
-                        if(!hasBuff(c.name)) {newI += hasBuff("Strength"); newI -= hasBuff("Minus Strength");}
+                        let newI = calcYourDamage(target, i);
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                         else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
-                        let blockI = i;
-                        if(hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
-                        if(!hasBuff(c.name)) {blockI += hasBuff("Dexterity"); blockI -= hasBuff("Minus Dexterity");}
+                        let blockI = calcYourBlock(i);
                         if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                         else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
                         
@@ -2735,10 +2770,7 @@ updateShopScreen();
                     if(e.intent.intent.split(" ")[1]) {
                         if(parseInt(e.intent.intent.split(" ")[1])) {
                             intentNumber = parseInt(e.intent.intent.split(" ")[1]);
-                            if(hasBuff("Vulnerable") > 0) {intentNumber = Math.round(intentNumber*1.5);}
-                            if(e.hasBuff("Weak") > 0) {intentNumber = Math.round(intentNumber*0.75);}
-                            intentNumber += e.hasBuff("Strength");
-                            intentNumber -= e.hasBuff("Minus Strength");
+                            intentNumber = e.calcDamage(intentNumber);
                             if(intentNumber >= 20 && e.intent.intent.includes("attacking")) {
                                 intentType = "bigattack";
                             }
@@ -2764,20 +2796,13 @@ updateShopScreen();
                                 buffStuff += x.name+" ";
                             }
                             let adjustedDamage = function(n) {
-                                let newI = n;
-                                if(hasBuff("Vulnerable")) {newI = Math.round(newI*1.5);}
-                                if(e.hasBuff("Weak")) {newI = Math.round(newI*0.75);}
-                                newI += e.hasBuff("Strength");
-                                newI -= e.hasBuff("Minus Strength");
+                                let newI = e.calcDamage(n);
                                 if(newI > n) {return "<span style='color:lime'>"+newI+"</span>";}
                                 else if(newI < n) {return "<span style='color:#f00'>"+newI+"</span>";}
                                 else {return newI;}
                             }
                             let adjustedBlock = function(n) {
-                                let blockI = n;
-                                if(e.hasBuff("Frail")) {blockI = Math.round(blockI*0.75);}
-                                blockI += e.hasBuff("Dexterity");
-                                blockI -= e.hasBuff("Minus Dexterity");
+                                let blockI = e.calcBlock(n);
                                 if(blockI > n) {return "<span style='color:lime'>"+blockI+"</span>";}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
@@ -2805,7 +2830,10 @@ updateShopScreen();
                     enemiesElem.appendChild(document.createElement("br"));
                 }
                 if(enemies.filter(x => x.hp <= 0).length > 0) {
-                    enemies = enemies.filter(x => x.hp > 0);
+                    let livingEnemies = enemies.filter(x => x.hp > 0);
+                    let numDead = enemies.length - livingEnemies.length;
+                    ifRelic("Gremlin Horn", function(){energy += numDead; drawCard(numDead);});
+                    enemies = livingEnemies;
                     updateHtml();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
@@ -2823,6 +2851,7 @@ updateShopScreen();
                             music.enemy.volume = 0.5; music.elite.volume = 0.5;
                         }, 2000);
                     }
+                    await ifRelic("Meat on the Bone", function(){hp = Math.min(Math.round(0.5*maxHp), hp + 12)});
                     getId("rewardsScreen").style.display = "block";
                     getId("goldReward").style.display = "block";
                     getId("cardReward").style.display = "block";
@@ -2830,7 +2859,7 @@ updateShopScreen();
                     let goldAmt = Math.round(Math.random()*10) + (getId("ascensionLevel").value >= 13 ? 19 : 25);
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
-                    if(Math.random() < 0.5) { // set to 1 (always drop) for testing
+                    if(Math.random() < 0.5 || relics.map(x=>x.name).includes("White Beast Statue")) { // set to 1 (always drop) for testing
                         getId("potionReward").style.display = "block";
                         potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
@@ -2840,16 +2869,16 @@ updateShopScreen();
                     }
                     if(eliteBattle == true) {
                         getId("relicReward").style.display = "block";
-                        let newRelic = choice(relicPool)();
+                        let newRelic = choice(relicPool);
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
-                        getId("relicReward").setAttribute("onclick", `let r = new Relic('${newRelic.name}', '${newRelic.desc}', '${newRelic.trigger}', ${newRelic.use}); relics.push(r); if(r.trigger=='on_pickup') {r.effect();} updateStatLine(); getId('relicReward').style.display = 'none';`);
+                        getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); ifRelic('Strawberry', function(){maxHp += 7}); ifRelic('Pear', function(){maxHp += 10}); ifRelic('Mango', function(){maxHp += 14}); updateStatLine(); getId('relicReward').style.display = 'none';`);
                     } else {
                         getId("relicReward").style.display = "none";
                     }
                     if(bossBattle == true) {
                         getId("bossRelicReward").style.display = "block";
                         getId("bossRelicReward").innerHTML = "Choose a Relic";
-                        getId("bossRelicReward").setAttribute("onclick", "addBossRelic('random'); getId('bossRelicReward').style.display = 'none';");
+                        getId("bossRelicReward").setAttribute("onclick", "addBossRelic(); getId('bossRelicReward').style.display = 'none';");
                     } else {
                         getId("bossRelicReward").style.display = "none";
                     }
@@ -2930,8 +2959,14 @@ updateShopScreen();
                 if(hasBuff("No Draw") > 0) {num=0;}
                 for(let x=0; x<num; x++) {
                     if(drawPile.length <= 0) {
+                        ifRelic("Ball Bearing", function(){
+                            discardPile.push(new Card("Flash of Steel", 0, "Attack", "Deal [DAM3] damage. Draw a card", function(e){
+                                dealDamage(e, 3); drawCard();
+                            }));
+                        });
                         drawPile = shuffle(discardPile);
                         discardPile = [];
+                        ifRelic("Sundial", function(){energy += 1});
                     }
                     if(drawPile.length > 0 && hand.length < 10) {
                         let toDraw = drawPile.pop(0);
@@ -2968,6 +3003,23 @@ updateShopScreen();
             }
             
             async function startTurn() {
+                if(turn == 0) {
+                    await ifRelic("Snake Ring", function(){drawCard(2)});
+                    await ifRelic("Akabeko", async function(){await gainBuff("Vigor", 8)});
+                    await ifRelic("Bag of Marbles", async function(){for(let e of enemies) {await e.gainBuff("Vulnerable", 10)}});
+                    await ifRelic("Blood Vial", function(){hp = Math.min(maxHp, hp + 2)});
+                    await ifRelic("Bronze Scales", async function(){await gainBuff("Thorns", 3)});
+                    await ifRelic("Oddly Smooth Stone", async function(){await gainBuff("Dexterity", 1)});
+                    await ifRelic("Preserved Insect", function(){for(let e of enemies){e.hp = Math.round(0.75 * e.maxHp)}});
+                    await ifRelic("Vajra", async function(){await gainBuff("Strength", 1)});
+                    await ifRelic("Ninja Scroll", function(){addShivs(3)});
+                    await ifRelic("Fossilized Helix", async function(){await gainBuff("Buffer", 1)});
+                    await ifRelic("Thread and Needle", async function(){await gainBuff("Metallicize", 2)});
+                }
+                if(turn == 1) {await ifRelic("Horn Cleat", async function(){await gainBuff("Block", 14)})}
+                if(turn == 2) {await ifRelic("Captain Wheel", async function(){await gainBuff("Block", 18)})}
+                await ifRelic("Mercury Hourglass", function(){for(let e of enemies){dealDamage(e, 3)}});
+                turn += 1;
                 if(hasBuff("Draw Reduction") > 0) {
                     drawCard(4); await loseBuff("Draw Reduction", 1);
                 } else {
@@ -2981,19 +3033,22 @@ updateShopScreen();
                     }
                 }
                 energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy");
+                if(stats.rested == true) {await ifRelic("Ancient Tea Set", function(){energy += 2});}
+                if(turn % 3 == 0) {await ifRelic("Happy Flower", function(){energy += 1});}
                 await loseBuff("Next Turn Energy");
-                if(stats.attacksThisTurn == 0) {
-                    for(let relic of relics) {if(relic.trigger == "no_attacks") {relic.effect();}}
-                }
                 if(stats.rested == true) {
                     stats.rested = false;
-                    for(let relic of relics) {if(relic.trigger == "rest") {relic.effect();}}
                 }
-                for(let r of relics) {if(r.trigger == "turn_start") {r.effect();}}
+                if(stats.attacksThisTurn == 0) {await ifRelic("Art of War", function(){energy += 1});}
+                if(stats.attacksThisTurn <= 2) {await ifRelic("Pocketwatch", function(){drawCard(2)})}
                 stats.attacksThisTurn = 0;
                 stats.skillsThisTurn = 0;
-                if(hasBuff("Barricade")==0 && hasBuff("Blur")==0){await loseBuff("Block");}
+                if(hasBuff("Barricade")==0 && hasBuff("Blur")==0){await loseBuff("Block", (relics.map(x=>x.name).includes("Calipers") ? 15 : 9999));}
                 await loseBuff("Blur", 1);
+                if(turn == 0) {
+                    await ifRelic("Anchor", async function(){await gainBuff("Block", 10)});
+                    await ifRelic("Lantern", function(){energy += 1});
+                }
                 if(hasBuff(".") > 0) {await loseBuff(".");} else {await loseBuff("Vulnerable", 1);}
                 if(hasBuff("Metallicize")>0){await gainBuff("Block", hasBuff("Metallicize"));}
                 if(hasBuff("Next Turn Block")>0){await gainBuff("Block", hasBuff("Next Turn Block")); await loseBuff("Next Turn Block");}
@@ -3013,18 +3068,21 @@ updateShopScreen();
             }
             
             async function endTurn() {
+                if(turn == 7) {await ifRelic("Stone Calendar", function(){for(let e of enemies){dealDamage(e, 52)}})}
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
                     else {discardPile.push(c);}
                     if(c.flags.includes("burning")) {hp -= 1;}
                     if(c.flags.includes("burning+")) {hp -= 2;}
                 }
-                for(let r of relics) {if(r.trigger == "turn_end") {r.effect();}}
                 hand = [];
                 if(hasBuff("Combust") > 0) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
+                
+                if(hasBuff("Block") == 0) {await ifRelic("Orichalcum", async function(){await gainBuff("Block", 6)});}
+                
                 await loseBuff("Weak", 1);
                 await loseBuff("Frail", 1);
                 await loseBuff("No Draw", 1);
@@ -3700,6 +3758,15 @@ updateShopScreen();
                     ];
                 }
             });
+            
+            function beginGame() {
+                getId('introScreen').style.display = 'none';
+                getId('statusContainer').style.display = 'block';
+                mapGen();
+                showMap();
+                beforeTime = Date.now();
+                currentTimer = 0;
+            }
             window.setInterval(updateStatLine, 1000);
         </script>
     </body>
