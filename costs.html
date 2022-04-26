@@ -881,7 +881,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     if(stats.hasAttacked == false) {
                         stats.hasAttacked = true;
                     }
-                    if(hasBuff("Envenom") > 0) {Promise.resolve(enemy.gainBuff("Poison"), hasBuff("Envenom"));}
+                    if(hasBuff("Envenom") > 0) {enemy.gainBuff("Poison", hasBuff("Envenom"));}
                 }
                 if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
                 
