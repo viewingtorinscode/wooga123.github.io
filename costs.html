@@ -718,7 +718,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     }
                 }
                 
-                calcDamage(amt) {
+                calcDamage(amt, actuallyDeal=false) {
                     let finalAmt = amt;
                     if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
@@ -727,7 +727,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     let ub = finalAmt - hasBuff("Block");
                     if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
                     if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
-                    if(hasBuff("Buffer") > 0 && finalAmt > hasBuff("Block")) {finalAmt = hasBuff("Block"); Promise.resolve(loseBuff("Buffer", 1));}
+                    if(hasBuff("Buffer") > 0 && ub > 0) {finalAmt = 0; if(actuallyDeal){Promise.resolve(loseBuff("Buffer", 1));}}
                     return finalAmt;
                 }
                 
@@ -740,7 +740,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 }
                 
                 async dealDamage(amt) {
-                    let finalAmt = this.calcDamage(amt);
+                    let finalAmt = this.calcDamage(amt, true);
                     let dealt = Math.max(0, finalAmt - hasBuff("Block"));
                     hp -= dealt;
                     setTimeout(function(){Promise.resolve(loseBuff("Block", finalAmt))}, 250);
@@ -1658,7 +1658,7 @@ updateShopScreen();
                 energy += 2;
             });
             let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", async function(enemy){
-                for(let e of enemies) {await e.gainBuff("Poison", 4); await e.gainBuff("Weak", 2);}
+                for(let e of enemies) {await e.gainBuff("Poison", 4); await e.gainBuff("Weak", 2); updateHtml();}
             }, ["exhausted"]);
             let dash = () => new Card("Dash", 2, "Attack", "Deal [DAM10] damage. Gain [BLK10] Block.", async function(enemy){
                 dealDamage(enemy, 10); await gainBuff("Block", 10);
@@ -2020,7 +2020,7 @@ updateShopScreen();
                 }
                 energy += 2;
             }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", async function(enemy){
-                for(let e of enemies) {await e.gainBuff("Poison", 7); await e.gainBuff("Weak", 2);}
+                for(let e of enemies) {await e.gainBuff("Poison", 7); await e.gainBuff("Weak", 2); updateHtml();}
             }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Attack", "Deal [DAM13] damage. Gain [BLK13] Block.", async function(enemy){
                 dealDamage(enemy, 13); await gainBuff("Block", 13);
             }), "Distraction": () => new Card("Distraction+", 0, "Skill", "Add 2 random Skills to your hand. Exhaust.", function(enemy){
@@ -2814,11 +2814,7 @@ updateShopScreen();
                     enemyTooltip.setAttribute("class", "txt");
                     let newDesc = e.intent.desc;
                     for(let i=1; i<300; i++) {
-                        let newI = i;
-                        if(hasBuff("Vulnerable") > 0) {newI = Math.round(newI*1.5);}
-                        if(e.hasBuff("Weak") > 0) {newI = Math.round(newI*0.75);}
-                        newI += e.hasBuff("Strength");
-                        newI -= e.hasBuff("Minus Strength");
+                        let newI = e.calcDamage(i);
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                         else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
                         newDesc = newDesc.replace("[DAM"+i+"]", newI);
