@@ -39,11 +39,11 @@ let cardReplacements = [
     "VALUE": "👍 ▶️ 🤷 "
   },
   {
-    "KEYS": ["additional", "more", "increase this card's", "increase[d|s]?", "gain", "gained", "brew[s]?", "restock[s]?", "adding"],
+    "KEYS": ["additional", "more", "increase this card's", "increase[d|s]?", "gained", "gain", "brew[s]?", "restock[s]?", "adding", "added", "add", "get", "plus"],
     "VALUE": "➕"
   },
   {
-    "KEYS": ["decrease this card's", "lower this card's", "decrease", "reduce[d|s]?", "less", "remove[s|d]?", "lose[s]?", "lost"],
+    "KEYS": ["decrease this card's", "lower this card's", "lower", "decrease", "reduce[d|s]?", "less", "remove[s|d]?", "lose[s]?", "lost"],
     "VALUE": "➖"
   },
   {
@@ -56,6 +56,14 @@ let cardReplacements = [
   },
   {
     "KEYS": ["thrice", "triple"],
+    "VALUE": "for each 3"
+  },
+  {
+    "KEYS": ["fource", "quadruple"],
+    "VALUE": "for each 3"
+  },
+  {
+    "KEYS": ["quince", "quintuple"],
     "VALUE": "for each 3"
   },
   {
@@ -159,7 +167,7 @@ let cardReplacements = [
     "VALUE": ""
   },
   {
-    "KEYS": ["choose", "choosing", "chose[n]?"],
+    "KEYS": ["choose", "choosing", "chose[n]?", "picking", "picked", "pick"],
     "VALUE": "⛏️"
   },
   {
@@ -523,7 +531,7 @@ let cardReplacements = [
     "VALUE": "🏠"
   },
   {
-    "KEYS": ["treasure[s]?", "chest[s]?", "reward[s]?"],
+    "KEYS": ["treasure[s]?", "chest[s]?", "reward[s]?", "obtain"],
     "VALUE": "💰"
   },
   {
@@ -579,7 +587,7 @@ let cardReplacements = [
     "VALUE": "⬅️"
   },
   {
-    "KEYS": ["exit[s]?", "removal service", "ignore"],
+    "KEYS": ["exit[s]?", "removal service", "removal", "removing", "remove[d|s]?", "ignore"],
     "VALUE": "❌"
   },
   {
@@ -677,4 +685,5 @@ function updateOut(){
 document.getElementById("cardDesc").addEventListener("change", updateOut);
   </script>
 </body>
+
 </html>
