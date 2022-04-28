@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>not replit</title>
+  <title>StS Card Emojifier</title>
 </head>
 <body>
   Card or Relic Description: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
@@ -103,10 +103,6 @@ let cardReplacements = [
     "VALUE": "➡️"
   },
   {
-    "KEYS": ["shuffle ((a|an) )?", "add ((a|an) )?", " you obtain[s]?", " obtain[s]?"],
-    "VALUE": ""
-  },
-  {
     "KEYS": [" end"],
     "VALUE": " 🔚"
   },
@@ -163,10 +159,6 @@ let cardReplacements = [
     "VALUE": "▶️ 🃏"
   },
   {
-    "KEYS": ["card is "],
-    "VALUE": ""
-  },
-  {
     "KEYS": ["choose", "choosing", "chose[n]?", "picking", "picked", "pick"],
     "VALUE": "⛏️"
   },
@@ -195,10 +187,6 @@ let cardReplacements = [
     "VALUE": "on"
   },
   {
-    "KEYS": ["all cards in", "every card in"],
-    "VALUE": ""
-  },
-  {
     "KEYS": ["at the start of your next turn", "next turn"],
     "VALUE": "⏩ ⏰"
   },
@@ -223,7 +211,7 @@ let cardReplacements = [
     "VALUE": "🔚"
   },
   {
-    "KEYS": ["this turn", "your turn"],
+    "KEYS": ["this turn", "you ", "your turn", "all cards in", "every card in", "card is ", "shuffle ((a|an) )?", "add ((a|an) )?", " you obtain[s]?", " obtain[s]?", "the ", "put "],
     "VALUE": ""
   },
   {
@@ -297,10 +285,6 @@ let cardReplacements = [
   {
     "KEYS": [" be "," your ", " you ", " way ", " an ", " the ", " there are ", " type of ", " they ", " of ", " with ", " is ", " are ", " any ", " have ", " would ", " use ", " than ", " will ", " finding ", " find[s]? ", " by ", "'s ", " has ", " then ", " feel "],
     "VALUE": " "
-  },
-  {
-    "KEYS": ["the ", "put "],
-    "VALUE": ""
   },
   {
     "KEYS": ["from[.]", "instead[.]", "instead [(]works once[)][.]", "them[.]", "a➕[.]"],
