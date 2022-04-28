@@ -83,7 +83,7 @@ let cardReplacements = [
     "VALUE": "🚫 "
   },
   {
-    "KEYS": ["receive attack damage", "are attacked", "attack deals unblocked damage", "unblocked attack damage"],
+    "KEYS": ["receive attack damage", "are attacked", "attack deals unblocked damage", "unblocked attack damage", "unblocked damage", "unblocked"],
     "VALUE": "🔪 🩸"
   },
   {
@@ -132,7 +132,7 @@ let cardReplacements = [
   },
   {
     "KEYS": [", otherwise "],
-    "VALUE": "; 🤷 ⛔, "
+    "VALUE": ", 🤷 ⛔, "
   },
   {
     "KEYS": ["if this ", "if you ", "if ", "whenever you ", "whenever a ", "whenever an ", "when ", "which "],
@@ -195,12 +195,12 @@ let cardReplacements = [
     "VALUE": "⌛ ⏰"
   },
   {
-    "KEYS": ["turn[s]?"],
-    "VALUE": "⏰"
-  },
-  {
     "KEYS": ["end your turn"],
     "VALUE": "⏰ 🔚"
+  },
+  {
+    "KEYS": ["turn[s]?"],
+    "VALUE": "⏰"
   },
   {
     "KEYS": [" end "],
@@ -347,7 +347,7 @@ let cardReplacements = [
     "VALUE": "🔋"
   },
   {
-    "KEYS": ["draw[n]?"],
+    "KEYS": ["draw[s|n]?"],
     "VALUE": "✍️"
   },
   {
@@ -371,7 +371,7 @@ let cardReplacements = [
     "VALUE": "🃏🃏🃏"
   },
   {
-    "KEYS": ["infinity"],
+    "KEYS": ["infinit[y|e]"],
     "VALUE": "♾️"
   },
   {
@@ -473,6 +473,10 @@ let cardReplacements = [
   {
     "KEYS": ["rightmost orb", "first orb"],
     "VALUE": "➡️➡️➡️ 🔮"
+  },
+  {
+    "KEYS": ["leftmost orb", "last orb"],
+    "VALUE": "⬅️⬅️⬅️ 🔮"
   },
   {
     "KEYS": ["orb slot[s]?", "slot[s]?"],
