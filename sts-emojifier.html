@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width">
+  <title>not replit</title>
+</head>
+
+<body>
+  Card or Relic Description: <input id="cardDesc" style="width: 100%">
+  <p id="out" style="font-size: 30px"></p>
+  <script>
+let cardReplacements = [
+  {
+    "KEYS": [" and ", " heal "],
+    "VALUE": " ➕ "
+  },
+  {
+    "KEYS": ["heal[.]"],
+    "VALUE": "➕ ❤️."
+  },
+  {
+    "KEYS": ["lose hp"],
+    "VALUE": "🩸"
+  },
+  {
+    "KEYS": ["permanently"],
+    "VALUE": "♾️"
+  },
+  {
+    "KEYS": ["number", "amount", "that many"],
+    "VALUE": "#️⃣"
+  },
+  {
+    "KEYS": ["for combat"],
+    "VALUE": "⏱️ 🥊"
+  },
+  {
+    "KEYS": ["can only be played if "],
+    "VALUE": "👍 ▶️ 🤷 "
+  },
+  {
+    "KEYS": ["additional", "more", "increase this card's", "increase[d|s]?", "gain", "gained", "brew[s]?", "restock[s]?", "adding"],
+    "VALUE": "➕"
+  },
+  {
+    "KEYS": ["decrease this card's", "lower this card's", "decrease", "reduce[d|s]?", "less", "remove[s|d]?", "lose[s]?", "lost"],
+    "VALUE": "➖"
+  },
+  {
+    "KEYS": ["in hand", "your hand", "hand"],
+    "VALUE": "🖐"
+  },
+  {
+    "KEYS": ["twice", "double"],
+    "VALUE": "for each 2"
+  },
+  {
+    "KEYS": ["thrice", "triple"],
+    "VALUE": "for each 3"
+  },
+  {
+    "KEYS": ["for each "],
+    "VALUE": "✖️ "
+  },
+  {
+    "KEYS": ["apply ", "normal "],
+    "VALUE": " "
+  },
+  {
+    "KEYS": ["exhaustive"],
+    "VALUE": "👻"
+  },
+  {
+    "KEYS": ["exhausted", "exhaust"],
+    "VALUE": "👻"
+  },
+  {
+    "KEYS": ["ethereal"],
+    "VALUE": "👻"
+  },
+  {
+    "KEYS": ["non-"],
+    "VALUE": "🚫 "
+  },
+  {
+    "KEYS": ["receive attack damage", "are attacked", "attack deals unblocked damage", "unblocked attack damage"],
+    "VALUE": "🔪 🩸"
+  },
+  {
+    "KEYS": ["unplayable", "do not"],
+    "VALUE": "🚫"
+  },
+  {
+    "KEYS": ["into"],
+    "VALUE": "➡️"
+  },
+  {
+    "KEYS": ["shuffle ((a|an) )?", "add ((a|an) )?", " you obtain[s]?", " obtain[s]?"],
+    "VALUE": ""
+  },
+  {
+    "KEYS": [" end"],
+    "VALUE": " 🔚"
+  },
+  {
+    "KEYS": ["wrath"],
+    "VALUE": "😡"
+  },
+  {
+    "KEYS": ["calm"],
+    "VALUE": "🧘"
+  },
+  {
+    "KEYS": ["exit your stance", "change stances"],
+    "VALUE": "🏋 ➡️"
+  },
+  {
+    "KEYS": ["if you are in"],
+    "VALUE": "🤷 🏋"
+  },
+  {
+    "KEYS": ["stance[s]?"],
+    "VALUE": "🏋"
+  },
+  {
+    "KEYS": ["plated armor"],
+    "VALUE": "🍽 🛡"
+  },
+  {
+    "KEYS": ["colorless"],
+    "VALUE": "⚪"
+  },
+  {
+    "KEYS": ["innate"],
+    "VALUE": "🧠"
+  },
+  {
+    "KEYS": ["copy of this card", "copy of that card", "copies of that card", "copy of it", "copy"],
+    "VALUE": "🤳"
+  },
+  {
+    "KEYS": [", otherwise "],
+    "VALUE": "; 🤷 ⛔, "
+  },
+  {
+    "KEYS": ["if this ", "if you ", "if ", "whenever you ", "whenever a ", "whenever an ", "when ", "which "],
+    "VALUE": "🤷 "
+  },
+  {
+    "KEYS": ["play a card"],
+    "VALUE": "▶️ 🃏"
+  },
+  {
+    "KEYS": ["play another card"],
+    "VALUE": "▶️ 🃏"
+  },
+  {
+    "KEYS": ["card is "],
+    "VALUE": ""
+  },
+  {
+    "KEYS": ["choose", "choosing", "chose[n]?"],
+    "VALUE": "⛏️"
+  },
+  {
+    "KEYS": ["while", "transfer", "equal", "same", "conserved between"],
+    "VALUE": "🔄"
+  },
+  {
+    "KEYS": [" top of your "],
+    "VALUE": " top your "
+  },
+  {
+    "KEYS": [" top ", " up "],
+    "VALUE": " ⬆️ "
+  },
+  {
+    "KEYS": ["up "],
+    "VALUE": "⬆️ "
+  },
+  {
+    "KEYS": ["a card in", "a card from"],
+    "VALUE": "card in"
+  },
+  {
+    "KEYS": ["onto the"],
+    "VALUE": "on"
+  },
+  {
+    "KEYS": ["all cards in", "every card in"],
+    "VALUE": ""
+  },
+  {
+    "KEYS": ["at the start of your next turn", "next turn"],
+    "VALUE": "⏩ ⏰"
+  },
+  {
+    "KEYS": ["at the start of your turn", "at the start of each turn", "each turn"],
+    "VALUE": "⏳ ⏰"
+  },
+  {
+    "KEYS": ["turn[s]?"],
+    "VALUE": "⏰"
+  },
+  {
+    "KEYS": ["at the end of your turn", "at the end of each turn", "at the end of turn"],
+    "VALUE": "⌛ ⏰"
+  },
+  {
+    "KEYS": ["end your turn"],
+    "VALUE": "⏰ 🔚"
+  },
+  {
+    "KEYS": ["at the end"],
+    "VALUE": "🔚"
+  },
+  {
+    "KEYS": ["this turn", "your turn"],
+    "VALUE": ""
+  },
+  {
+    "KEYS": ["have no", "without"],
+    "VALUE": "🚫"
+  },
+  {
+    "KEYS": ["scry"],
+    "VALUE": "👀"
+  },
+  {
+    "KEYS": ["damage"],
+    "VALUE": "⚔️"
+  },
+  {
+    "KEYS": ["block", "defend[s]?"],
+    "VALUE": "🛡"
+  },
+  {
+    "KEYS": ["evoke[s|d]?"],
+    "VALUE": "💥"
+  },
+  {
+    "KEYS": ["channel ", "channeled "],
+    "VALUE": "➕ "
+  },
+  {
+    "KEYS": ["played", "autoplay", "play"],
+    "VALUE": "▶️"
+  },
+  {
+    "KEYS": ["temporary hp"],
+    "VALUE": "⏱️ ❤️"
+  },
+  {
+    "KEYS": ["retained", "retain"],
+    "VALUE": "🤗"
+  },
+  {
+    "KEYS": ["deal[s]? "],
+    "VALUE": " "
+  },
+  {
+    "KEYS": ["raise your max hp", "raise max hp"],
+    "VALUE": "➕ 🔝 ❤️"
+  },
+  {
+    "KEYS": ["max hp", "hp", "healing"],
+    "VALUE": "🔝 ❤️"
+  },
+  {
+    "KEYS": [" card[s]?"],
+    "VALUE": " 🃏"
+  },
+  {
+    "KEYS": ["you cannot "],
+    "VALUE": "🚫 "
+  },
+  {
+    "KEYS": [" rather "],
+    "VALUE": ", 🚫 "
+  },
+  {
+    "KEYS": [" in combat", " rest of combat", " this combat", " hit[s]?"],
+    "VALUE": " 🥊"
+  },
+  {
+    "KEYS": ["each combat", "combat[s]?"],
+    "VALUE": "🥊"
+  },
+  {
+    "KEYS": [" be "," your ", " you ", " way ", " an ", " the ", " there are ", " type of ", " they ", " of ", " with ", " is ", " are ", " any ", " have ", " would ", " use ", " than ", " will ", " finding ", " find[s]? ", " by ", "'s ", " has ", " then ", " feel "],
+    "VALUE": " "
+  },
+  {
+    "KEYS": ["the ", "put "],
+    "VALUE": ""
+  },
+  {
+    "KEYS": ["from[.]", "instead[.]", "instead [(]works once[)][.]", "them[.]"],
+    "VALUE": "."
+  },
+  {
+    "KEYS": ["instead"],
+    "VALUE": "🤷"
+  },
+  {
+    "KEYS": ["upgrade[s|d]?"],
+    "VALUE": "🔨"
+  },
+  {
+    "KEYS": [" or "],
+    "VALUE": " 🛶 "
+  },
+  {
+    "KEYS": ["shiv[s]?", "attack[s|ing|ed]?", "strike[s]?"],
+    "VALUE": "🔪"
+  },
+  {
+    "KEYS": ["skill[s]?"],
+    "VALUE": "🤸"
+  },
+  {
+    "KEYS": ["insight"],
+    "VALUE": "🕵"
+  },
+  {
+    "KEYS": ["smite"],
+    "VALUE": "😠"
+  },
+  {
+    "KEYS": ["miracle[s]?"],
+    "VALUE": "😇"
+  },
+  {
+    "KEYS": ["safety"],
+    "VALUE": "👷 👍"
+  },
+  {
+    "KEYS": ["expunger"],
+    "VALUE": "✖️ 🧽"
+  },
+  {
+    "KEYS": ["through violence"],
+    "VALUE": "➡️⚔️➡️"
+  },
+  {
+    "KEYS": ["wound[s]?"],
+    "VALUE": "🩹"
+  },
+  {
+    "KEYS": ["burn"],
+    "VALUE": "🔥"
+  },
+  {
+    "KEYS": ["void"],
+    "VALUE": "⚫"
+  },
+  {
+    "KEYS": ["dazed"],
+    "VALUE": "💫"
+  },
+  {
+    "KEYS": ["energy", "[\\[][r|g|b|w|e][\\]]"],
+    "VALUE": "🔋"
+  },
+  {
+    "KEYS": ["draw[n]?"],
+    "VALUE": "✍️"
+  },
+  {
+    "KEYS": [" to ", " next ", " in ", " enter ", " at ", " on ", " from ", " become "],
+    "VALUE": " ➡️ "
+  },
+  {
+    "KEYS": ["times"],
+    "VALUE": "✖️"
+  },
+  {
+    "KEYS": ["discard", "below", "drop"],
+    "VALUE": "⤵️"
+  },
+  {
+    "KEYS": ["card", "pile"],
+    "VALUE": "🃏"
+  },
+  {
+    "KEYS": ["deck"],
+    "VALUE": "🃏🃏🃏"
+  },
+  {
+    "KEYS": ["infinity"],
+    "VALUE": "♾️"
+  },
+  {
+    "KEYS": [" it"],
+    "VALUE": " "
+  },
+  {
+    "KEYS": ["all enemies"],
+    "VALUE": "😈😈😈"
+  },
+  {
+    "KEYS": ["enemy", "enemies"],
+    "VALUE": "😈"
+  },
+  {
+    "KEYS": ["elite[s]?"],
+    "VALUE": "👹"
+  },
+  {
+    "KEYS": ["cost[s]?", "price[s]?"],
+    "VALUE": "💲"
+  },
+  {
+    "KEYS": ["random"],
+    "VALUE": "🎲"
+  },
+  {
+    "KEYS": ["fatal", "kill[s]?", "die[s]?", "defeated"],
+    "VALUE": "💀"
+  },
+  {
+    "KEYS": ["contains", "containing", "contain"],
+    "VALUE": "📥"
+  },
+  {
+    "KEYS": ["all", "every", "each"],
+    "VALUE": "always"
+  },
+  {
+    "KEYS": ["curse[s]?"],
+    "VALUE": "🤬"
+  },
+  {
+    "KEYS": ["statuses", "status", "immune", "no longer works", "no longer", "negate[d]?", "prevented", "prevent[s]?"],
+    "VALUE": "⛔"
+  },
+  {
+    "KEYS": ["rest site[s]?", "rest"],
+    "VALUE": "😴"
+  },
+  {
+    "KEYS": ["gold"],
+    "VALUE": "🪙"
+  },
+  {
+    "KEYS": ["spend"],
+    "VALUE": "➖"
+  },
+  {
+    "KEYS": ["merchant[s]?", "shop[s]?"],
+    "VALUE": "💸"
+  },
+  {
+    "KEYS": ["potion[s]?"],
+    "VALUE": "🧪"
+  },
+  {
+    "KEYS": ["upon pickup", "on pickup", "pickup", "pick up"],
+    "VALUE": "🛻"
+  },
+  {
+    "KEYS": ["may", "can", "[?]"],
+    "VALUE": "❓"
+  },
+  {
+    "KEYS": ["start", "time"],
+    "VALUE": "⏳"
+  },
+  {
+    "KEYS": ["climb a floor"],
+    "VALUE": "⬆️ 🪜"
+  },
+  {
+    "KEYS": ["frost"],
+    "VALUE": "❄️"
+  },
+  {
+    "KEYS": ["lightning"],
+    "VALUE": "⚡"
+  },
+  {
+    "KEYS": ["dark"],
+    "VALUE": "🌑"
+  },
+  {
+    "KEYS": ["plasma"],
+    "VALUE": "🟢"
+  },
+  {
+    "KEYS": ["rightmost orb"],
+    "VALUE": "➡️➡️➡️ 🔮"
+  },
+  {
+    "KEYS": ["orb slot[s]?", "slot[s]?"],
+    "VALUE": "⭕"
+  },
+  {
+    "KEYS": ["orb[s]?"],
+    "VALUE": "🔮"
+  },
+  {
+    "KEYS": ["now", "that", "this"],
+    "VALUE": "👇"
+  },
+  {
+    "KEYS": ["power"],
+    "VALUE": "⏻"
+  },
+  {
+    "KEYS": [" x "],
+    "VALUE": " 🔋 "
+  },
+  {
+    "KEYS": [" x[+]"],
+    "VALUE": " 🔋➕"
+  },
+  {
+    "KEYS": ["encountered", "encounter[s]?", "viewing", "view[s]?", "shown", "see"],
+    "VALUE": "👁️"
+  },
+  {
+    "KEYS": ["room[s]?"],
+    "VALUE": "🏠"
+  },
+  {
+    "KEYS": ["treasure[s]?", "chest[s]?", "reward[s]?"],
+    "VALUE": "💰"
+  },
+  {
+    "KEYS": ["temporary", "during"],
+    "VALUE": "⏱️"
+  },
+  {
+    "KEYS": ["rare", "special", "transform", "unique", "triggers s passive", "trigger passive ability"],
+    "VALUE": "✨"
+  },
+  {
+    "KEYS": ["boss"],
+    "VALUE": "🧑‍💼"
+  },
+  {
+    "KEYS": ["relic[s]?"],
+    "VALUE": "💍"
+  },
+  {
+    "KEYS": ["discount"],
+    "VALUE": "⬇️ 💲"
+  },
+  {
+    "KEYS": ["screen[s]?"],
+    "VALUE": "📺"
+  },
+  {
+    "KEYS": ["intent[s]?"],
+    "VALUE": "💭"
+  },
+  {
+    "KEYS": ["debuff[s]?"],
+    "VALUE": "👎 🌀"
+  },
+  {
+    "KEYS": ["chance[s]?"],
+    "VALUE": "🍀"
+  },
+  {
+    "KEYS": ["color[s]?"],
+    "VALUE": "🌈"
+  },
+  {
+    "KEYS": ["empty"],
+    "VALUE": "📂"
+  },
+  {
+    "KEYS": ["open"],
+    "VALUE": "📬"
+  },
+  {
+    "KEYS": ["previous"],
+    "VALUE": "⬅️"
+  },
+  {
+    "KEYS": ["exit[s]?", "removal service", "ignore"],
+    "VALUE": "❌"
+  },
+  {
+    "KEYS": ["break"],
+    "VALUE": "💔"
+  },
+  {
+    "KEYS": ["take[s|n]?", "receive[s]?"],
+    "VALUE": "👐"
+  },
+  {
+    "KEYS": ["future"],
+    "VALUE": "🕓"
+  },
+  {
+    "KEYS": ["traveling", "travel[s]?"],
+    "VALUE": "🚶"
+  },
+  {
+    "KEYS": ["per"],
+    "VALUE": "➗"
+  },
+  {
+    "KEYS": ["effective(ness)?", "effect[s]?"],
+    "VALUE": "👍"
+  },
+  {
+    "KEYS": ["order"],
+    "VALUE": "🔠"
+  },
+  {
+    "KEYS": ["product[s]?"],
+    "VALUE": "📦"
+  },
+  {
+    "KEYS": ["other"],
+    "VALUE": "🚫 👇"
+  },
+  {
+    "KEYS": ["talkative", "talking", "talk"],
+    "VALUE": "💬"
+  },
+  {
+    "KEYS": ["unpleasant"],
+    "VALUE": "👎"
+  },
+  {
+    "KEYS": ["appear"],
+    "VALUE": "🎇"
+  },
+  {
+    "KEYS": ["smith"],
+    "VALUE": "⚒️"
+  },
+  {
+    "KEYS": ["path[s]?"],
+    "VALUE": "🛣️"
+  },
+  {"KEYS":["first"],"VALUE":"#️⃣1️⃣"},
+  //{"KEYS":[" a "," an "],"VALUE":" 1️⃣ "},
+  {"KEYS":[" a "," an "],"VALUE":" "},
+  {"KEYS":["one","1","single"],"VALUE":"1️⃣"},
+  {"KEYS":["two","2"],"VALUE":"2️⃣"},
+  {"KEYS":["three","3"],"VALUE":"3️⃣"},
+  {"KEYS":["four","for","4"],"VALUE":"4️⃣"},
+  {"KEYS":["five","5"],"VALUE":"5️⃣"},
+  {"KEYS":["six","6"],"VALUE":"6️⃣"},
+  {"KEYS":["seven","7"],"VALUE":"7️⃣"},
+  {"KEYS":["eight","8"],"VALUE":"8️⃣"},
+  {"KEYS":["nine","9"],"VALUE":"9️⃣"},
+  {"KEYS":["zero","0"],"VALUE":"0️⃣"},
+  {"KEYS":["%"],"VALUE":"％"},
+  {"KEYS":["always"],"VALUE":"💯"},
+  {
+    "KEYS": ["➕➕", "➕ ➕"],
+    "VALUE": "➕"
+  }
+];
+
+let result = document.getElementById("out");
+function updateOut(){
+  let desc = document.getElementById("cardDesc").value.toLowerCase();
+  for(let r of cardReplacements){
+    for(let k of r["KEYS"]){
+      desc = desc.replace(new RegExp(k, "g"), r["VALUE"]);
+    }
+  }
+  for(let b of ["weak", "vulnerable", "strength", "frail", "dexterity", "thorns", "mantra", "focus", "poison", "artifact", "intangible", "confused"]){
+    desc = desc.replaceAll(b, "<img src='StS/"+b.replaceAll(" ", "_")+".png' style='width: 50px; height: 50px;'>");
+  }
+  desc = desc.replace("ened.", "");
+  result.innerHTML = desc;
+};
+
+document.getElementById("cardDesc").addEventListener("change", updateOut);
+  </script>
+</body>
+
+</html>
