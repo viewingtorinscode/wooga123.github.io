@@ -32,12 +32,12 @@ let cardReplacements = [
     "VALUE": "#️⃣"
   },
   {
-    "KEYS": ["for combat"],
-    "VALUE": "⏱️ 🥊"
-  },
-  {
     "KEYS": ["can only be played if "],
     "VALUE": "👍 ▶️ 🤷 "
+  },
+  {
+    "KEYS": ["targeting", "targeted", "target[s]?"],
+    "VALUE": "🎯"
   },
   {
     "KEYS": ["additional", "more", "increase this card's", "increase[d|s]?", "gained", "gain", "brew[s]?", "restock[s]?", "adding", "added", "add", "get", "plus"],
@@ -80,7 +80,7 @@ let cardReplacements = [
     "VALUE": "👻"
   },
   {
-    "KEYS": ["non-"],
+    "KEYS": ["non-", "except "],
     "VALUE": "🚫 "
   },
   {
@@ -88,8 +88,12 @@ let cardReplacements = [
     "VALUE": "🔪 🩸"
   },
   {
-    "KEYS": ["unplayable", "do not"],
+    "KEYS": ["do not"],
     "VALUE": "🚫"
+  },
+  {
+    "KEYS": ["cannot ", "can't "],
+    "VALUE": "⛔ "
   },
   {
     "KEYS": ["into"],
@@ -152,7 +156,7 @@ let cardReplacements = [
     "VALUE": "⛏️ "
   },
   {
-    "KEYS": ["while", "transfer", "equal", "same", "conserved between", "shuffle"],
+    "KEYS": ["while", "transfer[s]?", "equal[s]?", "same", "conserved between", "shuffle[d|s]?"],
     "VALUE": "🔄"
   },
   {
@@ -204,7 +208,7 @@ let cardReplacements = [
     "VALUE": " 🔚 "
   },
   {
-    "KEYS": ["this turn", "you ", "your turn", "all cards in", "every card in", "card is ", "shuffle ((a|an) )?", "add ((a|an) )?", " you obtain[s]?", " obtain[s]?", "the ", "put "],
+    "KEYS": ["this turn", "you ", "your turn", "all cards in", "every card in", "card is ", "shuffle ((a|an) )?", "add ((a|an) )?", " you obtain[s]?", " obtain[s]?", "the ", "put ", "enter ", "entering "],
     "VALUE": ""
   },
   {
@@ -260,15 +264,11 @@ let cardReplacements = [
     "VALUE": "❤️"
   },
   {
-    "KEYS": ["you cannot "],
-    "VALUE": "🚫 "
-  },
-  {
     "KEYS": [" rather "],
     "VALUE": ", 🚫 "
   },
   {
-    "KEYS": [" in combat", " rest of combat", " this combat", " hit[s]?"],
+    "KEYS": [" in combat", " this combat", " hit[s]?"],
     "VALUE": " 🥊"
   },
   {
@@ -330,6 +330,10 @@ let cardReplacements = [
   {
     "KEYS": ["flash steel"],
     "VALUE": "📸 ⚔️"
+  },
+  {
+    "KEYS": ["injuries", "injury"],
+    "VALUE": "🤕"
   },
   {
     "KEYS": ["wound[s]?"],
@@ -416,7 +420,7 @@ let cardReplacements = [
     "VALUE": "🤬"
   },
   {
-    "KEYS": ["statuses", "status", "immune", "no longer works", "no longer", "negate[d]?", "prevented", "prevent[s]?"],
+    "KEYS": ["statuses", "status", "immune", "no longer works", "no longer", "negate[d]?", "prevented", "prevent[s]?", "un▶️able"],
     "VALUE": "⛔"
   },
   {
@@ -516,7 +520,7 @@ let cardReplacements = [
     "VALUE": "💰"
   },
   {
-    "KEYS": ["temporary", "during"],
+    "KEYS": ["temporary", "during", "until"],
     "VALUE": "⏱️"
   },
   {
@@ -536,6 +540,10 @@ let cardReplacements = [
     "VALUE": "⬇️ 💲"
   },
   {
+    "KEYS": ["refund"],
+    "VALUE": "➕ 💲"
+  },
+  {
     "KEYS": ["screen[s]?"],
     "VALUE": "📺"
   },
@@ -546,6 +554,10 @@ let cardReplacements = [
   {
     "KEYS": ["debuff[s]?"],
     "VALUE": "👎 🌀"
+  },
+  {
+    "KEYS": ["debuff[s]?"],
+    "VALUE": "👍 🌀"
   },
   {
     "KEYS": ["chance[s]?"],
@@ -566,6 +578,10 @@ let cardReplacements = [
   {
     "KEYS": ["previous"],
     "VALUE": "⬅️"
+  },
+  {
+    "KEYS": ["last"],
+    "VALUE": "➡️➡️➡️"
   },
   {
     "KEYS": ["exit[s]?", "removal service", "removal", "removing", "remove[d|s]?", "ignore"],
@@ -631,9 +647,9 @@ let cardReplacements = [
     "KEYS": ["fill[s]?"],
     "VALUE": "⚗️"
   },
-  {"KEYS":["first"],"VALUE":"#️⃣1️⃣"},
-  //{"KEYS":[" a "," an "],"VALUE":" 1️⃣ "},
-  {"KEYS":[" a "," an "],"VALUE":" "},
+  {"KEYS":["first"],"VALUE":"#️⃣ 1️⃣"},
+  {"KEYS":[" a "," an "],"VALUE":" 1️⃣ "},
+  //{"KEYS":[" a "," an "],"VALUE":" "},
   {"KEYS":["one","1","single"],"VALUE":"1️⃣"},
   {"KEYS":["two","2"],"VALUE":"2️⃣"},
   {"KEYS":["three","3"],"VALUE":"3️⃣"},
