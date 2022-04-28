@@ -8,6 +8,7 @@
 <body>
   Paste or write a card, relic, or potion effect here: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
   <p id="out" style="font-size: 30px"></p>
+  <button id="copier" onclick="navigator.clipboard.writeText(document.getElementById('out').innerHTML)">Copy</button>
   <script>
 let cardReplacements = [
   {
@@ -155,7 +156,7 @@ let cardReplacements = [
     "VALUE": "⛏️ "
   },
   {
-    "KEYS": ["while", "transfer", "equal", "same", "conserved between"],
+    "KEYS": ["while", "transfer", "equal", "same", "conserved between", "shuffle"],
     "VALUE": "🔄"
   },
   {
@@ -279,7 +280,7 @@ let cardReplacements = [
     "VALUE": "🥊"
   },
   {
-    "KEYS": [" be "," your ", " you ", " way ", " an ", " the ", " there are ", " type of ", " they ", " of ", " with ", " is ", " are ", " any ", " have ", " would ", " use ", " than ", " will ", " finding ", " find[s]? ", " by ", "'s ", " has ", " then ", " feel "],
+    "KEYS": [" be "," your ", " you ", " way ", " an ", " the ", " there are ", " type of ", " they ", " of ", " with ", " is ", " are ", " any ", " have ", " would ", " use ", " than ", " will ", " finding ", " find[s]? ", " by ", "'s ", " has ", " then ", " feel ", " its "],
     "VALUE": " "
   },
   {
@@ -665,9 +666,12 @@ function updateOut(){
   desc = desc.replaceAll("met💯icize", "<img src='StS/metallicize.png' style='width: 50px; height: 50px;'>");
   desc = desc.replace("ened.", "");
   result.innerHTML = desc;
+  if(desc.length) {document.getElementById("copier").style.display = "block";}
+  else {document.getElementById("copier").style.display = "none";}
 };
 
 document.getElementById("cardDesc").addEventListener("change", updateOut);
+setInterval(updateOut, 100);
   </script>
 </body>
 </html>
