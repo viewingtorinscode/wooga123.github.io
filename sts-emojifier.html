@@ -1,14 +1,12 @@
 <!DOCTYPE html>
-<html>
-
+<html style="color: white; background: #222;">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
   <title>not replit</title>
 </head>
-
 <body>
-  Card or Relic Description: <input id="cardDesc" style="width: 100%">
+  Card or Relic Description: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
   <p id="out" style="font-size: 30px"></p>
   <script>
 let cardReplacements = [
@@ -297,7 +295,7 @@ let cardReplacements = [
     "VALUE": ""
   },
   {
-    "KEYS": ["from[.]", "instead[.]", "instead [(]works once[)][.]", "them[.]"],
+    "KEYS": ["from[.]", "instead[.]", "instead [(]works once[)][.]", "them[.]", "a➕[.]"],
     "VALUE": "."
   },
   {
@@ -679,5 +677,4 @@ function updateOut(){
 document.getElementById("cardDesc").addEventListener("change", updateOut);
   </script>
 </body>
-
 </html>
