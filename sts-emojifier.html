@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>StS Card Emojifier</title>
+  <title>StS Card and Relic Emojifier</title>
 </head>
 <body>
   Card or Relic Description: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
@@ -75,15 +75,7 @@ let cardReplacements = [
     "VALUE": " "
   },
   {
-    "KEYS": ["exhaustive"],
-    "VALUE": "👻"
-  },
-  {
-    "KEYS": ["exhausted", "exhaust"],
-    "VALUE": "👻"
-  },
-  {
-    "KEYS": ["ethereal"],
+    "KEYS": ["exhausted", "exhaustive", "exhaust", "ethereal"],
     "VALUE": "👻"
   },
   {
@@ -367,7 +359,7 @@ let cardReplacements = [
     "VALUE": "✖️"
   },
   {
-    "KEYS": ["discard", "below", "drop"],
+    "KEYS": ["discarded", "discard", "below", "drop"],
     "VALUE": "⤵️"
   },
   {
@@ -411,15 +403,15 @@ let cardReplacements = [
     "VALUE": "💀"
   },
   {
-    "KEYS": ["contains", "containing", "contain"],
+    "KEYS": ["contained", "containing", "contain[s]?"],
     "VALUE": "📥"
   },
   {
-    "KEYS": ["all", "every", "each"],
+    "KEYS": ["all", "every"],
     "VALUE": "always"
   },
   {
-    "KEYS": ["curse[s]?"],
+    "KEYS": ["curse[s|d]?"],
     "VALUE": "🤬"
   },
   {
@@ -431,7 +423,7 @@ let cardReplacements = [
     "VALUE": "😴"
   },
   {
-    "KEYS": ["gold"],
+    "KEYS": ["gold", "money"],
     "VALUE": "🪙"
   },
   {
@@ -440,7 +432,7 @@ let cardReplacements = [
   },
   {
     "KEYS": ["merchant[s]?", "shop[s]?"],
-    "VALUE": "💸"
+    "VALUE": "💵🧑‍💼"
   },
   {
     "KEYS": ["potion[s]?"],
