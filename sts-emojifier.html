@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width">
-  <title>StS Card Emojifier</title>
+  <title>StS Emojifier</title>
 </head>
 <body>
-  Card/Relic/Potion Effect: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
+  Paste or write a card, relic, or potion effect here: <input id="cardDesc" style="width: 100%; color: white; background: #555;">
   <p id="out" style="font-size: 30px"></p>
   <script>
 let cardReplacements = [
@@ -151,8 +151,12 @@ let cardReplacements = [
     "VALUE": "▶️ 🃏"
   },
   {
-    "KEYS": ["choose", "choosing", "chose[n]?", "picking", "picked", "pick"],
+    "KEYS": ["choose", "choosing", "chose[n]?", "picking", "picked"],
     "VALUE": "⛏️"
+  },
+  {
+    "KEYS": ["pick "],
+    "VALUE": "⛏️ "
   },
   {
     "KEYS": ["while", "transfer", "equal", "same", "conserved between"],
