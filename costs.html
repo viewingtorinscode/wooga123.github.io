@@ -65,7 +65,7 @@
             .attack-nerf::before { content: url(StS/intent-attacknerf.png); }
             .attack-buff::before { content: url(StS/intent-attackbuff.png); }
             .block-nerf::before { content: url(StS/intent-blocknerf.png); }
-            #cardModal, #bossModal, #selectionModal {
+            #cardModal, #bossModal, #selectionModal, #msModal {
                 position: fixed;
                 z-index: 1;
                 left: 0;
@@ -75,7 +75,7 @@
                 overflow: auto;
                 background-color: rgba(0,0,0,0.7);
             }
-            #cardModalContent, #bossModalContent, #selectionModalContent {
+            #cardModalContent, #bossModalContent, #selectionModalContent, #msModalContent {
                 background-color: #555;
                 margin: 15% auto;
                 padding: 20px;
@@ -88,17 +88,20 @@
                 animation: grow 0.8s infinite;
                 margin: 0px 0px 30px 140px;
             }
-            #startButton, #rulesButton, #keyButton {
+            .titleButton {
                 text-align: center;
                 width: 100%;
                 border: none;
                 font-size: 16px;
                 transition: 0.2s ease-in-out;
             }
-            #startButton:hover, #rulesButton:hover, #keyButton:hover {
+            .titleButton:hover {
                 font-size: 21px;
                 color: black;
                 background: lime;
+                font-weight: bold;
+            }
+            .selection {
                 font-weight: bold;
             }
             @keyframes grow {
@@ -144,6 +147,9 @@
         <div id="selectionModal" style="display: none;">
             <div id="selectionModalContent"></div>
         </div>
+        <div id="msModal" style="display: none;">
+            <div id="msModalContent"></div>
+        </div>
         <div id="cardModal" style="display: none;">
             <div id="cardModalContent">
                 <p>Choose a card to add to your deck:</p>
@@ -170,10 +176,12 @@
         <br /><br />
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1"> Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
-            <button id="startButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(sound)</span></button>
-            <button id="rulesButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none';">Instructions</button>
-            <button id="keyButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Keybinds</button>
-            <button id="keyButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none';">Ascension</button>
+            <button class="titleButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(SOUND WARNING!!!)</span></button>
+            <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions</button>
+            <button class="titleButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Keybinds</button>
+            <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Ascension</button>
+            <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'block';">Settings</button>
+
             <pre id="rulesScreen" style="display: none;">
 When you begin you will be on the Map. Click a highlighted node to travel there.
 In combat, your cards will be shown on the left and the enemies will be on the right.
@@ -226,6 +234,13 @@ Modifiers:
 * 20- Bosses have stronger abilities.
 
 Selected level: <input id="ascensionLevel" value="0" type="number" style="width: 70px">
+            </pre>
+            <pre id="settingsScreen" style="display: none;">
+Choose the cards that you want to play with:
+<input type="checkbox" id="useIronclad" checked> Ironclad Cards
+<input type="checkbox" id="useSilent" checked> Silent Cards
+<input type="checkbox" id="useWatcher" checked> Watcher Cards (incomplete)
+<button onclick="updateCardList();">Save</button>
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -285,6 +300,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
             let choice = x => x[Math.floor(Math.random()*x.length)];
             let resolvePromise;
             let modalNames = [];
+            let multiChoice = [];
             function showPopup(displayText) {
                 getId("selectionModal").style.display = "block";
                 getId("selectionModalContent").innerHTML = "";
@@ -299,9 +315,9 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
                 modalNames = [];
                 for(let c of displayCards) {
-                    modalNames.push(c.name);
+                    modalNames.push(c.number);
                     let cardButton = document.createElement("button");
-                    cardButton.setAttribute("onclick", "resolvePromise('"+c.name+"');");
+                    cardButton.setAttribute("onclick", "resolvePromise("+c.number+");");
                     cardButton.setAttribute("class", c.type+" tt");
                     cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
                     getId("selectionModalContent").appendChild(cardButton);
@@ -320,14 +336,54 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 let chosenCard;
                 await promise.then((result) => {
                     getId("selectionModal").style.display = "none";
-                    chosenCard = displayCards[displayCards.map(x=>x.name).indexOf(result)];
+                    chosenCard = displayCards[displayCards.map(x=>x.number).indexOf(result)];
                 });
                 return chosenCard;
             }
-            async function choose(c, p) {
+            async function showMultiChoiceModal(displayCards, prompt) {
+                getId("msModal").style.display = "block";
+                getId("msModalContent").innerHTML = prompt + "<br/>";
+                multiChoice = [];
+                for(let c of displayCards) {
+                    let cardButton = document.createElement("button");
+                    cardButton.setAttribute("onclick", `
+let num = ${c.number};
+if(multiChoice.includes(num)) {
+    multiChoice.splice(multiChoice.indexOf(num)); this.classList.remove('selection');
+} else {
+    multiChoice = [...multiChoice, num]; this.classList.add('selection');
+}`
+                    );
+                    cardButton.setAttribute("class", c.type+" tt");
+                    cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
+                    getId("msModalContent").appendChild(cardButton);
+                }
+                let confirmButton = document.createElement("button");
+                confirmButton.setAttribute("onclick", "resolvePromise(multiChoice);");
+                confirmButton.setAttribute("class", "Status");
+                confirmButton.innerHTML = "Confirm";
+                let BR = document.createElement("br");
+                getId("msModalContent").appendChild(BR);
+                getId("msModalContent").appendChild(confirmButton);
+                let promise = new Promise((resolve, reject) => {
+                    resolvePromise = resolve;
+                });
+                let chosenCards;
+                await promise.then((result) => {
+                    getId("msModal").style.display = "none";
+                    chosenCards = displayCards.filter(x=>result.includes(x.number));
+                });
+                return chosenCards;
+            }
+            async function choose(c, p, m=false) {
                 if(c.length >= 1) {
-                    let wooga = await showCardChoiceModal(c, p);
-                    return wooga;
+                    if(m == true) {
+                        let woogas = await showMultiChoiceModal(c, p);
+                        return woogas;
+                    } else {
+                        let wooga = await showCardChoiceModal(c, p);
+                        return wooga;
+                    }
                 } else {
                     return null;
                 }
@@ -511,15 +567,21 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 play() {
                     let played = false;
                     if(this.cost == "X") {
+                        let useCard = function(){this.use(target);}
                         for(let x=0; x<energy; x++) {
-                            this.use(target);
+                            useCard();
                         }
+                        ifRelic("Chemical X", useCard);
+                        ifRelic("Chemical X", useCard);
                         energy = 0;
                         played = true;
                     } else {
                         let newCost = this.cost;
                         if(this.flags.includes("blood4blood")) {
                             newCost = Math.max(0, 4-stats.timesLostHp);
+                        }
+                        if(hasBuff("Corruption") > 0 && this.type == "Skill") {
+                            newCost = 0;
                         }
                         if(energy >= newCost && !(this.flags.includes("unplayable"))) {
                             energy -= newCost;
@@ -529,7 +591,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     }
                     if(played) {
                         hand.splice(hand.indexOf(this), 1);
-                        if(this.flags.includes("exhausted")) {
+                        if(this.flags.includes("exhausted") || (hasBuff("Corruption") > 0 && this.type == "Skill")) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             if(hasBuff("Feel No Pain") > 0) {gainBuff("Block", hasBuff("Feel No Pain"));}
@@ -542,6 +604,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     updateHtml();
                 }
                 play_success() {
+                    stats.lastType = this.type;
                     if(hand.length == 0) {ifRelic("Unceasing Top", function(){drawCard()})}
                     if(hasBuff("Thousand Cuts") > 0) {for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}}
                     if(hasBuff("After Image") > 0) {gainBuff("Block", hasBuff("After Image"));}
@@ -651,6 +714,8 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     let finalAmt = amt;
                     if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
+                    if(hasBuff("Wrath")) {finalAmt *= 2;}
+                    if(hasBuff("Divinity")) {finalAmt *= 3;}
                     finalAmt += this.hasBuff("Strength");
                     finalAmt -= this.hasBuff("Minus Strength");
                     let ub = finalAmt - hasBuff("Block");
@@ -706,6 +771,9 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
                 if(!foundIt) {buffs.push({name: name, amt: newAmt});}
+                if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity");}
+                if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
+                if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3;}
             }
             function loseBuff(name, amt=9999) {
                 let prevAmt;
@@ -713,17 +781,19 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                     if(b.name == name) {
                         prevAmt = b.amt;
                         if(amt >= b.amt) {buffs.splice(buffs.indexOf(b), 1);} else {b.amt -= amt;}
+                        if(name == "Calm") {energy += 2;}
                     }
                 }
             }
             
-            function calcYourDamage(enemy, amt, shiv=false, strike=false) {
+            function calcYourDamage(enemy, amt, shiv=false, strike=false, actuallyDeal=false) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy");}
                 if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3})}
                 if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
-                if(target.hasBuff("Flight")) { finalAmt = Math.round(finalAmt*0.5); enemy.loseBuff("Flight", 1); }
+                if(target.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
+                if(hasBuff("Wrath")) {finalAmt *= 2;}
                 if(finalAmt > 0) {
                     finalAmt += hasBuff("Strength") + hasBuff("Vigor");
                     finalAmt -= hasBuff("Minus Strength");
@@ -740,7 +810,7 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
             }
             
             function dealDamage(enemy, amt, shiv=false, strike=false) {
-                let finalAmt = calcYourDamage(enemy, amt, shiv, strike);
+                let finalAmt = calcYourDamage(enemy, amt, shiv, strike, true);
                 let dealt = Math.max(0, finalAmt - enemy.hasBuff("Block"));
                 enemy.hp -= dealt;
                 Promise.resolve(enemy.loseBuff("Block", finalAmt));
@@ -804,7 +874,8 @@ Selected level: <input id="ascensionLevel" value="0" type="number" style="width:
                 "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
                 "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
                 "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
-                "Confused": "All card costs become randomized."
+                "Confused": "All card costs become randomized.",
+                "Corruption": "Skills cost 0, but they Exhaust."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused"];
             let statusCards = {
@@ -1355,8 +1426,11 @@ updateShopScreen();
             let offering = () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.", function(enemy){
                 hp -= 6; energy += 2; drawCard(3);
             }, ["exhausted"]);
-            let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal 8 HP. Exhaust.", function(enemy){
-                dealDamage(enemy, 8); hp = Math.min(maxHp, hp + 8);
+            let reaper = () => new Card("Reaper", 2, "Attack", "Deal [DAM8] damage. Heal that much HP. Exhaust.", function(enemy){
+                hp = Math.min(maxHp, hp + calcYourDamage(enemy, 8)); dealDamage(enemy, 8);
+            }, ["exhausted"]);
+            let corruption = () => new Card("Corruption", 3, "Power", "Skills cost 0. Whenever you play a Skill, exhaust it.", function(enemy) {
+                gainBuff("Corruption", 1);
             }, ["exhausted"]);
             
             //
@@ -1557,12 +1631,45 @@ updateShopScreen();
             let stormOfSteel = () => new Card("Storm of Steel", 1, "Skill", "Replace your hand with Shivs.", function(enemy){
                 let handSize = hand.length;
                 for(let i of hand) {discardPile.push(i);}
+                hand = [];
                 addShivs(handSize);
             });
             let toolsOfTheTrade = () => new Card("Tools of the Trade", 1, "Power", "At the start of your turn, draw a card and discard a card.", function(enemy){
                 gainBuff("Tools of the Trade", 1);
             }, ["exhausted"]);
-            
+            //
+            // Watcher Commons
+            //
+            let bowlingBash = () => new Card("Bowling Bash", 1, "Attack", "Deal [DAM7] damage for each enemy in combat.", function(enemy){
+                dealDamage(enemy, 7 * enemies.length);
+            });
+            let consecrate = () => new Card("Consecrate", 0, "Attack", "Deal [DAM5] damage to ALL enemies.", function(enemy){
+                for(let i of enemies){dealDamage(i, 5);}
+            });
+            let crescendo = () => new Card("Crescendo", 1, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
+                gainBuff("Wrath", 1);
+            }, ["retain"]);
+            let crushJoints = () => new Card("Crush Joints", 1, "Attack", "Deal [DAM8] damage. If the last card played this combat was a Skill, apply 1 Vulnerable.", function(enemy){
+                dealDamage(enemy, 8); if(stats.lastType == "Skill") {enemy.gainBuff("Vulnerable", 1);}
+            });
+            let cutThroughFate = () => new Card("Cut Through Fate", 1, "Attack", "Deal [DAM7] damage. Scry 2. Draw a card.", function(enemy){
+                dealDamage(enemy, 7); scry(2); drawCard(1);
+            });
+            let emptyBody = () => new Card("Empty Body", 1, "Skill", "Gain [BLK7] Block. Exit your stance.", function(enemy){
+                gainBuff("Block", 7); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            });
+            let emptyFist = () => new Card("Empty Fist", 1, "Attack", "Deal [DAM9] damage. Exit your stance.", function(enemy){
+                dealDamage(enemy, 9); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            });
+            //let evaluate = () => new Card("Evaluate", 1, "Skill", 
+            //
+            // Watcher Uncommons
+            //
+            //todo
+            //
+            // Watcher Rares
+            //
+            //todo
             //
             // Upgraded Cards
             //
@@ -1916,8 +2023,28 @@ updateShopScreen();
                 getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
-            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
+            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror/*WATCHER GOES HERE*/]);
+            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade/*WATCHER GOES HERE*/]);
+            
+            function updateCardList() {
+                let normals = [];
+                let rares = [];
+                if(getId("useIronclad").checked == true) {
+                    normals = [...normals, bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind];
+                    rares = [...rares, barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper];
+                }
+                if(getId("useSilent").checked == true) {
+                    normals = [...normals, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror];
+                    rares = [...rares, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade];
+                }
+                if(getId("useWatcher").checked == true) {
+                    // WATCHER GOES HERE
+                }
+                //if(!normals.length) {normals = [() => new Card("Uh Oh!", 0, "Skill", "Gain [BLK1] Block. <i>“Oops!”</i>", function(enemy){gainBuff("Block", 1)})];}
+                //if(!rares.length) {rares = [() => new Card("Uh Oh!", 0, "Skill", "Gain [BLK1] Block. <i>“Oops!”</i>", function(enemy){gainBuff("Block", 1)})];}
+                randCard = () => choice(normals);
+                randRareCard = () => choice(rares);
+            }
             
             function addCard() {
                 let newCards;
@@ -1937,6 +2064,11 @@ updateShopScreen();
                     modalCard.appendChild(cardTooltip);
                 }
             };
+            async function scry(amount) {
+                let chosen = await choose(drawPile.filter(x=>drawPile.indexOf(x) < amount), "Choose cards to discard.", true);
+                drawPile = drawPile.filter(x=>chosen.includes(x));
+                discardPile = [...discardPile, ...chosen];
+            }
             function finishAddCard(cardNumber) {
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let c = possibleCards[cardNumber];
@@ -2023,13 +2155,14 @@ updateShopScreen();
                 {name: "Pantograph", desc: "Heal 25 HP at the start of Boss combats."},
                 {name: "Pear", desc: "On pickup, gain 10 max HP."},
                 {name: "Shuriken", desc: "When you play 3 Attacks in a turn, gain 1 Strength."},
-                {name: "Singing Bowl", desc: "When you skip the card reward, gain 2 max HP."},
+                {name: "Singing Bowl", desc: "When you view and skip the card reward, gain 2 max HP."},
                 {name: "Strike Dummy", desc: "Strikes deal 3 more damage."},
                 {name: "Sundial", desc: "When you shuffle your deck, gain 1 energy."},
                 {name: "Toxic Egg", desc: "When you add a Skill to your deck, upgrade it."},
                 {name: "White Beast Statue", desc: "Potions always drop after combat."},
                 {name: "Self-Forming Clay", desc: "When you lose HP in combat, gain 3 Block next turn."},
-                {name: "Ninja Scroll", desc: "Start each combat with 3 Shivs in hand."}
+                {name: "Ninja Scroll", desc: "Start each combat with 3 Shivs in hand."},
+                {name: "Chemical X", desc: "Cards that cost X repeat their effect 2 more times."}
             ];
             let rareRelicPool = [
                 {name: "Bird-Faced Urn", desc: "When you play a Power, heal 2 HP."},
@@ -2081,7 +2214,7 @@ updateShopScreen();
             let hp = 70;
             let maxHp = 70;
             let buffs = [];
-            let stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: false};
+            let stats = {timesLostHp: 0, hasAttacked: false, attacksThisTurn: 999, skillsThisTurn: 999, rested: false, lastType: "None"};
             let gold = 0;
             let mapX = 2;
             let mapY = 0;
@@ -2129,47 +2262,6 @@ updateShopScreen();
                 map.push(["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ]);
                 map.push(["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]);
             }
-            
-            /*
-            let gistContent;
-            function getGist() {
-                fetch("https://api.github.com/gists/e38c31fbf1881a826f776cdb7393b793", {
-                    method: "GET",
-                    headers: {
-                        "Authorization": "Basic "+btoa("wooga123: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"),
-                        "Accept": "application/vnd.github.v3+json",
-                        "Content-Type": "application/json"
-                    }
-                })
-                    .then(function(data){return data.json();})
-                    .then(function(resp){gistContent = resp["files"]["torinsgist.txt"]["content"];})
-                    .catch(error => alert("[Fetch Error] "+error));
-            }
-            getGist();
-            function updateGist(newContent) {
-                gistContent = newContent;
-                fetch("https://api.github.com/gists/e38c31fbf1881a826f776cdb7393b793", {
-                    method: "PATCH",
-                    headers: {
-                        "Authorization": "Basic "+btoa("wooga123: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"),
-                        "Accept": "application/vnd.github.v3+json",
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        "description": "I changed this description with fetch!",
-                        "public": true,
-                        "files": {
-                            "torinsgist.txt": {
-                                "content": newContent
-                            }
-                        }
-                    })
-                })
-                    .then(function(data){return data.json();})
-                    .then(function(resp){ })
-                    .catch(error => alert("[Fetch Error] "+error));
-            }
-            */
             
             // These make writing attacks *much* easier.
             function addStatus(name, amt) {
@@ -2225,11 +2317,15 @@ updateShopScreen();
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
-                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
-                    {intent: "blocking", desc: "block", effect: block(8)},
-                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
-                ])
+                    {intent: "unknown", desc: "sleep", effect: passTurn()},
+                    {intent: "attacking 12", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 12", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 12", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 12", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 12", desc: "deal [DAM14] damage", effect: attack(14)}
+                ], ["no-repeat"])
             ];
             let possibleBosses = [
                 () => new Enemy("Slime Boss", 190, [
@@ -2485,7 +2581,7 @@ updateShopScreen();
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
                         let buffStuff = "";
-                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts"].includes(x.name)) {
+                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity"].includes(x.name)) {
                             buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_").replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
@@ -2757,6 +2853,7 @@ updateShopScreen();
                     ifRelic("Ninja Scroll", function(){addShivs(3)});
                     ifRelic("Fossilized Helix", function(){gainBuff("Buffer", 1)});
                     ifRelic("Thread and Needle", function(){gainBuff("Metallicize", 2)});
+                    stats.lastType = "None";
                 }
                 if(turn == 1) {ifRelic("Horn Cleat", function(){gainBuff("Block", 14)})}
                 if(turn == 2) {ifRelic("Captain Wheel", function(){gainBuff("Block", 18)})}
@@ -2802,6 +2899,7 @@ updateShopScreen();
                 }
                 if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
                 if(hasBuff("Noxious Fumes")>0){for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}}
+                loseBuff("Divinity");
                 updateHtml();
             }
             
@@ -2809,11 +2907,11 @@ updateShopScreen();
                 if(turn == 7) {ifRelic("Stone Calendar", function(){for(let e of enemies){dealDamage(e, 52)}})}
                 for(let c of hand) {
                     if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
-                    else {discardPile.push(c);}
+                    else if(!c.flags.includes("retain")) {discardPile.push(c);}
                     if(c.flags.includes("burning")) {hp -= 1;}
                     if(c.flags.includes("burning+")) {hp -= 2;}
                 }
-                hand = [];
+                hand = hand.filter(x=>x.flags.includes("retain"));
                 if(hasBuff("Combust") > 0) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
@@ -2955,11 +3053,15 @@ updateShopScreen();
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 110, [
+                    {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "blocking", desc: "block", effect: block(8)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
-                ])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                ], ["no-repeat"])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 160, [
@@ -3164,11 +3266,15 @@ updateShopScreen();
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 130, [
+                    {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "blocking", desc: "block", effect: block(10)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
-                ])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                ], ["no-repeat"])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 190, [
@@ -3386,11 +3492,15 @@ updateShopScreen();
                     {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                 ], ["no-repeat"]),
                 () => new Enemy("Lagavulin", 130, [
+                    {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "blocking", desc: "block", effect: block(10)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])}
-                ])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
+                ], ["no-repeat"])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 190, [
