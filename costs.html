@@ -1670,7 +1670,12 @@ updateShopScreen();
                 gainBuff("Block", 6); drawPile.append(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
                 drawPile = shuffle(drawPile);
             });
-            //let flurryOfBlows = () => new Card("Flurry of Blows", 0, "Attack", "Deal [DAM4] damage.
+            let flurryOfBlows = () => new Card("Flurry of Blows", 0, "Attack", "Deal [DAM4] damage. When you change stances, return this from discard to hand.", function(enemy){
+                dealDamage(enemy, 4);
+            });
+            let flyingSleeves = () => new Card("Flying Sleeves", 1, "Attack", "Retain. Deal [DAM4] damage twice.", function(enemy){
+                dealDamage(enemy, 4); dealDamage(enemy, 4);
+            }, ["retain"]);
             //
             // Watcher Uncommons
             //
@@ -2015,7 +2020,28 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", function(enemy){
                 gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"])
+            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash", 1, "Attack", "Deal [DAM7] damage for each enemy in combat.", function(enemy){
+                dealDamage(enemy, 7 * enemies.length);
+            }), "Consecrate": () => new Card("Consecrate", 0, "Attack", "Deal [DAM5] damage to ALL enemies.", function(enemy){
+                for(let i of enemies){dealDamage(i, 5);}
+            }), "Crescendo": () => new Card("Crescendo", 1, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
+                gainBuff("Wrath", 1);
+            }, ["retain"]), "Crush Joints": () => new Card("Crush Joints", 1, "Attack", "Deal [DAM8] damage. If the last card played this combat was a Skill, apply 1 Vulnerable.", function(enemy){
+                dealDamage(enemy, 8); if(stats.lastType == "Skill") {enemy.gainBuff("Vulnerable", 1);}
+            }), "Cut Through Fate": () => new Card("Cut Through Fate", 1, "Attack", "Deal [DAM7] damage. Scry 2. Draw a card.", function(enemy){
+                dealDamage(enemy, 7); scry(2); drawCard(1);
+            }), "Empty Body": () => new Card("Empty Body", 1, "Skill", "Gain [BLK7] Block. Exit your stance.", function(enemy){
+                gainBuff("Block", 7); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            }), "Empty Fist": () => new Card("Empty Fist", 1, "Attack", "Deal [DAM9] damage. Exit your stance.", function(enemy){
+                dealDamage(enemy, 9); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            }), "Evaluate": () => new Card("Evaluate", 1, "Skill", "Gain [BLK6] Block. Shuffle an Insight into your draw pile.", function(enemy){
+                gainBuff("Block", 6); drawPile.append(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
+                drawPile = shuffle(drawPile);
+            }), "Flurry Of Blows": () => new Card("Flurry of Blows", 0, "Attack", "Deal [DAM4] damage. When you change stances, return this from discard to hand.", function(enemy){
+                dealDamage(enemy, 4);
+            }), "Flying Sleeves": () => new Card("Flying Sleeves", 1, "Attack", "Retain. Deal [DAM4] damage twice.", function(enemy){
+                dealDamage(enemy, 4); dealDamage(enemy, 4);
+            }, ["retain"])
             };
             
             function upgradeCard(c) {
@@ -2337,12 +2363,12 @@ updateShopScreen();
                 ], ["no-repeat"])
             ];
             let possibleBosses = [
-                () => new Enemy("Slime Boss", 190, [
+                () => new Enemy("Slime Boss", 140, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: passTurn()},
                     {intent: "attacking 35", desc: "deal [DAM35] damage", effect: attack(35)}
                 ]),
-                () => new Enemy("Hexaghost", 340, [
+                () => new Enemy("Hexaghost", 250, [
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "attack-nerf 6", desc: "deal [DAM6] damage and generate Status cards", effect: attack_status(6,"Burn",1)},
@@ -2352,11 +2378,10 @@ updateShopScreen();
                     {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
                     {intent: "attack-nerf 12", desc: "deal [DAM12] damage and generate Status cards", effect: attack_status(12, "Burn+", 4)}
                 ]),
-                () => new Enemy("Guardian", 325, [
+                () => new Enemy("Guardian", 240, [
                     {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
                     {intent: "attacking 32", desc: "deal [DAM32] damage", effect: attack(32)},
                     {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
-                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(20, "Thorns", 1)},
                     {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
@@ -2434,7 +2459,7 @@ updateShopScreen();
                 ], ["randomize"])
             ];
             let possibleBosses_act2 = [
-                () => new Enemy("The Champ", 530, [
+                () => new Enemy("The Champ", 420, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 3)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
                     {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
@@ -2492,7 +2517,7 @@ updateShopScreen();
                 ], ["no-repeat"])
             ];
             let possibleBosses_act3 = [
-                () => new Enemy("Time Eater", 666, [
+                () => new Enemy("Time Eater", 456, [
                     {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)},
@@ -3129,12 +3154,12 @@ updateShopScreen();
                 }
                 if(lv >= 4) {
                     possibleBosses = [
-                () => new Enemy("Slime Boss", 190, [
+                () => new Enemy("Slime Boss", 140, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
                 ]),
-                () => new Enemy("Hexaghost", 340, [
+                () => new Enemy("Hexaghost", 250, [
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
@@ -3144,7 +3169,7 @@ updateShopScreen();
                     {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
                 ]),
-                () => new Enemy("Guardian", 325, [
+                () => new Enemy("Guardian", 240, [
                     {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
                     {intent: "attacking 38", desc: "deal [DAM38] damage", effect: attack(38)},
                     {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
@@ -3155,7 +3180,7 @@ updateShopScreen();
                 ])
                     ];
                     possibleBosses_act2 = [
-                () => new Enemy("The Champ", 530, [
+                () => new Enemy("The Champ", 420, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(15, "Metallicize", 3)},
                     {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
@@ -3165,7 +3190,7 @@ updateShopScreen();
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
-                () => new Enemy("Time Eater", 666, [
+                () => new Enemy("Time Eater", 456, [
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
@@ -3342,12 +3367,12 @@ updateShopScreen();
                 }
                 if(lv >= 9) {
                     possibleBosses = [
-                () => new Enemy("Slime Boss", 230, [
+                () => new Enemy("Slime Boss", 160, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 3)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
                 ]),
-                () => new Enemy("Hexaghost", 410, [
+                () => new Enemy("Hexaghost", 280, [
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and generate Status cards", effect: attack_status(7,"Burn",1)},
@@ -3357,7 +3382,7 @@ updateShopScreen();
                     {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
                 ]),
-                () => new Enemy("Guardian", 390, [
+                () => new Enemy("Guardian", 260, [
                     {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
                     {intent: "attacking 38", desc: "deal [DAM38] damage", effect: attack(38)},
                     {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
@@ -3368,7 +3393,7 @@ updateShopScreen();
                 ])
                     ];
                     possibleBosses_act2 = [
-                () => new Enemy("The Champ", 635, [
+                () => new Enemy("The Champ", 450, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(18, "Metallicize", 3)},
                     {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 2], ["Weak", 2], ["Frail", 2]])},
@@ -3378,7 +3403,7 @@ updateShopScreen();
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
-                () => new Enemy("Time Eater", 800, [
+                () => new Enemy("Time Eater", 500, [
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
@@ -3569,12 +3594,12 @@ updateShopScreen();
                 }
                 if(lv >= 20) {
                     possibleBosses = [
-                () => new Enemy("Slime Boss", 230, [
+                () => new Enemy("Slime Boss", 160, [
                     {intent: "meganerf", desc: "generate <b>many Status cards</b>", effect: status("Slimed", 4)},
                     {intent: "unknown", desc: "prepare for a strong attack", effect: function(me){}},
                     {intent: "attacking 42", desc: "deal [DAM42] damage", effect: attack(42)}
                 ]),
-                () => new Enemy("Hexaghost", 410, [
+                () => new Enemy("Hexaghost", 280, [
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and generate Status cards", effect: attack_status(7,"Burn",2)},
@@ -3584,7 +3609,7 @@ updateShopScreen();
                     {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
                     {intent: "attack-nerf 14", desc: "deal [DAM14] damage and generate Status cards", effect: attack_status(14, "Burn+", 4)}
                 ]),
-                () => new Enemy("Guardian", 390, [
+                () => new Enemy("Guardian", 240, [
                     {intent: "unknown", desc: "charge up for an attack", effect: passTurn()},
                     {intent: "attacking 38", desc: "deal [DAM38] damage", effect: attack(38)},
                     {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Vulnerable", 2], ["Weak", 2]])},
@@ -3595,7 +3620,7 @@ updateShopScreen();
                 ])
                     ];
                     possibleBosses_act2 = [
-                () => new Enemy("The Champ", 635, [
+                () => new Enemy("The Champ", 450, [
                     {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(18, "Metallicize", 3)},
                     {intent: "meganerf", desc: "apply <b>many negative effects</b>", effect: multi_apply([["Vulnerable", 3], ["Weak", 3], ["Frail", 3]])},
@@ -3605,7 +3630,7 @@ updateShopScreen();
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
-                () => new Enemy("Time Eater", 800, [
+                () => new Enemy("Time Eater", 500, [
                     {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 2], ["Weak", 2]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
