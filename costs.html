@@ -697,7 +697,7 @@ if(multiChoice.includes(num)) {
                     if(name == "Poison") {ifRelic("Snecko Skull", function(){newAmt += 1})}
                     let foundBuff = false;
                     for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt; foundBuff = true;}}
-                    if(!foundBuff) {this.buffs.push({name: name, amt: newAmt});}
+                    if(!foundBuff && amt > 0) {this.buffs.push({name: name, amt: newAmt});}
                 }
                 loseBuff(name, amt=9999) {
                     let prevAmt;
@@ -770,7 +770,7 @@ if(multiChoice.includes(num)) {
                 if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
-                if(!foundIt) {buffs.push({name: name, amt: newAmt});}
+                if(!foundIt && amt > 0) {buffs.push({name: name, amt: newAmt});}
                 if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity");}
                 if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
                 if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3;}
@@ -1132,6 +1132,9 @@ updateShopScreen();
                         helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
                         getId("merchantScreen").appendChild(helpNumber);
                     }
+                    /*
+                    TODO - Card removal service
+                    */
                     let continueElem = document.createElement("tr");
                     let continueWrapper = document.createElement("td");
                     let continueBtn = document.createElement("button");
@@ -1743,11 +1746,11 @@ updateShopScreen();
             let fasting = () => new Card("Fasting", 2, "Power", "Gain 4 Strength and 4 Dexterity, but gain 1 less energy each turn.", function(enemy){
                 gainBuff("Strength", 4); gainBuff("Dexterity", 4); gainBuff("Fasting", 1);
             }, ["exhausted"]);
-            // IMPORTANT TODO!!!! GET THE BUFF ICONS AND PUSH THEM TO GITHUB!!!!
+            //TODO - finish uncommons
             //
             // Watcher Rares
             //
-            //todo
+            //TODO - finish rares
             //
             // Upgraded Cards
             //
@@ -2230,7 +2233,8 @@ updateShopScreen();
                 }
             };
             async function scry(amount) {
-                let chosen = await choose(drawPile.filter(x=>drawPile.indexOf(x) < amount), "Choose cards to discard.", true);
+                let amt = (relics.map(x=>x.name).includes("Golden Eye") ? amount+2 : amount);
+                let chosen = await choose(drawPile.filter(x=>drawPile.indexOf(x) < amt), "Choose cards to discard.", true);
                 drawPile = drawPile.filter(x=>chosen.includes(x));
                 discardPile = [...discardPile, ...chosen];
             }
@@ -2293,15 +2297,19 @@ updateShopScreen();
                 {name: "Bronze Scales", desc: "When you take damage, deal 3 back."},
                 {name: "Centennial Puzzle", desc: "The first time you lose HP each combat, draw 3 cards."},
                 {name: "Ceramic Fish", desc: "When you add a card to your deck, gain 9 gold."},
+                /*TODO - Damaru - Gain 1 mantra per turn*/
                 {name: "Dream Catcher", desc: "When you Rest, you may add a card to your deck."},
                 {name: "Happy Flower", desc: "Gain 1 energy every 3rd turn."},
                 {name: "Lantern", desc: "Start each combat with 1 more energy."},
+                /*TODO - Maw Bank - 12g per floor until you spend gold at a shop*/
                 {name: "Meal Ticket", desc: "When you enter a shop, heal 15 HP."},
                 {name: "Oddly Smooth Stone", desc: "Start each combat with 1 Dexterity."},
                 {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
                 {name: "Pen Nib", desc: "Every 10th Attack you play deals 10 more damage."},
                 {name: "Preserved Insect", desc: "Elites have 25% less HP."},
+                /*TODO - Red Skull - +3 str when hp <=50%*/
                 {name: "Regal Pillow", desc: "Heal 15 more HP when you rest."},
+                /*TODO - Smiling Mask - card remove is always 50g*/
                 {name: "Strawberry", desc: "On pickup, gain 7 max HP."},
                 {name: "The Boot", desc: "When you would deal 4 or less damage, deal 5 instead."},
                 {name: "Toy Ornithopter", desc: "When you use a Potion, heal 5 HP."},
@@ -2324,6 +2332,7 @@ updateShopScreen();
                 {name: "Strike Dummy", desc: "Strikes deal 3 more damage."},
                 {name: "Sundial", desc: "When you shuffle your deck, gain 1 energy."},
                 {name: "Toxic Egg", desc: "When you add a Skill to your deck, upgrade it."},
+                /*TODO - Teardrop Locket - start in calm*/
                 {name: "White Beast Statue", desc: "Potions always drop after combat."},
                 {name: "Self-Forming Clay", desc: "When you lose HP in combat, gain 3 Block next turn."},
                 {name: "Ninja Scroll", desc: "Start each combat with 3 Shivs in hand."},
@@ -2333,9 +2342,12 @@ updateShopScreen();
                 {name: "Bird-Faced Urn", desc: "When you play a Power, heal 2 HP."},
                 {name: "Calipers", desc: "At the start of your turn, lose 15 Block rather than all your Block."},
                 {name: "Captain Wheel", desc: "Start turn 3 with 18 Block."},
+                /*TODO - Charon's Ashes - exhaust -> 3 to all enemies*/
+                /*TODO - Cloak Clasp - end turn -> block per card in hand*/
                 {name: "Dead Branch", desc: "When you Exhaust a card, add a random card to your hand."},
                 {name: "Fossilized Helix", desc: "Prevent the first time you lose HP each combat."},
                 {name: "Ginger", desc: "You are immune to Weak."},
+                /*TODO - Golden Eye - Scry 2 more whenever you scry*/
                 {name: "Ice Cream", desc: "You can save energy between turns."},
                 {name: "Mango", desc: "On pickup, gain 14 max HP."},
                 {name: "Old Coin", desc: "Instantly gain 300 gold."},
