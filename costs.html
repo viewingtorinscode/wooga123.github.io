@@ -144,11 +144,11 @@
     <body>
         <b id="musicSayer" style="top:50px;opacity:0;position:absolute;width:100%;text-align:center;font-size:35px;color:yellow;"></b>
         
-        <div id="selectionModal" style="display: none;">
-            <div id="selectionModalContent"></div>
-        </div>
         <div id="msModal" style="display: none;">
             <div id="msModalContent"></div>
+        </div>
+        <div id="selectionModal" style="display: none;">
+            <div id="selectionModalContent"></div>
         </div>
         <div id="cardModal" style="display: none;">
             <div id="cardModalContent">
@@ -496,7 +496,7 @@ if(multiChoice.includes(num)) {
                 }
             };
             function unformat(desc) {
-                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("]", "").replace("]", "");
+                return desc.replace(" (Costs [BLOOD4BLOOD] energy)", "").replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replace("[DAM", "").replace("[BLK", "").replace("[DAM", "").replace("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("(Gains [PREDICT] Block)", "").replaceAll("]", "");
             }
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
@@ -779,6 +779,7 @@ if(multiChoice.includes(num)) {
                     hand = [...hand, ...fobs];
                     discardPile = discardPile.filter(x=>x.name != "Flurry of Blows");
                 }
+                if(hasBuff("Mantra") >= 10) {gainBuff("Divinity", 1);}
             }
             function loseBuff(name, amt=9999) {
                 let prevAmt;
@@ -797,7 +798,8 @@ if(multiChoice.includes(num)) {
                 if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3})}
                 if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
-                if(target.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
+                finalAmt += Math.floor(target.hasBuff("Mark") * hasBuff("Precision") / 5);
+                if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
                 if(hasBuff("Wrath")) {finalAmt *= 2;}
                 if(finalAmt > 0) {
                     finalAmt += hasBuff("Strength") + hasBuff("Vigor");
@@ -880,7 +882,15 @@ if(multiChoice.includes(num)) {
                 "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
                 "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
                 "Confused": "All card costs become randomized.",
-                "Corruption": "Skills cost 0, but they Exhaust."
+                "Corruption": "Skills cost 0, but they Exhaust.",
+                "Calm": "When you exit this stance, gain 2 energy.",
+                "Wrath": "You deal 2x damage but take 2x damage.",
+                "Divinity": "When you enter this stance, gain 3 energy. You deal 3x damage. Exit this stance at start of turn.",
+                "Mark": "Does nothing by itself, but is useful for other things.",
+                "Precision": "Deal [AMT] more damage per 5 Mark on the enemy. (currently +[PREC])",
+                "Battle Hymn": "At the start of your turn, add [AMT] Smite[s] to your hand.",
+                "Fasting": "Gain [AMT] less energy each turn.",
+                "Collect": "Get a Miracle+ each turn for [AMT] turn[s]."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark"];
             let statusCards = {
@@ -1653,7 +1663,7 @@ updateShopScreen();
             });
             let crescendo = () => new Card("Crescendo", 1, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
                 gainBuff("Wrath", 1);
-            }, ["retain"]);
+            }, ["retain", "exhausted"]);
             let crushJoints = () => new Card("Crush Joints", 1, "Attack", "Deal [DAM8] damage. If the last card played this combat was a Skill, apply 1 Vulnerable.", function(enemy){
                 dealDamage(enemy, 8); if(stats.lastType == "Skill") {enemy.gainBuff("Vulnerable", 1);}
             });
@@ -1667,7 +1677,7 @@ updateShopScreen();
                 dealDamage(enemy, 9); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
             });
             let evaluate = () => new Card("Evaluate", 1, "Skill", "Gain [BLK6] Block. Shuffle an Insight into your draw pile.", function(enemy){
-                gainBuff("Block", 6); drawPile.append(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
+                gainBuff("Block", 6); drawPile.push(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
                 drawPile = shuffle(drawPile);
             });
             let flurryOfBlows = () => new Card("Flurry of Blows", 0, "Attack", "Deal [DAM4] damage. When you change stances, return this from discard to hand.", function(enemy){
@@ -1676,7 +1686,7 @@ updateShopScreen();
             let flyingSleeves = () => new Card("Flying Sleeves", 1, "Attack", "Retain. Deal [DAM4] damage twice.", function(enemy){
                 dealDamage(enemy, 4); dealDamage(enemy, 4);
             }, ["retain"]);
-            let followUp = () => new Card("Follow Up", 1, "Attack", "Deal [DAM7] damage. If the last card played was an Attack, gain 1 energy.", function(enemy){
+            let followUp = () => new Card("Follow Up", 1, "Attack", "Deal [DAM7] damage. If the last card played this combat was an Attack, gain 1 energy.", function(enemy){
                 dealDamage(enemy, 7); if(stats.lastType == "Attack") {energy += 1;}
             });
             let halt = () => new Card("Halt", 0, "Skill", "Gain [BLK3] Block. If you're in Wrath, gain [BLK9] more Block.", function(enemy){
@@ -1685,13 +1695,55 @@ updateShopScreen();
             let justLucky = () => new Card("Just Lucky", 0, "Attack", "Scry 1, gain [BLK2] Block, deal [DAM3] damage.", function(enemy){
                 scry(1); gainBuff("Block", 2); dealDamage(enemy, 3);
             });
-            let pressurePoints = () => new Card("Pressure Points", 1, "Apply 8 Mark. ALL enemies lose HP equal to their Mark.", function(enemy){
+            let pressurePoints = () => new Card("Pressure Points", 1, "Skill", "Apply 8 Mark. ALL enemies lose HP equal to their Mark.", function(enemy){
                 enemy.gainBuff("Mark", 8); for(let e of enemies) {e.hp -= e.hasBuff("Mark");}
             });
+            let precision = () => new Card("Precision", 1, "Power", "Deal 1 more damage for every 5 Mark on target.", function(enemy){
+                gainBuff("Precision", 1);
+            }, ["exhausted"]);
+            let predict = () => new Card("Predict", 1, "Skill", "Apply 7 Mark. Gain Block equal to Mark on ALL enemies. (Gains [PREDICT] Block)", function(enemy){
+                enemy.gainBuff("Mark", 7); let b=0; for(let i of enemies) {b += i.hasBuff("Mark");} gainBuff("Block", b);
+            }, ["exhausted"]);
+            let prostrate = () => new Card("Prostrate", 0, "Skill", "Gain 2 Mantra. Gain [BLK4] Block.", function(enemy){
+                gainBuff("Mantra", 2); gainBuff("Block", 4);
+            });
+            let protect = () => new Card("Protect", 2, "Skill", "Retain. Gain [BLK12] Block.", function(enemy){
+                gainBuff("Block", 12);
+            }, ["retain"]);
+            let sashWhip = () => new Card("Sash Whip", 1, "Attack", "Deal [DAM8] damage. If the last card played this combat was an Attack, apply 1 Weak.", function(enemy){
+                dealDamage(enemy, 8); if(stats.lastType == "Attack") {enemy.gainBuff("Weak", 1);}
+            });
+            let thirdEye = () => new Card("Third Eye", 1, "Skill", "Gain [BLK7] Block. Scry 3.", function(enemy){
+                gainBuff("Block", 7); scry(3);
+            });
+            let tranquility = () => new Card("Tranquility", 1, "Skill", "Enter Calm. Retain. Exhaust.", function(enemy){
+                gainBuff("Calm", 1);
+            }, ["exhausted", "retain"]);
             //
             // Watcher Uncommons
             //
-            //todo
+            let battleHymn = () => new Card("Battle Hymn", 1, "Power", "At the start of your turn, add a Smite to your hand.", function(enemy){
+                gainBuff("Battle Hymn", 1);
+            }, ["exhausted"]);
+            let carveReality = () => new Card("Carve Reality", 1, "Attack", "Deal [DAM6] damage. Add a Smite to your hand.", function(enemy){
+                dealDamage(enemy, 6); addSmites(1);
+            });
+            let collect = () => new Card("Collect", "X", "Skill", "Put a Miracle+ into your hand each turn for X turns. Exhaust.", function(enemy){
+                gainBuff("Collect", 1);
+            }, ["exhausted"]);
+            let conclude = () => new Card("Conclude", 1, "Attack", "Deal [DAM11] damage to ALL enemies. Discard your hand.", function(enemy){
+                for(let e of enemies){dealDamage(e, 11);} discardPile = [...discardPile, ...hand]; hand = [];
+            });
+            let deceiveReality = () => new Card("Deceive Reality", 1, "Skill", "Gain [BLK4] Block. Add a Safety to your hand.", function(enemy){
+                gainBuff("Block", 4); hand.push(new Card("Safety", 1, "Skill", "Gain [BLK12] Block. Retain. Exhaust.", function(enemy){gainBuff("Block", 12);}, ["retain", "exhaust"]));
+            });
+            let emptyMind = () => new Card("Empty Mind", 1, "Skill", "Draw 2 cards. Exit your stance.", function(enemy){
+                drawCard(2); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            });
+            let fasting = () => new Card("Fasting", 2, "Power", "Gain 4 Strength and 4 Dexterity, but gain 1 less energy each turn.", function(enemy){
+                gainBuff("Strength", 4); gainBuff("Dexterity", 4); gainBuff("Fasting", 1);
+            }, ["exhausted"]);
+            // IMPORTANT TODO!!!! GET THE BUFF ICONS AND PUSH THEM TO GITHUB!!!!
             //
             // Watcher Rares
             //
@@ -2020,8 +2072,8 @@ updateShopScreen();
                 gainBuff("Burst", 2);
             }), "Die Die Die": () => new Card("Die Die Die+", 1, "Attack", "Deal [DAM17] damage to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {dealDamage(e, 17);}
-            }, ["exhausted"]), "Doppelganger": () => new Card("Doppelganger+", "X", "Skill", "Next turn, draw X more cards and gain X more energy.", function(enemy){
-                gainBuff("Next Turn Cards", 1); gainBuff("Next Turn Energy", 1);
+            }, ["exhausted"]), "Doppelganger": () => new Card("Doppelganger+", "X", "Skill", "Next turn, draw 2X more cards and gain X more energy.", function(enemy){
+                gainBuff("Next Turn Cards", 2); gainBuff("Next Turn Energy", 1);
             }), "Envenom": () => new Card("Envenom+", 1, "Power", "Whenever you deal unblocked damage, apply 1 Poison.", function(enemy){
                 gainBuff("Envenom", 1);
             }, ["exhausted"]), "Grand Finale": () => new Card("Grand Finale+", 0, "Attack", "If there are no cards in your draw pile, deal [DAM60] damage to ALL enemies.", function(enemy) {
@@ -2032,28 +2084,64 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", function(enemy){
                 gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
+            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash+", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
                 dealDamage(enemy, 10 * enemies.length);
-            }), "Consecrate": () => new Card("Consecrate", 0, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
+            }), "Consecrate": () => new Card("Consecrate+", 0, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let i of enemies){dealDamage(i, 8);}
-            }), "Crescendo": () => new Card("Crescendo", 0, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
+            }), "Crescendo": () => new Card("Crescendo+", 0, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
                 gainBuff("Wrath", 1);
-            }, ["retain"]), "Crush Joints": () => new Card("Crush Joints", 1, "Attack", "Deal [DAM10] damage. If the last card played this combat was a Skill, apply 2 Vulnerable.", function(enemy){
+            }, ["retain", "exhausted"]), "Crush Joints+": () => new Card("Crush Joints", 1, "Attack", "Deal [DAM10] damage. If the last card played this combat was a Skill, apply 2 Vulnerable.", function(enemy){
                 dealDamage(enemy, 10); if(stats.lastType == "Skill") {enemy.gainBuff("Vulnerable", 2);}
-            }), "Cut Through Fate": () => new Card("Cut Through Fate", 1, "Attack", "Deal [DAM9] damage. Scry 3. Draw a card.", function(enemy){
+            }), "Cut Through Fate": () => new Card("Cut Through Fate+", 1, "Attack", "Deal [DAM9] damage. Scry 3. Draw a card.", function(enemy){
                 dealDamage(enemy, 9); scry(3); drawCard(1);
-            }), "Empty Body": () => new Card("Empty Body", 1, "Skill", "Gain [BLK10] Block. Exit your stance.", function(enemy){
+            }), "Empty Body": () => new Card("Empty Body+", 1, "Skill", "Gain [BLK10] Block. Exit your stance.", function(enemy){
                 gainBuff("Block", 10); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
-            }), "Empty Fist": () => new Card("Empty Fist", 1, "Attack", "Deal [DAM14] damage. Exit your stance.", function(enemy){
+            }), "Empty Fist": () => new Card("Empty Fist+", 1, "Attack", "Deal [DAM14] damage. Exit your stance.", function(enemy){
                 dealDamage(enemy, 14); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
-            }), "Evaluate": () => new Card("Evaluate", 1, "Skill", "Gain [BLK10] Block. Shuffle an Insight into your draw pile.", function(enemy){
-                gainBuff("Block", 10); drawPile.append(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
+            }), "Evaluate": () => new Card("Evaluate+", 1, "Skill", "Gain [BLK10] Block. Shuffle an Insight into your draw pile.", function(enemy){
+                gainBuff("Block", 10); drawPile.push(new Card("Insight", 1, "Skill", "Draw 2 cards.", function(enemy){drawCard(2);}));
                 drawPile = shuffle(drawPile);
-            }), "Flurry Of Blows": () => new Card("Flurry of Blows", 0, "Attack", "Deal [DAM6] damage. When you change stances, return this from discard to hand.", function(enemy){
+            }), "Flurry Of Blows": () => new Card("Flurry of Blows+", 0, "Attack", "Deal [DAM6] damage. When you change stances, return this from discard to hand.", function(enemy){
                 dealDamage(enemy, 6);
-            }), "Flying Sleeves": () => new Card("Flying Sleeves", 1, "Attack", "Retain. Deal [DAM6] damage twice.", function(enemy){
+            }), "Flying Sleeves": () => new Card("Flying Sleeves+", 1, "Attack", "Retain. Deal [DAM6] damage twice.", function(enemy){
                 dealDamage(enemy, 6); dealDamage(enemy, 6);
-            }, ["retain"])
+            }, ["retain"]), "Follow Up": () => new Card("Follow Up+", 1, "Attack", "Deal [DAM11] damage. If the last card played this combat was an Attack, gain 1 energy.", function(enemy){
+                dealDamage(enemy, 11); if(stats.lastType == "Attack") {energy += 1;}
+            }), "Halt": () => new Card("Halt+", 0, "Skill", "Gain [BLK4] Block. If you're in Wrath, gain [BLK14] more Block.", function(enemy){
+                gainBuff("Block", 4); if(hasBuff("Wrath")) {gainBuff("Block", 14);}
+            }), "Just Lucky": () => new Card("Just Lucky+", 0, "Attack", "Scry 2, gain [BLK3] Block, deal [DAM4] damage.", function(enemy){
+                scry(2); gainBuff("Block", 3); dealDamage(enemy, 4);
+            }), "Pressure Points": () => new Card("Pressure Points+", 1, "Skill", "Apply 11 Mark. ALL enemies lose HP equal to their Mark.", function(enemy){
+                enemy.gainBuff("Mark", 11); for(let e of enemies) {e.hp -= e.hasBuff("Mark");}
+            }), "Precision": () => new Card("Precision+", 0, "Power", "Deal 1 more damage for every 5 Mark on target.", function(enemy){
+                gainBuff("Precision", 1);
+            }, ["exhausted"]), "Predict": () => new Card("Predict+", 1, "Skill", "Apply 10 Mark. Gain Block equal to Mark on ALL enemies. (Gains [PREDICT] Block)", function(enemy){
+                enemy.gainBuff("Mark", 10); let b=0; for(let i of enemies) {b += i.hasBuff("Mark");} gainBuff("Block", b);
+            }, ["exhausted"]), "Prostrate": () => new Card("Prostrate+", 0, "Skill", "Gain 3 Mantra. Gain [BLK4] Block.", function(enemy){
+                gainBuff("Mantra", 3); gainBuff("Block", 4);
+            }), "Protect": () => new Card("Protect+", 2, "Skill", "Retain. Gain [BLK16] Block.", function(enemy){
+                gainBuff("Block", 16);
+            }, ["retain"]), "Sash Whip": () => new Card("Sash Whip+", 1, "Attack", "Deal [DAM10] damage. If the last card played this combat was an Attack, apply 2 Weak.", function(enemy){
+                dealDamage(enemy, 10); if(stats.lastType == "Attack") {enemy.gainBuff("Weak", 2);}
+            }), "Third Eye": () => new Card("Third Eye+", 1, "Skill", "Gain [BLK9] Block. Scry 5.", function(enemy){
+                gainBuff("Block", 9); scry(5);
+            }), "Tranquility": () => new Card("Tranquility+", 0, "Skill", "Enter Calm. Retain. Exhaust.", function(enemy){
+                gainBuff("Calm", 1);
+            }, ["exhausted", "retain"]), "Battle Hymn": () => new Card("Battle Hymn+", 1, "Power", "Innate. At the start of your turn, add a Smite to your hand.", function(enemy){
+                gainBuff("Battle Hymn", 1);
+            }, ["exhausted", "innate"]), "Carve Reality": () => new Card("Carve Reality+", 1, "Attack", "Deal [DAM10] damage. Add a Smite to your hand.", function(enemy){
+                dealDamage(enemy, 10); addSmites(1);
+            }), "Collect": () => new Card("Collect+", "X", "Skill", "Put a Miracle+ into your hand each turn for X turns.", function(enemy){
+                gainBuff("Collect", 1);
+            }), "Conclude": () => new Card("Conclude+", 1, "Attack", "Deal [DAM15] damage to ALL enemies. Discard your hand.", function(enemy){
+                for(let e of enemies){dealDamage(e, 15);} discardPile = [...discardPile, ...hand]; hand = [];
+            }), "Deceive Reality": () => new Card("Deceive Reality+", 1, "Skill", "Gain [BLK7] Block. Add a Safety to your hand.", function(enemy){
+                gainBuff("Block", 7); hand.push(new Card("Safety", 1, "Skill", "Gain [BLK12] Block. Retain. Exhaust.", function(enemy){gainBuff("Block", 12);}, ["retain", "exhaust"]));
+            }), "Empty Mind": () => new Card("Empty Mind+", 1, "Skill", "Draw 3 cards. Exit your stance.", function(enemy){
+                drawCard(3); loseBuff("Wrath"); loseBuff("Calm"); loseBuff("Divinity");
+            }), "Fasting": () => new Card("Fasting+", 2, "Power", "Gain 5 Strength and 5 Dexterity, but gain 1 less energy each turn.", function(enemy){
+                gainBuff("Strength", 5); gainBuff("Dexterity", 5); gainBuff("Fasting", 1);
+            }, ["exhausted"])
             };
             
             function upgradeCard(c) {
@@ -2072,31 +2160,55 @@ updateShopScreen();
             
             // DON'T PUT THE WATCHER HERE!!!
             // DON'T PUT THE WATCHER HERE!!!
-            let randCard = () => choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
+            let randCard = function() {
+                let card = choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror]);
+                if(Math.random() < 0.3 * (actNum - 1)) {
+                    return upgradedCards[card().name];
+                } else {
+                    return card;
+                }
+            };
             // DON'T PUT THE WATCHER HERE!!!
             // DON'T PUT THE WATCHER HERE!!!
-            let randRareCard = () => choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
-            // DON'T PUT THE WATCHER HERE!!!
-            // DON'T PUT THE WATCHER HERE!!!
+            let randRareCard = function() {
+                let card = choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
+                if(Math.random() < 0.3 * (actNum - 1)) {
+                    return upgradedCards[card().name];
+                } else {
+                    return card;
+                }
+            };
             
             function updateCardList() {
                 let normals = [];
                 let rares = [];
-                if(getId("useIronclad").checked == true) {
+                if(getId("useIronclad").checked) {
                     normals = [...normals, bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind];
                     rares = [...rares, barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper];
                 }
-                if(getId("useSilent").checked == true) {
+                if(getId("useSilent").checked) {
                     normals = [...normals, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror];
                     rares = [...rares, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade];
                 }
-                if(getId("useWatcher").checked == true) {
-                    normals = [...normals, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves];
+                if(getId("useWatcher").checked) {
+                    normals = [...normals, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves, followUp, halt, justLucky, pressurePoints, predict, precision, prostrate, protect, sashWhip, thirdEye, tranquility, battleHymn, collect, conclude, deceiveReality, emptyMind, fasting];
                 }
-                //if(!normals.length) {normals = [() => new Card("Uh Oh!", 0, "Skill", "Gain [BLK1] Block. <i>“Oops!”</i>", function(enemy){gainBuff("Block", 1)})];}
-                //if(!rares.length) {rares = [() => new Card("Uh Oh!", 0, "Skill", "Gain [BLK1] Block. <i>“Oops!”</i>", function(enemy){gainBuff("Block", 1)})];}
-                randCard = () => choice(normals);
-                randRareCard = () => choice(rares);
+                let randCard = function() {
+                    let card = choice(normals);
+                    if(Math.random() < 0.3 * (actNum - 1)) {
+                        return upgradedCards[card().name];
+                    } else {
+                        return card;
+                    }
+                };
+                let randRareCard = function() {
+                    let card = choice(rares);
+                    if(Math.random() < 0.3 * (actNum - 1)) {
+                        return upgradedCards[card().name];
+                    } else {
+                        return card;
+                    }
+                };
             }
             
             function addCard() {
@@ -2633,7 +2745,7 @@ updateShopScreen();
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
                         let buffStuff = "";
-                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark"].includes(x.name)) {
+                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark", "Precision", "Battle Hymn", "Fasting", "Collect", "Mantra"].includes(x.name)) {
                             buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_").replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
@@ -2650,7 +2762,14 @@ updateShopScreen();
                             else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
-                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
+                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name]
+                            .replaceAll("[DAMT]", adjustedDamage(x.amt))
+                            .replaceAll("[BAMT]", adjustedBlock(x.amt))
+                            .replaceAll("[AMT]", x.amt)
+                            .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
+                            .replaceAll("[s]", (x.amt==1 ? "" : "s"))
+                            .replaceAll("[es]", (x.amt==1 ? "" : "es"))
+                                +"</span></span> ";
                     }
                 }
                 
@@ -2674,7 +2793,8 @@ updateShopScreen();
                     .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
                     .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]")
                     .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
-                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]");
+                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]")
+                    .replace("[PREDICT]", "[BLK"+(enemies.map(x=>x.hasBuff("Mark"))).reduce((ps, a) => ps + a, 0)+"]");
                     for(let i=1; i<300; i++) {
                         let newI = calcYourDamage(target, i);
                         if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
@@ -2744,7 +2864,7 @@ updateShopScreen();
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -2864,6 +2984,13 @@ updateShopScreen();
                     }
                 }
             }
+            function addSmites(num=1) {
+                for(let i=0; i<num; i++) {
+                    if(hand.length < 10) {
+                        hand.push(new Card("Smite", 1, "Attack", "Deal [DAM12] damage. Exhaust.", function(e){dealDamage(e,12);}, ["exhausted", "retain"]));
+                    }
+                }
+            }
             
             function drawCard(num=1) {
                 if(hasBuff("No Draw") > 0) {num=0;}
@@ -2900,7 +3027,7 @@ updateShopScreen();
                     ifRelic("Blood Vial", function(){hp = Math.min(maxHp, hp + 2)});
                     ifRelic("Bronze Scales", function(){gainBuff("Thorns", 3)});
                     ifRelic("Oddly Smooth Stone", function(){gainBuff("Dexterity", 1)});
-                    ifRelic("Preserved Insect", function(){for(let e of enemies){e.hp = Math.round(0.75 * e.maxHp)}});
+                    ifRelic("Preserved Insect", function(){if(eliteBattle){for(let e of enemies){e.hp = Math.round(0.75 * e.maxHp)}}});
                     ifRelic("Vajra", function(){gainBuff("Strength", 1)});
                     ifRelic("Ninja Scroll", function(){addShivs(3)});
                     ifRelic("Fossilized Helix", function(){gainBuff("Buffer", 1)});
@@ -2911,15 +3038,20 @@ updateShopScreen();
                 if(turn == 2) {ifRelic("Captain Wheel", function(){gainBuff("Block", 18)})}
                 ifRelic("Mercury Hourglass", function(){for(let e of enemies){dealDamage(e, 3)}});
                 turn += 1;
-                if(hasBuff("Draw Reduction") > 0) {
+                if(hasBuff("Draw Reduction")) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
                     drawCard(5 + hasBuff("Next Turn Cards"));
                     loseBuff("Next Turn Cards");
                 }
-                if(hasBuff("Infinite Blades") > 0) {addShivs(hasBuff("Infinite Blades"));}
+                addSmites(hasBuff("Battle Hymn"));
+                addShivs(hasBuff("Infinite Blades"));
+                if(hasBuff("Collect")) {
+                    hand.push(new Card("Miracle+", 0, "Skill", "Retain. Gain 2 energy. Exhaust.", function(enemy){energy += 2;}, ["exhausted", "retain"]));
+                    loseBuff("Collect", 1);
+                }
                 ifRelic("Ice Cream", function(){gainBuff("Next Turn Energy", energy);});
-                energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy");
+                energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy") - hasBuff("Fasting");
                 if(stats.rested == true) {ifRelic("Ancient Tea Set", function(){energy += 2});}
                 if(turn % 3 == 0) {ifRelic("Happy Flower", function(){energy += 1});}
                 loseBuff("Next Turn Energy");
@@ -2936,11 +3068,11 @@ updateShopScreen();
                     ifRelic("Anchor", function(){gainBuff("Block", 10)});
                     ifRelic("Lantern", function(){energy += 1});
                 }
-                if(hasBuff(".") > 0) {loseBuff(".");} else {loseBuff("Vulnerable", 1);}
-                if(hasBuff("Metallicize")>0){gainBuff("Block", hasBuff("Metallicize"));}
-                if(hasBuff("Next Turn Block")>0){gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");}
-                if(hasBuff("Brutality")>0){hp -= 1; drawCard(hasBuff("Brutality"));}
-                if(hasBuff("Tools of the Trade")>0){
+                if(hasBuff(".")) {loseBuff(".");} else {loseBuff("Vulnerable", 1);}
+                gainBuff("Block", hasBuff("Metallicize"));
+                gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");
+                if(hasBuff("Brutality")){hp -= 1; drawCard(hasBuff("Brutality"));}
+                if(hasBuff("Tools of the Trade")){
                     drawCard(hasBuff("Tools of the Trade"));
                     let chosen = await choose(hand, "Choose a card to discard.");
                     if(chosen) {
@@ -2949,8 +3081,8 @@ updateShopScreen();
                         updateHtml();
                     }
                 }
-                if(hasBuff("Poison")>0) {hp -= hasBuff("Poison"); loseBuff("Poison", 1);}
-                if(hasBuff("Noxious Fumes")>0){for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}}
+                hp -= hasBuff("Poison"); loseBuff("Poison", 1);
+                for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}
                 loseBuff("Divinity");
                 updateHtml();
             }
@@ -2984,7 +3116,7 @@ updateShopScreen();
                 loseBuff("Dexterity Down");
                 for(let e of enemies) {
                     if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
-                    if(e.hasBuff("Metallicize")>0){e.gainBuff("Block", e.hasBuff("Metallicize"));}
+                    if(e.hasBuff("Metallicize")){e.gainBuff("Block", e.hasBuff("Metallicize"));}
                     if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
                     let func = function() {e.attack(); updateHtml();}
                     if(e.hp > 0){func();}
