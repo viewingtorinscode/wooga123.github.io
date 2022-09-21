@@ -569,7 +569,7 @@ if(multiChoice.includes(num)) {
                     if(this.cost == "X") {
                         let useCard = function(){this.use(target);}
                         for(let x=0; x<energy; x++) {
-                            useCard();
+                            this.use(target);
                         }
                         ifRelic("Chemical X", useCard);
                         ifRelic("Chemical X", useCard);
@@ -2409,7 +2409,7 @@ updateShopScreen();
             ];
             
             // Starting deck, relics, etc...
-            let deck = [strike(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
+            let deck = [skewer(), strike(), strike(), strike(), bash(), defend(), defend(), defend(), defend(), defend()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
