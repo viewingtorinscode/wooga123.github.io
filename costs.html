@@ -594,10 +594,15 @@ if(multiChoice.includes(num)) {
                         if(this.flags.includes("exhausted") || (hasBuff("Corruption") > 0 && this.type == "Skill")) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
-                            if(hasBuff("Feel No Pain") > 0) {gainBuff("Block", hasBuff("Feel No Pain"));}
+                            gainBuff("Block", hasBuff("Feel No Pain"));
                             ifRelic("Dead Branch", function(){hand.push(randCard()())});
+                            ifRelic("Charon’s Ashes", function(){for(let e of enemies){dealDamage(e, 3);}});
                         } else {
                             discardPile.push(this);
+                        }
+                        if(this.flags.map(x=>x.split(" ")[0]).includes("nextcost")) {
+                            this.cost = this.flags.filter(x=>x.split(" ")[0] == "nextcost")[0].split(" ")[1];
+                            this.flags = this.flags.filter(x=>x.split(" ")[0] != "nextcost");
                         }
                         this.play_success();
                     }
@@ -625,6 +630,13 @@ if(multiChoice.includes(num)) {
                     }
                     if(this.type == "Power") {
                         ifRelic("Bird-Faced Urn", function(){hp = Math.min(maxHp, hp + 2)});
+                        ifRelic("Mummified Hand", function(){
+                            let eligible = hand.filter(x=>x.cost > 0);
+                            if(eligible.length == 0) return;
+                            let c = eligible[Math.floor(Math.random()*eligible.length)];
+                            c.flags.push("nextcost "+c.cost);
+                            c.cost = 0;
+                        });
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
@@ -803,6 +815,7 @@ if(multiChoice.includes(num)) {
                 if(hasBuff("Wrath")) {finalAmt *= 2;}
                 if(finalAmt > 0) {
                     finalAmt += hasBuff("Strength") + hasBuff("Vigor");
+                    ifRelic("Red Skull", function(){if(hp<=0.5*maxHp){finalAmt += 3;}});
                     finalAmt -= hasBuff("Minus Strength");
                     if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
                 }
@@ -1746,6 +1759,21 @@ updateShopScreen();
             let fasting = () => new Card("Fasting", 2, "Power", "Gain 4 Strength and 4 Dexterity, but gain 1 less energy each turn.", function(enemy){
                 gainBuff("Strength", 4); gainBuff("Dexterity", 4); gainBuff("Fasting", 1);
             }, ["exhausted"]);
+            let fearNoEvil = () => new Card("Fear No Evil", 1, "Attack", "Deal [DAM8] damage. If the enemy intends to attack, enter Calm.", function(enemy){
+                dealDamage(enemy, 8); if(enemy.intent.intent.includes("attack")) {gainBuff("Calm", 1);}
+            });
+            let foresight = () => new Card("Foresight", 1, "Power", "At the start of your turn, scry 3.", function(enemy){
+                gainBuff("Foresight", 3);
+            }, ["exhausted"]);
+            let indignation = () => new Card("Indignation", 1, "Skill", "If you are in Wrath, apply 3 Vulnerable to ALL enemies, otherwise enter Wrath.", function(enemy){
+                if(hasBuff("Wrath")) {for(let e of enemies){e.gainBuff("Vulnerable", 3);}} else {gainBuff("Wrath", 1);}
+            });
+            let innerPeace = () => new Card("Inner Peace", 1, "Skill", "If you are in Calm, draw 3 cards, otherwise enter Calm.", function(enemy){
+                if(hasBuff("Calm")) {drawCard(3);} else {gainBuff("Calm", 1);}
+            });
+            let likeWater = () => new Card("Like Water", 1, "Power", "If you end your turn in Calm, gain [BLK5] Block.", function(enemy){
+                gainBuff("Like Water", 5);
+            }, ["exhausted"]);
             //TODO - finish uncommons
             //
             // Watcher Rares
@@ -2087,7 +2115,7 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", function(enemy){
                 gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"]), "Ascenders Bane": () => new Card("Ascenders Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash+", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
+            }, ["exhausted"]), "Ascender’s Bane": () => new Card("Ascender’s Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash+", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
                 dealDamage(enemy, 10 * enemies.length);
             }), "Consecrate": () => new Card("Consecrate+", 0, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let i of enemies){dealDamage(i, 8);}
@@ -2233,6 +2261,7 @@ updateShopScreen();
                 }
             };
             async function scry(amount) {
+                if(amount <= 0) return;
                 let amt = (relics.map(x=>x.name).includes("Golden Eye") ? amount+2 : amount);
                 let chosen = await choose(drawPile.filter(x=>drawPile.indexOf(x) < amt), "Choose cards to discard.", true);
                 drawPile = drawPile.filter(x=>chosen.includes(x));
@@ -2297,7 +2326,7 @@ updateShopScreen();
                 {name: "Bronze Scales", desc: "When you take damage, deal 3 back."},
                 {name: "Centennial Puzzle", desc: "The first time you lose HP each combat, draw 3 cards."},
                 {name: "Ceramic Fish", desc: "When you add a card to your deck, gain 9 gold."},
-                /*TODO - Damaru - Gain 1 mantra per turn*/
+                //{name: "Damaru", desc: "At the start of your turn, gain 1 Mantra"},
                 {name: "Dream Catcher", desc: "When you Rest, you may add a card to your deck."},
                 {name: "Happy Flower", desc: "Gain 1 energy every 3rd turn."},
                 {name: "Lantern", desc: "Start each combat with 1 more energy."},
@@ -2307,7 +2336,7 @@ updateShopScreen();
                 {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
                 {name: "Pen Nib", desc: "Every 10th Attack you play deals 10 more damage."},
                 {name: "Preserved Insect", desc: "Elites have 25% less HP."},
-                /*TODO - Red Skull - +3 str when hp <=50%*/
+                {name: "Red Skull", desc: "Deal 3 more damage when your HP is half or less."},
                 {name: "Regal Pillow", desc: "Heal 15 more HP when you rest."},
                 /*TODO - Smiling Mask - card remove is always 50g*/
                 {name: "Strawberry", desc: "On pickup, gain 7 max HP."},
@@ -2324,6 +2353,7 @@ updateShopScreen();
                 {name: "Meat on the Bone", desc: "At end of combat, heal 12 HP, up to 50% of max HP."},
                 {name: "Mercury Hourglass", desc: "At the start of your turn, deal 3 damage to ALL enemies."},
                 {name: "Molten Egg", desc: "When you add an Attack to your deck, upgrade it."},
+                {name: "Mummified Hand", desc: "When you play a Power, a random card in your hand costs 0 that turn."},
                 {name: "Ornamental Fan", desc: "When you play 3 Attacks in a turn, gain 4 Block."},
                 {name: "Pantograph", desc: "Heal 25 HP at the start of Boss combats."},
                 {name: "Pear", desc: "On pickup, gain 10 max HP."},
@@ -2331,8 +2361,8 @@ updateShopScreen();
                 {name: "Singing Bowl", desc: "When you view and skip the card reward, gain 2 max HP."},
                 {name: "Strike Dummy", desc: "Strikes deal 3 more damage."},
                 {name: "Sundial", desc: "When you shuffle your deck, gain 1 energy."},
+                //{name: "Teardrop Locket", desc: "Start each combat in Calm."},
                 {name: "Toxic Egg", desc: "When you add a Skill to your deck, upgrade it."},
-                /*TODO - Teardrop Locket - start in calm*/
                 {name: "White Beast Statue", desc: "Potions always drop after combat."},
                 {name: "Self-Forming Clay", desc: "When you lose HP in combat, gain 3 Block next turn."},
                 {name: "Ninja Scroll", desc: "Start each combat with 3 Shivs in hand."},
@@ -2342,12 +2372,12 @@ updateShopScreen();
                 {name: "Bird-Faced Urn", desc: "When you play a Power, heal 2 HP."},
                 {name: "Calipers", desc: "At the start of your turn, lose 15 Block rather than all your Block."},
                 {name: "Captain Wheel", desc: "Start turn 3 with 18 Block."},
-                /*TODO - Charon's Ashes - exhaust -> 3 to all enemies*/
-                /*TODO - Cloak Clasp - end turn -> block per card in hand*/
+                {name: "Charon’s Ashes", desc: "When you Exhaust a card, deal 3 damage to ALL enemies."},
+                {name: "Cloak Clasp", desc: "At end of turn, gain 1 Block per card in your hand."},
                 {name: "Dead Branch", desc: "When you Exhaust a card, add a random card to your hand."},
                 {name: "Fossilized Helix", desc: "Prevent the first time you lose HP each combat."},
                 {name: "Ginger", desc: "You are immune to Weak."},
-                /*TODO - Golden Eye - Scry 2 more whenever you scry*/
+                //{name: "Golden Eye", desc: "Whenever you Scry, Scry 2 more."},
                 {name: "Ice Cream", desc: "You can save energy between turns."},
                 {name: "Mango", desc: "On pickup, gain 14 max HP."},
                 {name: "Old Coin", desc: "Instantly gain 300 gold."},
@@ -3019,7 +3049,10 @@ updateShopScreen();
                     }
                     if(drawPile.length > 0 && hand.length < 10) {
                         let toDraw = drawPile.pop(0);
-                        if(hasBuff("Confused")) {toDraw.cost = Math.floor(Math.random()*4);}
+                        if(hasBuff("Confused")) {
+                            toDraw.flags.push("nextcost "+toDraw.cost);
+                            toDraw.cost = Math.floor(Math.random()*4);
+                        }
                         hand.push(toDraw);
                         if(toDraw.type == "Status") {
                             drawCard(hasBuff("Evolve"));
@@ -3044,12 +3077,15 @@ updateShopScreen();
                     ifRelic("Ninja Scroll", function(){addShivs(3)});
                     ifRelic("Fossilized Helix", function(){gainBuff("Buffer", 1)});
                     ifRelic("Thread and Needle", function(){gainBuff("Metallicize", 2)});
+                    ifRelic("Teardrop Locket", function(){gainBuff("Calm", 1);});
                     stats.lastType = "None";
                 }
                 if(turn == 1) {ifRelic("Horn Cleat", function(){gainBuff("Block", 14)})}
                 if(turn == 2) {ifRelic("Captain Wheel", function(){gainBuff("Block", 18)})}
-                ifRelic("Mercury Hourglass", function(){for(let e of enemies){dealDamage(e, 3)}});
                 turn += 1;
+                ifRelic("Mercury Hourglass", function(){for(let e of enemies){dealDamage(e, 3)}});
+                ifRelic("Damaru", function(){gainBuff("Mantra", 1);});
+                scry(hasBuff("Foresight"));
                 if(hasBuff("Draw Reduction")) {
                     drawCard(4); loseBuff("Draw Reduction", 1);
                 } else {
@@ -3101,8 +3137,14 @@ updateShopScreen();
             
             function endTurn() {
                 if(turn == 7) {ifRelic("Stone Calendar", function(){for(let e of enemies){dealDamage(e, 52)}})}
+                ifRelic("Cloak Clasp", function(){gainBuff("Block", hand.length);});
+                if(hasBuff("Calm")) gainBuff("Block", hasBuff("Like Water"));
                 for(let c of hand) {
-                    if(c.flags.includes("ethereal")) {exhaustPile.push(c);}
+                    if(c.flags.map(x=>x.split(" ")[0]).includes("nextcost")) {
+                        c.cost = c.flags.filter(x=>x.split(" ")[0] == "nextcost")[0].split(" ")[1];
+                        c.flags = c.flags.filter(x=>x.split(" ")[0] != "nextcost");
+                    }
+                    if(c.flags.includes("ethereal") && !c.flags.includes("retain")) {exhaustPile.push(c);}
                     else if(!c.flags.includes("retain")) {discardPile.push(c);}
                     if(c.flags.includes("burning")) {hp -= 1;}
                     if(c.flags.includes("burning+")) {hp -= 2;}
@@ -3117,7 +3159,7 @@ updateShopScreen();
                 
                 loseBuff("Weak", 1);
                 loseBuff("Frail", 1);
-                loseBuff("No Draw", 1);
+                loseBuff("No Draw");
                 hp = Math.min(maxHp, hp + hasBuff("Regen"));
                 loseBuff("Regen", 1);
                 loseBuff("Rage");
