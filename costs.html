@@ -246,7 +246,7 @@ Credits:
 * ToasterOven#7614
 * MegaCrit (obviously)
 
-Version 2.1: Class Selector
+v2.1.1: No Double Eruption
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -2495,7 +2495,7 @@ updateShopScreen();
                 if(getId("useWatcher").checked) {
                     normals = [...normals, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves, followUp, halt, justLucky, pressurePoints, predict, precision, prostrate, protect, sashWhip, thirdEye, tranquility, battleHymn, collect, conclude, deceiveReality, emptyMind, fasting, fearNoEvil, foresight, indignation, innerPeace, likeWater, mentalFortress, nirvana, perseverance, pray, reachHeaven, rushdown, sanctity, sandsOfTime, signatureMove, simmeringFury, study, swivel, talkToTheHand, tantrum, wallop, waveOfTheHand, weave, wheelKick, windmillStrike, worship, wreathOfFlame];
                     rares = [...rares, alpha, blasphemy, brilliance, conjureBlade, deusExMachina, devaForm, devotion, establishment, judgment, lessonLearned, ragnarok, scrawl, spiritShield, vault, wish];
-                    deck.slice(0, 8); deck.push(eruption()); deck.push(vigilance());
+                    deck = deck.slice(0, 8); deck.push(eruption()); deck.push(vigilance());
                 }
                 randCard = function() {
                     let card = choice(normals);
