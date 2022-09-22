@@ -1,7 +1,8 @@
+<!-- egg-lose -->
 <html id="html" style="color: white; background: #222; font-family: monospace;">
     <head>
-        <title>Google Docs</title>
-        <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">
+        <title>Clone of Slay the Spire</title>
+        <link rel="shortcut icon" href="./StS/intent-attack.png">
         <style>
             input {
                 color: white;
@@ -175,7 +176,10 @@
         </span>
         <br /><br />
         <div id="introScreen" style="width: 100%;">
-            <h1 id="h1"> Slay The Spire <span class="Power" style="font-size:24px;border:none;">For Web</span></h1>
+            <h1 id="h1">
+                Clone of Slay The Spire
+                <span class="Power" style="font-size:20px;border:none;" id="funText">(fun)</span>
+            </h1>
             <button class="titleButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(SOUND WARNING!!!)</span></button>
             <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions</button>
             <button class="titleButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Keybinds</button>
@@ -246,7 +250,7 @@ Credits:
 * ToasterOven#7614
 * MegaCrit (obviously)
 
-v2.1.1: No Double Eruption
+v2.2: Card Removal Service, Yet Another Snecko Fix, Splash Screen, Improved Grammar, and more!
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -298,8 +302,10 @@ v2.1.1: No Double Eruption
                 }
                 return array;
             }
-            let getId = x => document.getElementById(x); getId("turnEnder").onclick = () => endTurn();
+            let getId = x => document.getElementById(x);
+            getId("turnEnder").onclick = () => endTurn();
             let choice = x => x[Math.floor(Math.random()*x.length)];
+            getId("funText").innerHTML = "<br/>last update: "+choice(["50% more fun", "browser support", "third character", "more interestingness", "less motivation", /*5*/ "graphics", "github page", "3 new bugs", "more content", "fire gameplay", /*10*/ "copyright infringement", "this message", "new relic", "new card", "discord server", /*15*/ "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+Math.ceil(Math.random()*999)]);
             let resolvePromise;
             let modalNames = [];
             let multiChoice = [];
@@ -606,10 +612,6 @@ if(multiChoice.includes(num)) {
                             drawPile.push(this); drawPile = shuffle(drawPile);
                         } else {
                             discardPile.push(this);
-                        }
-                        if(this.flags.map(x=>x.split(" ")[0]).includes("nextcost")) {
-                            this.cost = this.flags.filter(x=>x.split(" ")[0] == "nextcost")[0].split(" ")[1];
-                            this.flags = this.flags.filter(x=>x.split(" ")[0] != "nextcost");
                         }
                         this.play_success();
                     }
@@ -1123,7 +1125,6 @@ updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+cardCost;
-                        
                         nameWrapper.appendChild(nameElem);
                         cardElem.appendChild(nameWrapper);
                         cardElem.appendChild(costElem);
@@ -1164,7 +1165,6 @@ updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+relicCost;
-                        
                         nameWrapper.appendChild(nameElem);
                         relicElem.appendChild(nameWrapper);
                         relicElem.appendChild(costElem);
@@ -1179,9 +1179,34 @@ updateShopScreen();
                         helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
                         getId("merchantScreen").appendChild(helpNumber);
                     }
-                    /*
-                    TODO - Card removal service
-                    */
+                    
+                    let crElem = document.createElement("tr");
+                    let nameWrapper = document.createElement("td");
+                    let nameElem = document.createElement("button");
+                    let costElem = document.createElement("td");
+                    crElem.setAttribute("id", "crElem");
+                    nameElem.setAttribute("id", "crName");
+                    nameElem.innerHTML = "Remove a card";
+                    if(gold >= crCost) {
+                        nameElem.setAttribute("class", "Status tt");
+                    } else {
+                        nameElem.setAttribute("class", "Status tt unplayable");
+                    }
+                    nameElem.setAttribute("onclick", `if(gold >= crCost) {
+gold -= crCost;
+crCost += 25;
+let cardToRemove = choose(deck.map(x => "Ascenders’ Bane" != x.name), "Choose a card to remove.");
+deck.remove(deck.indexOf(cardToRemove));
+getId("crElem").remove();
+updateShopScreen();
+}
+                    `);
+                    costElem.innerHTML = "Cost: $"+crCost;
+                    nameWrapper.appendChild(nameElem);
+                    crElem.appendChild(nameWrapper);
+                    crElem.appendChild(costElem);
+                    getId("merchantScreen").appendChild(crElem);
+                    
                     let continueElem = document.createElement("tr");
                     let continueWrapper = document.createElement("td");
                     let continueBtn = document.createElement("button");
@@ -1196,7 +1221,7 @@ updateShopScreen();
             function updateShopScreen() {
                 let helpers = document.getElementsByClassName("helpNumber");
                 while(helpers.length > 0) {
-                    helpers[0].parentNode.removeChild(helpers[0]);
+                    helpers[0].remove();
                 }
                 for(let i of offers) {
                     if(i.index >= 100) {
@@ -2287,7 +2312,7 @@ updateShopScreen();
                 addShivPluses(handSize);
             }), "Tools of the Trade": () => new Card("Tools of the Trade+", 0, "Power", "At the start of your turn, draw a card and discard a card.", function(enemy){
                 gainBuff("Tools of the Trade", 1);
-            }, ["exhausted"]), "Ascender’s Bane": () => new Card("Ascender’s Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash+", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
+            }, ["exhausted"]), "Ascenders’ Bane": () => new Card("Ascenders’ Bane+", 0, "Curse", "Ethereal.", function(enemy){}, ["ethereal"]), "Bowling Bash": () => new Card("Bowling Bash+", 1, "Attack", "Deal [DAM10] damage for each enemy in combat.", function(enemy){
                 dealDamage(enemy, 10 * enemies.length);
             }), "Consecrate": () => new Card("Consecrate+", 0, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let i of enemies){dealDamage(i, 8);}
@@ -2704,7 +2729,9 @@ updateShopScreen();
             let mapY = 0;
             let actNum = 1;
             let turn = 0;
-            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
+            let crCost = 75;
+            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
+            let topThing = () => choice(["enemy", "enemy", choice(["enemy", "enemy", "shop&nbsp;", "rest&nbsp;"])]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map;
             function mapGen() {
@@ -2712,12 +2739,23 @@ updateShopScreen();
                     ["","",     "start","",     ""],
                     ["","enemy","enemy","enemy",""]
                 ];
+                
                 let middleFloors = [];
-                for(let i=0; i<12; i++) {
-                    middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
-                }
+                middleFloors.push([maybeThing(), topThing(),    topThing(),    topThing(),    maybeThing()]);
+                middleFloors.push([maybeThing(), topThing(),    topThing(),    topThing(),    maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), "rest&nbsp;",  randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), "rest&nbsp;",  maybeThing()]);
+                middleFloors.push([maybeThing(), "rest&nbsp;",  randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
+                
                 let numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
-                while(numRests > (getId("ascensionLevel").value >= 15 ? 6 : 8)) {
+                while(numRests > (getId("ascensionLevel").value >= 15 ? 5 : 7)) {
                     let rowsWithRests = middleFloors.filter(x=>x.includes("rest&nbsp;"));
                     let rowWithRest = choice(rowsWithRests);
                     let restSites = rowWithRest.filter(x=>x=="rest&nbsp;");
@@ -2727,7 +2765,7 @@ updateShopScreen();
                     middleFloors[rowIndex][restSite] = newNode;
                     numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
                 }
-                while(numRests < (getId("ascensionLevel").value >= 15 ? 3 : 5)) {
+                while(numRests < (getId("ascensionLevel").value >= 15 ? 4 : 6)) {
                     let row = Math.floor(Math.random()*12);
                     let col = Math.floor(Math.random()*5);
                     while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.floor(Math.random()*5);}
@@ -2743,8 +2781,8 @@ updateShopScreen();
                     numElites = middleFloors.flat().filter(x=>x=="elite").length;
                 }
                 for(let i of middleFloors) {map.push(i);}
-                map.push(["",            "rest&nbsp;",  "rest&nbsp;",  "rest&nbsp;",  ""          ]);
-                map.push(["",            "","<b style='color:red'>BOSS&nbsp;</b>","", ""          ]);
+                map.push(["",   "rest&nbsp;","rest&nbsp;","rest&nbsp;",  ""]);
+                map.push(["","","<b style='color:red'>BOSS&nbsp;</b>","",""]);
             }
             
             // These make writing attacks *much* easier.
@@ -3442,7 +3480,7 @@ updateShopScreen();
             function endTurn() {
                 if(turn == 7) {ifRelic("Stone Calendar", function(){for(let e of enemies){dealDamage(e, 52)}})}
                 let hs = hand.length;
-                for(let c of hand) {
+                for(let c of [...hand, ...drawPile, ...discardPile]) {
                     if(c.flags.map(x=>x.split(" ")[0]).includes("nextcost")) {
                         c.cost = c.flags.filter(x=>x.split(" ")[0] == "nextcost")[0].split(" ")[1];
                         c.flags = c.flags.filter(x=>x.split(" ")[0] != "nextcost");
