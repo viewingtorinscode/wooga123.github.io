@@ -246,7 +246,7 @@ Credits:
 * ToasterOven#7614
 * MegaCrit (obviously)
 
-Version 2.0: The Watcher
+Version 2.1: Class Selector
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -307,7 +307,7 @@ Version 2.0: The Watcher
                 getId("selectionModal").style.display = "block";
                 getId("selectionModalContent").innerHTML = "";
                 let text = document.createElement("pre");
-                text.setAttribute("onclick", "getId('selectionModal').style.display = 'none';");
+                text.setAttribute("onclick", "getId('selectionModal').style.display='none';");
                 if(!displayText) {displayText="Nothing here..."}
                 text.innerHTML = displayText+"\n(Click to close)";
                 getId("selectionModalContent").appendChild(text);
@@ -2497,7 +2497,7 @@ updateShopScreen();
                     rares = [...rares, alpha, blasphemy, brilliance, conjureBlade, deusExMachina, devaForm, devotion, establishment, judgment, lessonLearned, ragnarok, scrawl, spiritShield, vault, wish];
                     deck.slice(0, 8); deck.push(eruption()); deck.push(vigilance());
                 }
-                let randCard = function() {
+                randCard = function() {
                     let card = choice(normals);
                     if(Math.random() < 0.3 * (actNum - 1)) {
                         return upgradedCards[card().name];
@@ -2505,7 +2505,7 @@ updateShopScreen();
                         return card;
                     }
                 };
-                let randRareCard = function() {
+                randRareCard = function() {
                     let card = choice(rares);
                     if(Math.random() < 0.3 * (actNum - 1)) {
                         return upgradedCards[card().name];
