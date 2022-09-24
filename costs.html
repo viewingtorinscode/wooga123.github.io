@@ -178,7 +178,7 @@
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1">
                 Clone of Slay The Spire
-                <span class="Power" style="font-size:20px;border:none;" id="funText">(fun)</span>
+                <span class="Power" style="font-size:17px;border:none;" id="funText">(fun)</span>
             </h1>
             <button class="titleButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(SOUND WARNING!!!)</span></button>
             <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions</button>
@@ -247,10 +247,10 @@ Choose the cards that you want to play with:
 <button onclick="updateCardList();">Save</button>
 
 Credits:
-* ToasterOven#7614
-* MegaCrit (obviously)
+* MegaCrit (obviously) &lt;-- This is really important
+* ToasterOven#7614 (don't ping him please)
 
-v2.2.1: Fixed scrying, snecko, card removal, starting deck, map generation, flurry of blows, shops, study, and more!
+v2.3: Made the buff amounts for unstackable buffs hidden
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -944,6 +944,8 @@ if(multiChoice.includes(num)) {
                 "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];
+            let unstackables = ["Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"];
+            
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -3108,13 +3110,6 @@ updateShopScreen();
                     for(let x of buffs) {
                         let buffStuff = "";
                         if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark", "Precision", "Battle Hymn", "Fasting", "Collect", "Mantra", "Foresight", "Like Water", "Mental Fortress", "Nirvana", "Rushdown", "Study", "Deva Form", "Establishment", "Simmering Fury", "Swivel", "Wave of the Hand", "Vault", "Blasphemy", "Omega"].includes(x.name)) {
-                            /*
-                "Simmering Fury": "At the start of your next turn, enter Wrath.",
-                "Swivel": "The next [AMT] Attack[s] you play costs 0.",
-                "Talk to the Hand": "When this gets attacked, you gain [BAMT] Block.",
-                "Wave of the Hand": "Whenever you gain Block this turn, apply [AMT] Weak to ALL enemies.",
-                "Vault": "Skip the next [AMT] enemy turn[s].",
-                "Blasphemy": "Take 99999 damage next turn."*/
                             buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_").replace(" ","_").replace(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
@@ -3131,14 +3126,16 @@ updateShopScreen();
                             else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
-                        playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
-                            .replaceAll("[DAMT]", adjustedDamage(x.amt))
-                            .replaceAll("[BAMT]", adjustedBlock(x.amt))
-                            .replaceAll("[AMT]", x.amt)
-                            .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
-                            .replaceAll("[s]", (x.amt==1 ? "" : "s"))
-                            .replaceAll("[es]", (x.amt==1 ? "" : "es"))
-                                +"</span></span> ";
+                        if(!unstackables.includes(x)) {
+                            playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
+                                .replaceAll("[DAMT]", adjustedDamage(x.amt))
+                                .replaceAll("[BAMT]", adjustedBlock(x.amt))
+                                .replaceAll("[AMT]", x.amt)
+                                .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
+                                .replaceAll("[s]", (x.amt==1 ? "" : "s"))
+                                .replaceAll("[es]", (x.amt==1 ? "" : "es"))
+                                    +"</span></span> ";
+                        }
                     }
                 }
                 
