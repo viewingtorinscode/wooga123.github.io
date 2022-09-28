@@ -247,7 +247,7 @@ Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
 
-v2.4.2: fix fruits not increasing current hp
+v2.4.3: fix sands of time, clean up summon code
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -702,12 +702,12 @@ if(multiChoice.includes(num)) {
                         let a = amt => function(me){ me.dealDamage(amt); }
                         let ap = (what, amt) => function(me){ gainBuff(what, amt); }
                         let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
-                        enemies.push(new Enemy("Slime", this.hp, [
+                        enemies.unshift(new Enemy("Slime", this.hp, [
                             {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
                             {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
                             {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
                         ], ["randomize"]));
-                        enemies.push(new Enemy("Slime", this.hp, [
+                        enemies.unshift(new Enemy("Slime", this.hp, [
                             {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
                             {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
                         ], ["randomize"]));
@@ -792,15 +792,15 @@ if(multiChoice.includes(num)) {
                             }
                         }
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
-                        getId("html").style.background = "#600";
-                        let normalColor1 = function(){getId("html").style.background = "#511";}
-                        let normalColor2 = function(){getId("html").style.background = "#411";}
-                        let normalColor3 = function(){getId("html").style.background = "#322";}
-                        let normalColor4 = function(){getId("html").style.background = "#222";}
-                        setTimeout(normalColor1, 40);
-                        setTimeout(normalColor2, 80);
-                        setTimeout(normalColor3, 120);
-                        setTimeout(normalColor4, 160);
+                        let red = Math.min(255, dealt * 10 + 34);
+                        let i = 0;
+                        while(red > 34) {
+                            setTimeout(function(r){
+                                getId("html").style.background = `rgb(${r}, 34, 34)`;
+                            }, i * 10, red);
+                            i++;
+                            red -= 5;
+                        }
                     }
                 }
             }
@@ -1055,6 +1055,9 @@ if(multiChoice.includes(num)) {
                     
                     let shuffledDeck = shuffle(deck);
                     for(let card of shuffledDeck) {
+                        if(card.name == "Sands of Time" || card.name == "Sands of Time+") {
+                            card.cost = 4;
+                        }
                         if(card.flags.includes("innate")) {
                             hand.push(card);
                         } else {
@@ -2563,19 +2566,25 @@ updateShopScreen();
             function updateCardList() {
                 let normals = [];
                 let rares = [];
-                deck = deck.slice(0, 8); deck.push(strike()); deck.push(defend());
+                deck = [];
                 if(getId("useIronclad").checked) {
                     normals = [...normals, bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind];
                     rares = [...rares, barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper];
+                    deck.push(bash());
                 }
                 if(getId("useSilent").checked) {
                     normals = [...normals, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror];
                     rares = [...rares, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade];
+                    deck.push(neutralize());
                 }
                 if(getId("useWatcher").checked) {
                     normals = [...normals, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves, followUp, halt, justLucky, pressurePoints, predict, precision, prostrate, protect, sashWhip, thirdEye, tranquility, battleHymn, collect, conclude, deceiveReality, emptyMind, fasting, fearNoEvil, foresight, indignation, innerPeace, likeWater, mentalFortress, nirvana, perseverance, pray, reachHeaven, rushdown, sanctity, sandsOfTime, signatureMove, simmeringFury, study, swivel, talkToTheHand, tantrum, wallop, waveOfTheHand, weave, wheelKick, windmillStrike, worship, wreathOfFlame];
                     rares = [...rares, alpha, blasphemy, brilliance, conjureBlade, deusExMachina, devaForm, devotion, establishment, judgment, lessonLearned, ragnarok, scrawl, spiritShield, vault, wish];
-                    deck = deck.slice(0, 8); deck.push(eruption()); deck.push(vigilance());
+                    deck.push(eruption()); deck.push(vigilance());
+                }
+                while(deck.length < 10) {
+                    deck.push(strike());
+                    deck.push(defend());
                 }
                 randCard = function() {
                     let card = choice(normals);
@@ -2977,26 +2986,22 @@ updateShopScreen();
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
                             ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 15, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
                             ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 25, [
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
-                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
+                        if(enemies.length <= 8) {enemies.unshift(choice(gremlins)()); enemies.unshift(choice(gremlins)());}
                     }}
                 ], ["randomize"])
             ];
@@ -3013,12 +3018,10 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let orb = () => new Enemy("Bronze Orb", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "blocking", desc: "block", effect: block(12)},
                                 {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
-                            ], ["no-repeat"]);
-                            enemies.push(orb());
-                            enemies.push(orb());
+                            ]);
+                            enemies.unshift(orb()); enemies.unshift(orb());
                         }
                     }},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
@@ -3032,11 +3035,9 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let th = () => new Enemy("Torch Head", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                            ], ["no-repeat"]);
-                            enemies.push(th());
-                            enemies.push(th());
+                            ]);
+                            enemies.unshift(th()); enemies.unshift(th());
                         }
                     }},
                     {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
@@ -3058,7 +3059,6 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let exploder = () => new Enemy("Exploder", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                                 {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
                                 {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: function(me){
@@ -3066,11 +3066,10 @@ updateShopScreen();
                                 }
                             ], ["no-repeat"]);
                             let repulsor = () => new Enemy("Repulsor", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor());
-                            enemies.push(exploder());
+                            enemies.unshift(repulsor());
+                            enemies.unshift(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -3106,7 +3105,18 @@ updateShopScreen();
                 () => new Enemy("Donu", 250, [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
-                ])
+                ])/*,
+                () => new Enemy("Awakened One", 300, [
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "unknown", desc: "summon a friend", effect: function(me){
+                        let ct = () => new Enemy("Cultist", 50, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
+                            {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                        ], ["no-repeat"]);
+                        enemies.unshift(ct());
+                    }}
+                ])*/
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -3149,7 +3159,6 @@ updateShopScreen();
                 }
                 for(let i=0; i<((getId("ascensionLevel").value >= 11 ? 2 : 3)-potions.length); i++) {
                     let potionElem = document.createElement("button");
-                    potionElem.setAttribute("class", "nonbutton");
                     potionElem.innerHTML = "Empty Slot";
                     getId("potions").appendChild(potionElem);
                 }
@@ -3587,7 +3596,7 @@ updateShopScreen();
                     else if(!c.flags.includes("retain")) {discardPile.push(c);}
                     if(c.flags.includes("retain")) {
                         c.cost -= hasBuff("Establishment");
-                        if(c.name == "Sands of Time"){c.cost -= 1;}
+                        if(c.name == "Sands of Time" && c.cost > 0){c.cost -= 1;}
                         if(c.name == "Windmill Strike"){stats.windmill += 4;}
                         if(c.name == "Windmill Strike+"){stats.windmill += 7;}
                         if(c.name == "Perseverance"){stats.pers += 4;}
@@ -3715,7 +3724,6 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let exploder = () => new Enemy("Exploder", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 24", desc: "deal [DAM24] damage and die", effect: function(me){
@@ -3723,11 +3731,10 @@ updateShopScreen();
                                 }
                             ], ["no-repeat"]);
                             let repulsor = () => new Enemy("Repulsor", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor());
-                            enemies.push(exploder());
+                            enemies.unshift(repulsor());
+                            enemies.unshift(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -3770,30 +3777,25 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 15, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
                             ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 15, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
                             ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ]),
                             () => new Enemy("Wizard Gremlin", 25, [
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
-                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()()); enemies.push(choice(gremlins)()());}
+                        if(enemies.length <= 8) {enemies.unshift(choice(gremlins)()()); enemies.unshift(choice(gremlins)()());}
                     }}
                 ], ["randomize"])
                     ];
@@ -3853,12 +3855,10 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let orb = () => new Enemy("Bronze Orb", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "blocking", desc: "block", effect: block(12)},
                                 {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
-                            ], ["no-repeat"]);
-                            enemies.push(orb());
-                            enemies.push(orb());
+                            ]);
+                            enemies.unshift(orb()); enemies.unshift(orb());
                         }
                     }},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
@@ -3872,11 +3872,9 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let th = () => new Enemy("Torch Head", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                            ], ["no-repeat"]);
-                            enemies.push(th());
-                            enemies.push(th());
+                            ]);
+                            enemies.unshift(th()); enemies.unshift(th());
                         }
                     }},
                     {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
@@ -3969,7 +3967,6 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let exploder = () => new Enemy("Exploder", 35, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 24", desc: "deal [DAM24] damage and die", effect: function(me){
@@ -3977,11 +3974,9 @@ updateShopScreen();
                                 }
                             ], ["no-repeat"]);
                             let repulsor = () => new Enemy("Repulsor", 35, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor());
-                            enemies.push(exploder());
+                            enemies.unshift(repulsor()); enemies.unshift(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
@@ -4028,26 +4023,22 @@ updateShopScreen();
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 25, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
                             ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
                             ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 30, [
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
-                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                             ])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
+                        if(enemies.length <= 8) {enemies.unshift(choice(gremlins)()); enemies.unshift(choice(gremlins)());}
                     }}
                 ], ["randomize"])
                     ];
@@ -4107,12 +4098,10 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let orb = () => new Enemy("Bronze Orb", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "blocking", desc: "block", effect: block(12)},
                                 {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
-                            ], ["no-repeat"]);
-                            enemies.push(orb());
-                            enemies.push(orb());
+                            ]);
+                            enemies.unshift(orb()); enemies.unshift(orb());
                         }
                     }},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
@@ -4126,11 +4115,9 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let th = () => new Enemy("Torch Head", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                            ], ["no-repeat"]);
-                            enemies.push(th());
-                            enemies.push(th());
+                            ]);
+                            enemies.unshift(th()); enemies.unshift(th());
                         }
                     }},
                     {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
@@ -4236,7 +4223,6 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let exploder = () => new Enemy("Exploder", 35, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 7", desc: "deal [DAM7] damage and get ready to explode", effect: attack(7)},
                                 {intent: "unknown 24", desc: "deal [DAM24] damage and die", effect: function(me){
@@ -4244,11 +4230,9 @@ updateShopScreen();
                                 }
                             ], ["no-repeat"]);
                             let repulsor = () => new Enemy("Repulsor", 35, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 3)}
                             ], ["no-repeat"]);
-                            enemies.push(repulsor());
-                            enemies.push(exploder());
+                            enemies.unshift(repulsor()); enemies.unshift(exploder());
                         }
                     }},
                     {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 4)}
@@ -4292,30 +4276,25 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 25, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
                             ], ["no-repeat"]),
                             () => new Enemy("Shield Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
                                 {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
                             ], ["no-repeat"]),
                             () => new Enemy("Sneaky Gremlin", 10, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
                             ], ["no-repeat"]),
                             () => new Enemy("Wizard Gremlin", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
                                 {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                             ], ["no-repeat"])
                         ];
-                        if(enemies.length <= 8) {enemies.push(choice(gremlins)()); enemies.push(choice(gremlins)());}
+                        if(enemies.length <= 8) {enemies.unshift(choice(gremlins)()); enemies.unshift(choice(gremlins)());}
                     }}
                 ], ["randomize"])
                     ];
@@ -4375,12 +4354,10 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let orb = () => new Enemy("Bronze Orb", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "blocking", desc: "block", effect: block(12)},
                                 {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
-                            ], ["no-repeat"]);
-                            enemies.push(orb());
-                            enemies.push(orb());
+                            ]);
+                            enemies.unshift(orb()); enemies.unshift(orb());
                         }
                     }},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
@@ -4394,11 +4371,9 @@ updateShopScreen();
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
                             let th = () => new Enemy("Torch Head", 30, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                            ], ["no-repeat"]);
-                            enemies.push(th());
-                            enemies.push(th());
+                            ]);
+                            enemies.unshift(th()); enemies.unshift(th());
                         }
                     }},
                     {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
