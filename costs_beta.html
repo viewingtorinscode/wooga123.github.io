@@ -174,11 +174,11 @@
         <br /><br />
         <div id="introScreen" style="width: 100%;">
             <h1 id="h1">
-                Clone of Slay The Spire [BETA]
+                Clone of Slay The Spire
                 <span class="Power" style="font-size:17px;border:none;" id="funText">(fun)</span>
             </h1>
             <button class="titleButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(SOUND WARNING!!!)</span></button>
-            <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions</button>
+            <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions <span style="font-size: 13px;color:red;">(important)</span></button>
             <button class="titleButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Keybinds</button>
             <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Ascension</button>
             <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'block';">Settings</button>
@@ -247,7 +247,7 @@ Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
 
-v2.4 (BETA): Improved Act 1 Bosses and added more Act 2 Bosses
+v2.4.1: fix slice+
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -1101,6 +1101,31 @@ if(multiChoice.includes(num)) {
                         nme = () => choice(possibleBosses_act3)();
                     }
                     enemies = [nme()];
+                    if(enemies[0].name == "Donu") {
+                        let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
+                        let attack_status = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                        if(getId("ascensionLevel").value < 4) {
+                            enemies.push(new Enemy("Deca", 250, [
+                                {intent: "attack-nerf 20", desc: "deal [DAM20] damage and generate Status cards", effect: attack_status(20, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else if(getId("ascensionLevel").value < 9) {
+                            enemies.push(new Enemy("Deca", 250, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else if(getId("ascensionLevel").value < 20) {
+                            enemies.push(new Enemy("Deca", 275, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else {
+                            enemies.push(new Enemy("Deca", 275, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 3)},
+                                {intent: "blocking", desc: "block", effect: function(me){for(let e of enemies){e.gainBuff("Block", 16); e.gainBuff("Metallicize", 1);}}}
+                            ]));
+                        }
+                    }
                     eliteBattle = false;
                     bossBattle = true;
                     ifRelic("Pantograph", function(){hp = Math.min(maxHp, hp + 25)});
@@ -2248,7 +2273,7 @@ updateShopScreen();
                 }
             }), "Quick Slash": () => new Card("Quick Slash+", 1, "Attack", "Deal [DAM12] damage. Draw a card.", function(enemy){
                 dealDamage(enemy, 12); drawCard();
-            }), "Slice": () => new Card("Slice+", 0, "Deal [DAM9] damage.", function(enemy){
+            }), "Slice": () => new Card("Slice+", 0, "Attack", "Deal [DAM9] damage.", function(enemy){
                 dealDamage(enemy, 9);
             }), "Sucker Punch": () => new Card("Sucker Punch+", 1, "Attack", "Deal [DAM9] damage. Apply 2 Weak.", function(enemy){
                 dealDamage(enemy, 9); enemy.gainBuff("Weak", 2);
@@ -3077,7 +3102,11 @@ updateShopScreen();
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)},
                     {intent: "attack 20", desc: "deal [DAM24] damage", effect: attack(20)},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 250, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
+                ])
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -3293,7 +3322,7 @@ updateShopScreen();
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -3865,7 +3894,11 @@ updateShopScreen();
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
                     {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 250, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
                 if(lv >= 6) {hp = 0.9 * maxHp;}
@@ -4115,7 +4148,11 @@ updateShopScreen();
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
                     {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 275, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
@@ -4379,7 +4416,11 @@ updateShopScreen();
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
                     {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 275, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 4)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
             });
