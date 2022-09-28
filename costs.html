@@ -247,7 +247,7 @@ Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
 
-v2.4.3: fix sands of time, clean up summon code
+v2.4.4: fix time warp
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -3351,10 +3351,10 @@ updateShopScreen();
                             enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
-                            enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'>Time Warp<span class='txt'>Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
                         }
                         if(e.name == "Slime Boss") {
-                            enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'>Split<span class='txt'>When this falls under half HP, it splits into 2 slimes.</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'><span class='txt'>Split: When this falls under half HP, it splits into 2 slimes.</span></span> ";
                         }
                     }
                     let enemyTooltip = document.createElement("span");
