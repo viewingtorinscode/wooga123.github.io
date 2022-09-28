@@ -1,4 +1,3 @@
-<!-- egg-lose -->
 <html id="html" style="color: white; background: #222; font-family: monospace;">
     <head>
         <title>Clone of Slay the Spire</title>
@@ -142,9 +141,7 @@
             }
         </style>
     </head>
-    <body>
-        <b id="musicSayer" style="top:50px;opacity:0;position:absolute;width:100%;text-align:center;font-size:35px;color:yellow;"></b>
-        
+    <body>        
         <div id="msModal" style="display: none;">
             <div id="msModalContent"></div>
         </div>
@@ -181,7 +178,7 @@
                 <span class="Power" style="font-size:17px;border:none;" id="funText">(fun)</span>
             </h1>
             <button class="titleButton" onclick="beginGame()">Play <span style="font-size: 13px;color:red;">(SOUND WARNING!!!)</span></button>
-            <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions</button>
+            <button class="titleButton" onclick="getId('rulesScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Instructions <span style="font-size: 13px;color:red;">(important)</span></button>
             <button class="titleButton" onclick="getId('keyScreen').style.display = 'block'; getId('ascensionScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Keybinds</button>
             <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'block'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'none';">Ascension</button>
             <button class="titleButton" onclick="getId('ascensionScreen').style.display = 'none'; getId('keyScreen').style.display = 'none'; getId('rulesScreen').style.display = 'none'; getId('settingsScreen').style.display = 'block';">Settings</button>
@@ -250,7 +247,7 @@ Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
 
-v2.3: Made the buff amounts for unstackable buffs hidden
+v2.4.1: fix slice+
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -306,7 +303,9 @@ v2.3: Made the buff amounts for unstackable buffs hidden
             getId("turnEnder").onclick = () => endTurn();
             let choice = x => x[Math.floor(Math.random()*x.length)];
             let crand = x => Math.ceil(Math.random()*x);
-            getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "act 2 difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring"]);
+            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "new enemy: turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+crand(99), "hacking", "hecking", "yellow"])};
+            newFun();
+            window.setInterval(newFun, 800);
             let resolvePromise;
             let modalNames = [];
             let multiChoice = [];
@@ -552,12 +551,7 @@ if(multiChoice.includes(num)) {
             music.bossDead.volume = 0.5;
             
             let announceMusic = function(name) {
-                /*let sayer = getId("musicSayer");
-                sayer.style.opacity = 1;
-                sayer.innerHTML = "♫ "+name+" — Shovel Knight OST";
-                for(let i=0; i<30; i++) {
-                    setTimeout(function(){sayer.style.opacity = (29-i)/30}, 1500+i*8);
-                }*/
+                // Removed.
             };
             
             class Card {
@@ -673,6 +667,15 @@ if(multiChoice.includes(num)) {
                             for(let i=0; i<hasBuff("Hex"); i++) {discardPile.push(statusCards["Dazed"]());}
                         }
                     }
+                    let en = enemies[0];
+                    if(en.name == "Time Eater") {
+                        en.gainBuff("Time Warp", 1);
+                        if(en.hasBuff("Time Warp") >= 12) {
+                            en.loseBuff("Time Warp");
+                            en.gainBuff("Strength", 2);
+                            endTurn();
+                        }
+                    }
                 }
             }
             
@@ -692,20 +695,37 @@ if(multiChoice.includes(num)) {
                     this.intent = (this.flags.includes("randomize") ? choice(attacks) : attacks[0]);
                 }
                 attack() {
-                    this.intent.effect(this);
-                    if(this.flags.includes("randomize")) {
-                        // We need to change attacks each time.
-                        let newIntent = choice(this.attacks);
-                        while(newIntent == this.intent) {
-                            newIntent = choice(this.attacks);
+                    if(this.hp <= 0.5*this.maxHp && this.name == "Slime Boss") {
+                        let addStatus = function(name, amt) {
+                            for(let x=0; x<amt; x++) {discardPile.push(statusCards[name]());}
                         }
-                        this.intent = newIntent;
-                    } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
-                        // Repeat is allowed and we are at the end: restart.
-                        this.intent = this.attacks[0];
-                    } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
-                        // Else if we have something to go to: go to it.
-                        this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
+                        let a = amt => function(me){ me.dealDamage(amt); }
+                        let ap = (what, amt) => function(me){ gainBuff(what, amt); }
+                        let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                        enemies.push(new Enemy("Slime", this.hp, [
+                            {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
+                            {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                            {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
+                        ], ["randomize"]));
+                        enemies.push(new Enemy("Slime", this.hp, [
+                            {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                            {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
+                        ], ["randomize"]));
+                        this.hp = 0;
+                        updateHtml();
+                    } else {
+                        this.intent.effect(this);
+                        if(this.flags.includes("randomize")) {
+                            let newIntent = choice(this.attacks);
+                            while(newIntent == this.intent) {
+                                newIntent = choice(this.attacks);
+                            }
+                            this.intent = newIntent;
+                        } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
+                            this.intent = this.attacks[0];
+                        } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
+                            this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
+                        }
                     }
                     updateHtml();
                 }
@@ -869,6 +889,7 @@ if(multiChoice.includes(num)) {
             let buffDesc = {
                 ".": "You weren't supposed to see this. Just ignore it.",
                 "Block": "Until next turn, prevents [AMT] damage.",
+                "Shielding": "Prevents [AMT] damage.",
                 "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
                 "Weak": "Deal 25% less damage for [AMT] turn[s].",
                 "Strength": "Attacks deal [AMT] more damage.",
@@ -941,7 +962,9 @@ if(multiChoice.includes(num)) {
                 "Wave of the Hand": "Whenever you gain Block this turn, apply [AMT] Weak to ALL enemies.",
                 "Vault": "Skip the next [AMT] enemy turn[s].",
                 "Blasphemy": "Die next turn.",
-                "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies."
+                "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies.",
+                "Mantra": "When you gain 10 Mantra, enter Divinity.",
+                "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];
             let unstackables = ["Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"];
@@ -1078,6 +1101,31 @@ if(multiChoice.includes(num)) {
                         nme = () => choice(possibleBosses_act3)();
                     }
                     enemies = [nme()];
+                    if(enemies[0].name == "Donu") {
+                        let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
+                        let attack_status = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                        if(getId("ascensionLevel").value < 4) {
+                            enemies.push(new Enemy("Deca", 250, [
+                                {intent: "attack-nerf 20", desc: "deal [DAM20] damage and generate Status cards", effect: attack_status(20, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else if(getId("ascensionLevel").value < 9) {
+                            enemies.push(new Enemy("Deca", 250, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else if(getId("ascensionLevel").value < 20) {
+                            enemies.push(new Enemy("Deca", 275, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 2)},
+                                {intent: "blocking", desc: "block", effect: all_buff("Block", 16)}
+                            ]));
+                        } else {
+                            enemies.push(new Enemy("Deca", 275, [
+                                {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 3)},
+                                {intent: "blocking", desc: "block", effect: function(me){for(let e of enemies){e.gainBuff("Block", 16); e.gainBuff("Metallicize", 1);}}}
+                            ]));
+                        }
+                    }
                     eliteBattle = false;
                     bossBattle = true;
                     ifRelic("Pantograph", function(){hp = Math.min(maxHp, hp + 25)});
@@ -2225,7 +2273,7 @@ updateShopScreen();
                 }
             }), "Quick Slash": () => new Card("Quick Slash+", 1, "Attack", "Deal [DAM12] damage. Draw a card.", function(enemy){
                 dealDamage(enemy, 12); drawCard();
-            }), "Slice": () => new Card("Slice+", 0, "Deal [DAM9] damage.", function(enemy){
+            }), "Slice": () => new Card("Slice+", 0, "Attack", "Deal [DAM9] damage.", function(enemy){
                 dealDamage(enemy, 9);
             }), "Sucker Punch": () => new Card("Sucker Punch+", 1, "Attack", "Deal [DAM9] damage. Apply 2 Weak.", function(enemy){
                 dealDamage(enemy, 9); enemy.gainBuff("Weak", 2);
@@ -2889,7 +2937,7 @@ updateShopScreen();
                 ], ["no-repeat"]),
                 () => new Enemy("The Chosen", 95, [
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: apply("Hex", 1)},
+                    {intent: "meganerf", desc: "apply a powerful negative effect", effect: apply("Hex", 1)},
                     {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
                     {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
                     {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
@@ -2960,6 +3008,43 @@ updateShopScreen();
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
+                ], ["randomize"]),
+                () => new Enemy("Bronze Automaton", 300, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let orb = () => new Enemy("Bronze Orb", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "blocking", desc: "block", effect: block(12)},
+                                {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
+                            ], ["no-repeat"]);
+                            enemies.push(orb());
+                            enemies.push(orb());
+                        }
+                    }},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
+                    {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
+                ]),
+                () => new Enemy("The Collector", 280, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let th = () => new Enemy("Torch Head", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                            ], ["no-repeat"]);
+                            enemies.push(th());
+                            enemies.push(th());
+                        }
+                    }},
+                    {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
+                        me.gainBuff("Block", 15); for(let e of enemies) {e.gainBuff("Strength", 3);}
+                    }},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
                 ], ["randomize"])
             ];
             let possibleEnemies_act3 = [
@@ -3012,12 +3097,16 @@ updateShopScreen();
             ];
             let possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 456, [
-                    {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
+                    {intent: "attack 20", desc: "deal [DAM24] damage", effect: attack(20)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)},
-                    {intent: "attack-buff 20", desc: "deal [DAM20] damage", effect: attack_buff(20, "Strength", 3)},
+                    {intent: "attack 20", desc: "deal [DAM24] damage", effect: attack(20)},
                     {intent: "attack-nerf 27", desc: "deal [DAM27] damage and apply a negative effect", effect: attack_apply(27, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 250, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
+                ])
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -3233,7 +3322,7 @@ updateShopScreen();
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -3251,6 +3340,12 @@ updateShopScreen();
                                 else {return blockI;}
                             }
                             enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
+                        }
+                        if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
+                            enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'>Time Warp<span class='txt'>Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
+                        }
+                        if(e.name == "Slime Boss") {
+                            enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'>Split<span class='txt'>When this falls under half HP, it splits into 2 slimes.</span></span> ";
                         }
                     }
                     let enemyTooltip = document.createElement("span");
@@ -3753,16 +3848,57 @@ updateShopScreen();
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
+                ], ["randomize"]),
+                () => new Enemy("Bronze Automaton", 300, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let orb = () => new Enemy("Bronze Orb", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "blocking", desc: "block", effect: block(12)},
+                                {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
+                            ], ["no-repeat"]);
+                            enemies.push(orb());
+                            enemies.push(orb());
+                        }
+                    }},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
+                    {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
+                ]),
+                () => new Enemy("The Collector", 280, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let th = () => new Enemy("Torch Head", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                            ], ["no-repeat"]);
+                            enemies.push(th());
+                            enemies.push(th());
+                        }
+                    }},
+                    {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
+                        me.gainBuff("Block", 15); for(let e of enemies) {e.gainBuff("Strength", 3);}
+                    }},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 456, [
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(18, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 250, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
                 if(lv >= 6) {hp = 0.9 * maxHp;}
@@ -3966,16 +4102,57 @@ updateShopScreen();
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
+                ], ["randomize"]),
+                () => new Enemy("Bronze Automaton", 320, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let orb = () => new Enemy("Bronze Orb", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "blocking", desc: "block", effect: block(12)},
+                                {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
+                            ], ["no-repeat"]);
+                            enemies.push(orb());
+                            enemies.push(orb());
+                        }
+                    }},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
+                    {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
+                    {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
+                ]),
+                () => new Enemy("The Collector", 300, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let th = () => new Enemy("Torch Head", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                            ], ["no-repeat"]);
+                            enemies.push(th());
+                            enemies.push(th());
+                        }
+                    }},
+                    {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
+                        me.gainBuff("Block", 15); for(let e of enemies) {e.gainBuff("Strength", 3);}
+                    }},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 500, [
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 1], ["Weak", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 275, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
@@ -4193,16 +4370,57 @@ updateShopScreen();
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)},
                     {intent: "attacking 19", desc: "deal [DAM19] damage", effect: attack(19)}
+                ], ["randomize"]),
+                () => new Enemy("Bronze Automaton", 320, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let orb = () => new Enemy("Bronze Orb", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "blocking", desc: "block", effect: block(12)},
+                                {intent: "attacking 8", desc: "deal [DAM8] damage", effect: attack(8)}
+                            ], ["no-repeat"]);
+                            enemies.push(orb());
+                            enemies.push(orb());
+                        }
+                    }},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)},
+                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)},
+                    {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
+                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)}
+                ]),
+                () => new Enemy("The Collector", 300, [
+                    {intent: "unknown", desc: "summon friends", effect: function(me){
+                        if(enemies.length <= 8) {
+                            let th = () => new Enemy("Torch Head", 30, [
+                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
+                                {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
+                            ], ["no-repeat"]);
+                            enemies.push(th());
+                            enemies.push(th());
+                        }
+                    }},
+                    {intent: "block-buff", desc: "block and buff ALL enemies", effect: function(me){
+                        me.gainBuff("Block", 25); for(let e of enemies) {e.gainBuff("Strength", 4);}
+                    }},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
+                    {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 4], ["Vulnerable", 4], ["Frail", 4]])}
                 ], ["randomize"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 500, [
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
-                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 2], ["Weak", 2]])},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "block-nerf", desc: "block and apply negative effects", effect: block_multinerf(22, [["Vulnerable", 1], ["Weak", 1], ["Frail", 1]])},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)},
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 4)},
+                    {intent: "attack 24", desc: "deal [DAM24] damage", effect: attack(24)},
                     {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Draw Reduction", 2)}
-                ], ["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Donu", 275, [
+                    {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 4)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ])
                     ];
                 }
             });
