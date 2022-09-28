@@ -247,7 +247,7 @@ Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
 
-v2.4.1: fix slice+
+v2.4.2: fix fruits not increasing current hp
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -3405,7 +3405,7 @@ updateShopScreen();
                         getId("relicReward").style.display = "block";
                         let newRelic = choice(relicPool);
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
-                        getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); ifRelic('Strawberry', function(){maxHp += 7}); ifRelic('Pear', function(){maxHp += 10}); ifRelic('Mango', function(){maxHp += 14}); updateStatLine(); getId('relicReward').style.display = 'none';`);
+                        getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); ifRelic('Strawberry', function(){maxHp += 7; hp += 7;}); ifRelic('Pear', function(){maxHp += 10; hp += 10;}); ifRelic('Mango', function(){maxHp += 14; hp += 14;}); updateStatLine(); getId('relicReward').style.display = 'none';`);
                     } else {
                         getId("relicReward").style.display = "none";
                     }
