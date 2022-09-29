@@ -308,7 +308,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.6";
+            let currentVersion = "v2.6.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -320,7 +320,7 @@ Credits:
                 .then((response) => {
                     if(response == -1) {getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ failed to check for updates";}
                     let msAgo = Date.now() - Date.parse(response["commit"]["commit"]["author"]["date"]);
-                    let lastVer = response["commit"]["commit"]["message"];
+                    let lastVer = response["commit"]["commit"]["message"].split("\n")[0];
                     getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ newest version is "+lastVer+" ("+Math.floor(msAgo / 36e5)+"h"+((msAgo / 60e3) % 60).toFixed(0).toString().padStart(2, "0")+"m ago)";
                 });
             }
