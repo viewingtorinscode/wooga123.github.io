@@ -974,9 +974,7 @@ if(multiChoice.includes(num)) {
                 "Mantra": "When you gain 10 Mantra, enter Divinity.",
                 "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength."
             };
-            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];
-            let unstackables = ["Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"];
-            
+            let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];            
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
@@ -3232,7 +3230,16 @@ updateShopScreen();
                             else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
-                        if(!unstackables.includes(x)) {
+                        if(["Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"].includes(x.name)) {
+                            playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
+                                .replaceAll("[DAMT]", adjustedDamage(x.amt))
+                                .replaceAll("[BAMT]", adjustedBlock(x.amt))
+                                .replaceAll("[AMT]", x.amt)
+                                .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
+                                .replaceAll("[s]", (x.amt==1 ? "" : "s"))
+                                .replaceAll("[es]", (x.amt==1 ? "" : "es"))
+                                    +"</span></span> ";
+                        } else {
                             playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
                                 .replaceAll("[DAMT]", adjustedDamage(x.amt))
                                 .replaceAll("[BAMT]", adjustedBlock(x.amt))
