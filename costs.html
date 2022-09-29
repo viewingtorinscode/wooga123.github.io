@@ -246,8 +246,6 @@ Choose the cards that you want to play with:
 Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
-
-v2.4.4: fix time warp
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -260,7 +258,7 @@ v2.4.4: fix time warp
                     <button id="discardPile" onclick='let d=discardPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View D<span style="text-decoration:underline">i</span>scard Pile</button>
                     <button id="drawPile" onclick='let d=drawPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View Draw <span style="text-decoration:underline">P</span>ile</button>
                     <button id="exhaustPile" onclick='let d=exhaustPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View E<span style="text-decoration:underline">x</span>haust Pile</button>
-                    | <button id="turnEnder"><span style="text-decoration:underline">E</span>nd Turn</button>
+                    | <button id="turnEnder"><span style="text-decoration:underline">E</span>nd Turn</button><br/>
                 </td>
                 <td id="enemiesTd">
                     <div id="enemies"></div>
@@ -289,6 +287,8 @@ v2.4.4: fix time warp
         </div>
         <table id="merchantScreen" style="display: none;">
         </table>
+        <br/>
+        <span style="color: gray;">Clone of StS ~ v2.5.1</span>
         <script>
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
@@ -641,6 +641,14 @@ if(multiChoice.includes(num)) {
                             c.flags.push("nextcost "+c.cost);
                             c.cost = 0;
                         });
+                        let en = enemies[enemies.length - 1];
+                        if(en.name == "Awakened One") {
+                            if(getId("ascensionLevel").value == 20) {
+                                en.gainBuff("Strength", 2);
+                            } else {
+                                en.gainBuff("Strength", 2);
+                            }
+                        }
                     }
                     if(this.type == "Attack") {
                         stats.attacksThisTurn += 1;
@@ -3105,7 +3113,7 @@ updateShopScreen();
                 () => new Enemy("Donu", 250, [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
-                ])/*,
+                ]),
                 () => new Enemy("Awakened One", 300, [
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
@@ -3116,7 +3124,7 @@ updateShopScreen();
                         ], ["no-repeat"]);
                         enemies.unshift(ct());
                     }}
-                ])*/
+                ])
             ];
             
             let enemies = [choice(possibleEnemies.slice(0))()];
@@ -3355,6 +3363,13 @@ updateShopScreen();
                         }
                         if(e.name == "Slime Boss") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'><span class='txt'>Split: When this falls under half HP, it splits into 2 slimes.</span></span> ";
+                        }
+                        if(e.name == "Awakened One") {
+                            if(getId("ascensionLevel").value == 20) {
+                                enemyElem.innerHTML += "<span class='tt'><img src='StS/curiosity.png'>2<span class='txt'>Curiosity: Whenever you play a Power, gains 2 Strength.</span></span> ";
+                            } else {
+                                enemyElem.innerHTML += "<span class='tt'><img src='StS/curiosity.png'>1<span class='txt'>Curiosity: Whenever you play a Power, gains 1 Strength.</span></span> ";
+                            }
                         }
                     }
                     let enemyTooltip = document.createElement("span");
@@ -3896,6 +3911,17 @@ updateShopScreen();
                 () => new Enemy("Donu", 250, [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ]),
+                () => new Enemy("Awakened One", 300, [
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "unknown", desc: "summon a friend", effect: function(me){
+                        let ct = () => new Enemy("Cultist", 50, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
+                        ], ["no-repeat"]);
+                        enemies.unshift(ct());
+                    }}
                 ])
                     ];
                 }
@@ -4139,6 +4165,17 @@ updateShopScreen();
                 () => new Enemy("Donu", 275, [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 3)},
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ]),
+                () => new Enemy("Awakened One", 333, [
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "unknown", desc: "summon a friend", effect: function(me){
+                        let ct = () => new Enemy("Cultist", 60, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
+                        ], ["no-repeat"]);
+                        enemies.unshift(ct());
+                    }}
                 ])
                     ];
                 }
@@ -4395,6 +4432,22 @@ updateShopScreen();
                 () => new Enemy("Donu", 275, [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 4)},
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
+                ]),
+                () => new Enemy("Awakened One", 333, [
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "unknown", desc: "summon a friend", effect: function(me){
+                        let ct = () => new Enemy("Cultist", 60, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
+                        ], ["no-repeat"])
+                        enemies.unshift(ct());
+                    }}
                 ])
                     ];
                 }
