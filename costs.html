@@ -288,7 +288,7 @@ Credits:
         <table id="merchantScreen" style="display: none;">
         </table>
         <br/>
-        <span style="color: gray;">Clone of StS ~ v2.5.1</span>
+        <span style="color: gray;" id="version"></span>
         <script>
             function shuffle(array) {
                 let currentIndex = array.length, randomIndex;
@@ -302,10 +302,31 @@ Credits:
             let getId = x => document.getElementById(x);
             getId("turnEnder").onclick = () => endTurn();
             let choice = x => x[Math.floor(Math.random()*x.length)];
+            
             let crand = x => Math.ceil(Math.random()*x);
-            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "new enemy: turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+crand(99), "hacking", "hecking", "yellow"])};
+            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "new enemy: turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "hecking", "yellow", "orange"])};
             newFun();
             window.setInterval(newFun, 800);
+            
+            let currentVersion = "v2.5.2";
+            getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
+            let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
+            function fetchIt() {
+                fetch(myRequest)
+                .then((response) => {
+                    if(!response.ok) return -1;
+                    return response.json();
+                })
+                .then((response) => {
+                    if(response = -1) {getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ failed to check for updates";}
+                    let msAgo = Date.now() - Date.parse(response["commit"]["commit"]["author"]["date"]);
+                    let lastVer = response["commit"]["commit"]["message"];
+                    getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ newest version is "+lastVer+" ("+Math.floor(msAgo / 36e5)+" hr "+Math.ceil((msAgo / 60e3) % 60)+" min ago)";
+                });
+            }
+            fetchIt();
+            window.setInterval(fetchIt, 60e3);
+            
             let resolvePromise;
             let modalNames = [];
             let multiChoice = [];
@@ -1058,12 +1079,14 @@ if(multiChoice.includes(num)) {
                     turn = 0;
                     stats = {...stats, timesLostHp: 0, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested, lastType: "None", pers: 0, windmill: 0, mantraGain: 0};
                     target = enemies[0];
+                    for(let c of deck) {
+                        if(c.name == "Sands of Time" || c.name == "Sands of Time+") {
+                            c.cost = 4;
+                        }
+                    }
                     
                     let shuffledDeck = shuffle(deck);
                     for(let card of shuffledDeck) {
-                        if(card.name == "Sands of Time" || card.name == "Sands of Time+") {
-                            card.cost = 4;
-                        }
                         if(card.flags.includes("innate")) {
                             hand.push(card);
                         } else {
@@ -2781,7 +2804,7 @@ updateShopScreen();
             ];
             
             // Starting deck, relics, etc...
-            let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
+            let deck = [bash(), strike(), sandsOfTime(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -3346,7 +3369,7 @@ updateShopScreen();
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
