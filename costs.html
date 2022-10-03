@@ -287,6 +287,11 @@ Credits:
         </div>
         <table id="merchantScreen" style="display: none;">
         </table>
+        <div id="eventScreen" style="display: none;">
+            <h2 id="eventTitle"></h2>
+            <span id="eventDesc"></span><br/><br/>
+            <span id="eventChoices"></span>
+        </div>
         <br/>
         <span style="color: gray;" id="version"></span>
         <script>
@@ -304,21 +309,21 @@ Credits:
             let choice = x => x[Math.floor(Math.random()*x.length)];
             
             let crand = x => Math.ceil(Math.random()*x);
-            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "new enemy: turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "hecking", "yellow", "orange"])};
+            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "hecking", "yellow", "orange"])};
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.6.1";
+            let currentVersion = "v2.6.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
                 fetch(myRequest)
                 .then((response) => {
-                    if(!response.ok) return -1;
-                    return response.json();
+                    if(!response.ok) return "whoops";
+                    else return response.json();
                 })
                 .then((response) => {
-                    if(response == -1) {getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ failed to check for updates";}
+                    if(response == "whoops") {getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ failed to check for updates";}
                     let msAgo = Date.now() - Date.parse(response["commit"]["commit"]["author"]["date"]);
                     let lastVer = response["commit"]["commit"]["message"].split("\n")[0];
                     getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ newest version is "+lastVer+" ("+Math.floor(msAgo / 36e5)+"h"+((msAgo / 60e3) % 60).toFixed(0).toString().padStart(2, "0")+"m ago)";
@@ -816,7 +821,7 @@ if(multiChoice.includes(num)) {
                         ifRelic("Self-Forming Clay", function(){gainBuff("Next Turn Block", 3)});
                         stats.timesLostHp++;
                         for(let i of [...drawPile, ...hand, ...discardPile]) {
-                            if(i.name == "Blood for Blood"){
+                            if(i.name == "Blood for Blood" && i.cost > 0){
                                 i.cost -= 1;
                             }
                         }
@@ -859,7 +864,7 @@ if(multiChoice.includes(num)) {
                     discardPile = discardPile.filter(x=>x.name != "Flurry of Blows");
                     gainBuff("Block", hasBuff("Mental Fortress"));
                 }
-                if(hasBuff("Mantra") >= 10) {gainBuff("Divinity", 1);}
+                if(hasBuff("Mantra") >= 10) {gainBuff("Divinity", 1); loseBuff("Mantra", 10);}
             }
             function loseBuff(name, amt=9999) {
                 let prevAmt;
@@ -1025,6 +1030,7 @@ if(multiChoice.includes(num)) {
                 getId("rewardsScreen").style.display = "none";
                 getId("restScreen").style.display = "none";
                 getId("merchantScreen").style.display = "none";
+                getId("eventScreen").style.display = "none";
                 if(actNum != 0) {getId("mapScreen").style.display = "block";} else {return;}
                 music.map.play();
                 announceMusic("Steel Thy Shovel");
@@ -1036,16 +1042,16 @@ if(multiChoice.includes(num)) {
                         if(map[floor][node] != "") {
                             let nodeButton = document.createElement("button");
                             nodeButton.innerHTML = map[floor][node]+"<span class='txt'>"+
-                                (map[floor][node]=="enemy" ? "Fight some monsters. Get gold, a card and maybe a potion if you win." : 
-                                  (map[floor][node]=="elite" ? "Fight a strong monster. Get gold, a rare card, a relic, and maybe a potion if you win." : 
-                                    (map[floor][node]=="rest&nbsp;" ? "Rest and heal some HP or upgrade a card." : 
-                                     (map[floor][node]=="shop&nbsp;" ? "Buy cards and relics at the shop." : "Fight a Boss. Cool stuff if you win.")))
+                                (map[floor][node]=="💀" ? "Fight some monsters. Get gold, a card and maybe a potion if you win." : 
+                                  (map[floor][node]=="😈" ? "Fight a strong monster. Get gold, a rare card, a relic, and maybe a potion if you win." : 
+                                    (map[floor][node]=="🏕️" ? "Rest and heal some HP or upgrade a card." : 
+                                     (map[floor][node]=="💲" ? "Buy cards and relics at the shop." : "Fight a Boss. Cool stuff if you win.")))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt notbig");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
                                 nodeButton.setAttribute("onclick", `gotoMap(${floor}, ${node});`);
                             } else if(floor == mapY && node == mapX) {
-                                nodeButton.innerHTML = "(You)";
+                                nodeButton.innerHTML = "🙂";
                             } else {
                                 nodeButton.setAttribute("class", "nonbutton notbig");
                             }
@@ -1080,7 +1086,7 @@ if(multiChoice.includes(num)) {
                     stats = {...stats, timesLostHp: 0, attacksThisTurn: 999, skillsThisTurn: 999, rested: stats.rested, lastType: "None", pers: 0, windmill: 0, mantraGain: 0};
                     target = enemies[0];
                     for(let c of deck) {
-                        if(c.name == "Sands of Time" || c.name == "Sands of Time+") {
+                        if(c.name == "Sands of Time" || c.name == "Sands of Time+" || c.name == "Blood for Blood" || c.name == "Blood for Blood+") {
                             c.cost = 4;
                         }
                     }
@@ -1096,7 +1102,7 @@ if(multiChoice.includes(num)) {
                     
                     startTurn();
                 }
-                if(map[y][x] == "enemy") {
+                if(map[y][x] == "💀") {
                     let nme;
                     if(actNum == 1) {
                         nme = () => choice(possibleEnemies)();
@@ -1110,7 +1116,7 @@ if(multiChoice.includes(num)) {
                     eliteBattle = false;
                     bossBattle = false;
                     readyBattle();
-                } else if(map[y][x] == "elite") {
+                } else if(map[y][x] == "😈") {
                     let nme;
                     if(actNum == 1) {
                         nme = () => choice(possibleElites)();
@@ -1123,7 +1129,7 @@ if(multiChoice.includes(num)) {
                     eliteBattle = true;
                     bossBattle = false;
                     readyBattle();
-                } else if(map[y][x].includes("BOSS")) {
+                } else if(map[y][x].includes("👺")) {
                     let nme;
                     if(actNum == 1) {
                         nme = () => choice(possibleBosses)();
@@ -1162,14 +1168,14 @@ if(multiChoice.includes(num)) {
                     bossBattle = true;
                     ifRelic("Pantograph", function(){hp = Math.min(maxHp, hp + 25)});
                     readyBattle();
-                } else if(map[y][x] == "rest&nbsp;") {
+                } else if(map[y][x] == "🏕️") {
                     getId("mapScreen").style.display = "none";
                     getId("restScreen").style.display = "block";
                     ifRelic("Eternal Feather", function(){hp = Math.min(maxHp, Math.round(hp + 0.6 * deck.length))});
                     getId("rest_txt").innerHTML = "Heal 30% of your max HP. (currently "+Math.round(0.3 * maxHp)+" HP)";
                     music.rest.play();
                     announceMusic("No Weapons Here");
-                } else if(map[y][x] == "shop&nbsp;") {
+                } else if(map[y][x] == "💲") {
                     getId("mapScreen").style.display = "none";
                     getId("merchantScreen").style.display = "block";
                     music.shop.play();
@@ -1301,6 +1307,13 @@ updateShopScreen();
                     continueWrapper.appendChild(continueBtn);
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
+                } else if (map[y][x] == "❓") {
+                    getId("mapScreen").style.display = "none";
+                    getId("eventScreen").style.display = "block";
+                    let event = choice(possibleEvents["Act "+actNum.toString()]);
+                    getId("eventTitle").innerHTML = event.title;
+                    getId("eventDesc").innerHTML = event.desc;
+                    getId("eventChoices").innerHTML = event.choices.map(x=>"<button onclick='"+x[1]+"'>"+x[0]+"</button>");
                 }
             }
             let offers = [];
@@ -1312,11 +1325,7 @@ updateShopScreen();
                 for(let i of offers) {
                     if(i.index >= 100) {
                         let relicElem = getId("relicName_"+(i.index-100));
-                        if(gold >= i.price) {
-                            relicElem.setAttribute("class", "Status tt");
-                        } else {
-                            relicElem.setAttribute("class", "unplayable tt");
-                        }
+                        relicElem.setAttribute("class", "Status tt");
                         let helpNumber = document.createElement("span");
                         helpNumber.style.position = "absolute";
                         helpNumber.setAttribute("class", "helpNumber");
@@ -1328,14 +1337,10 @@ updateShopScreen();
                         getId("merchantScreen").appendChild(helpNumber);
                     } else {
                         let cardElem = getId("cardName_"+i.index);
-                        if(gold >= i.price) {
-                            if(i.index==0) {
-                                cardElem.setAttribute("class", "Skill tt");
-                            } else {
-                                cardElem.setAttribute("class", "tt");
-                            }
+                        if(i.index==0) {
+                            cardElem.setAttribute("class", "Skill tt");
                         } else {
-                            cardElem.setAttribute("class", "tt unplayable");
+                            cardElem.setAttribute("class", "tt");
                         }
                         let helpNumber = document.createElement("span");
                         helpNumber.style.position = "absolute";
@@ -2699,7 +2704,8 @@ updateShopScreen();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let r = possibleCards[cardNumber];
                     relics.push(r);
-                    ifRelic("Old Coin", function(){gold += 300});
+                    if(r.name == 'Mango'){maxHp += 14; hp += 14;}
+                    if(r.name == 'Old Coin'){gold += 300;}
                     updateStatLine();
                 }
             }
@@ -2803,8 +2809,35 @@ updateShopScreen();
                 {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'Promise.resolve(gainBuff("Dexterity", 5)); Promise.resolve(gainBuff("Dexterity Down", 5))'}
             ];
             
+            let possibleEvents = {
+                "Act 1": [
+                    {
+                        title: "Bonfire Spirits",
+                        desc: "You happen upon a group of what looks like <span style='color:#f7f'>purple fire spirits</span> dancing around a large bonfire. The spirits toss small bones and fragments into the fire, which brilliantly erupts each time. As you approach, the spirits all turn to you expectantly...",
+                        choices: [
+                            ["Offer", `let fun = async function(){
+let c = await choose(deck, "Choose a card to offer.");
+if(["Barricade", "Berserk", "Bludgeon", "Brutality", "Demon Form", "Double Tap", "Corruption", "Exhume", "Feed", "Impervious", "Juggernaut", "Limit Break", "Offering", "Reaper", "A Thousand Cuts", "Adrenaline", "After Image", "Burst", "Die Die Die", "Doppelganger", "Envenom", "Grand Finale", "Storm of Steel", "Tools of the Trade"].includes(c.name.replace("+", ""))) {
+    getId("eventDesc").innerHTML = "The flames <b>burst</b>, nearly knocking you off your feet, as the fire <b>doubles</b> in strength. The spirits dance around you excitedly before merging with you, filling you with strength. Your Max HP increases by 10 and you heal to full HP.";
+    maxHp += 10; hp = maxHp;
+} else if(["Strike", "Defend", "Bash", "Neutralize", "Eruption", "Vigilance"].includes(c.name.replace("+", ""))) {
+    getId("eventDesc").innerHTML = "Nothing happens. The spirits seem to be ignoring you now. Disappointing...";
+} else {
+    getId("eventDesc").innerHTML = "The flames grow slightly brighter and you feel warmer. The spirits continue dancing. You heal 10 HP.";
+    hp = Math.min(maxHp, hp + 10);
+}
+deck.splice(deck.indexOf(c), 1);
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+
+                            }; fun();`]
+                        ]
+                    }
+                ]
+            };
+            
             // Starting deck, relics, etc...
-            let deck = [bash(), strike(), sandsOfTime(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
+            let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -2823,59 +2856,59 @@ updateShopScreen();
             let actNum = 1;
             let turn = 0;
             let crCost = 75;
-            let randomThing = () => choice(["enemy", "enemy", "enemy", "enemy", "enemy", "shop&nbsp;", "elite", "rest&nbsp;"]);
-            let topThing = () => choice(["enemy", "enemy", choice(["enemy", "enemy", "shop&nbsp;", "rest&nbsp;"])]);
+            let randomThing = () => choice(["💀","💀","💀","💀","💀","💲","😈","🏕️"]);
+            let topThing = () => choice(["💀", "💀", choice(["💀","💀","💲","🏕️"])]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
-            let map;
+            let map; //❓
             function mapGen() {
                 map = [
-                    ["","",     "start","",     ""],
-                    ["","enemy","enemy","enemy",""]
+                    ["","",   "🐋",  "",  ""],
+                    ["","💀", "💀",  "💀",""]
                 ];
                 
                 let middleFloors = [];
                 middleFloors.push([maybeThing(), topThing(),    topThing(),    topThing(),    maybeThing()]);
                 middleFloors.push([maybeThing(), topThing(),    topThing(),    topThing(),    maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
-                middleFloors.push([maybeThing(), randomThing(), "rest&nbsp;",  randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), "🏕️",          randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
-                middleFloors.push([maybeThing(), randomThing(), randomThing(), "rest&nbsp;",  maybeThing()]);
-                middleFloors.push([maybeThing(), "rest&nbsp;",  randomThing(), randomThing(), maybeThing()]);
+                middleFloors.push([maybeThing(), randomThing(), randomThing(), "🏕️",          maybeThing()]);
+                middleFloors.push([maybeThing(), "🏕️",          randomThing(), randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
                 middleFloors.push([maybeThing(), randomThing(), randomThing(), randomThing(), maybeThing()]);
                 
-                let numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                let numRests = middleFloors.flat().filter(x=>x=="🏕️").length;
                 while(numRests > (getId("ascensionLevel").value >= 15 ? 5 : 7)) {
-                    let rowsWithRests = middleFloors.filter(x=>x.includes("rest&nbsp;"));
+                    let rowsWithRests = middleFloors.filter(x=>x.includes("🏕️"));
                     let rowWithRest = choice(rowsWithRests);
-                    let restSites = rowWithRest.filter(x=>x=="rest&nbsp;");
+                    let restSites = rowWithRest.filter(x=>x=="🏕️");
                     let restSite = choice(restSites.map(x=>rowWithRest.indexOf(x)));
                     let newNode = randomThing();
                     let rowIndex = middleFloors.indexOf(rowWithRest);
                     middleFloors[rowIndex][restSite] = newNode;
-                    numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                    numRests = middleFloors.flat().filter(x=>x=="🏕️").length;
                 }
                 while(numRests < (getId("ascensionLevel").value >= 15 ? 4 : 6)) {
                     let row = Math.floor(Math.random()*12);
                     let col = Math.floor(Math.random()*5);
                     while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.floor(Math.random()*5);}
-                    middleFloors[row][col] = "rest&nbsp;";
-                    numRests = middleFloors.flat().filter(x=>x=="rest&nbsp;").length;
+                    middleFloors[row][col] = "🏕️";
+                    numRests = middleFloors.flat().filter(x=>x=="🏕️").length;
                 }
-                let numElites = middleFloors.flat().filter(x=>x=="elite").length;
+                let numElites = middleFloors.flat().filter(x=>x=="😈").length;
                 while(numElites < 4) {
                     let row = Math.floor(Math.random()*12);
                     let col = Math.floor(Math.random()*5);
                     while(middleFloors[row][col] == "" || !middleFloors[row][col]) {col = Math.floor(Math.random()*5);}
-                    middleFloors[row][col] = "elite";
-                    numElites = middleFloors.flat().filter(x=>x=="elite").length;
+                    middleFloors[row][col] = "😈";
+                    numElites = middleFloors.flat().filter(x=>x=="😈").length;
                 }
                 for(let i of middleFloors) {map.push(i);}
-                map.push(["",   "rest&nbsp;","rest&nbsp;","rest&nbsp;",  ""]);
-                map.push(["","","<b style='color:red'>BOSS&nbsp;</b>","",""]);
+                map.push(["","🏕️","🏕️","🏕️",""]);
+                map.push(["","",  "👺","",  ""]);
             }
             
             // These make writing attacks *much* easier.
@@ -2997,7 +3030,7 @@ updateShopScreen();
                 () => new Enemy("Snecko", 115, [
                     {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
                     {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)}
-                ])
+                ], ["no-repeat"])
             ];
             let possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 160, [
@@ -3413,6 +3446,19 @@ updateShopScreen();
                     }
                     enemyTooltip.innerHTML = e.name+" intends to "+newDesc+".";
                     enemyTooltip.innerHTML += e.buffs.length ? ("<br/>" + e.buffs.map(x => x.name+" "+x.amt+" ("+buffDesc[x.name].replace("[AMT]", x.amt).replace("[DAMT]", e.calcDamage(x.amt)).replace("[BAMT]", e.calcBlock(x.amt)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+")").join("<br/>")) : "";
+                    if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
+                        enemyElem.innerHTML += "Time Warp (Whenever you play 12 cards, ends your turn and gains 2 Strength.)";
+                    }
+                    if(e.name == "Slime Boss") {
+                        enemyElem.innerHTML += "Split (When this falls under half HP, it splits into 2 slimes.) ";
+                    }
+                    if(e.name == "Awakened One") {
+                        if(getId("ascensionLevel").value == 20) {
+                            enemyElem.innerHTML += "Curiosity 2 (Whenever you play a Power, gains 2 Strength.)";
+                        } else {
+                            enemyElem.innerHTML += "Curiosity 1 (Whenever you play a Power, gains 1 Strength.)";
+                        }
+                    }
                     enemyElem.appendChild(enemyTooltip);
                     enemiesElem.appendChild(enemyElem);
                     enemiesElem.appendChild(document.createElement("br"));
@@ -3459,7 +3505,7 @@ updateShopScreen();
                         getId("relicReward").style.display = "block";
                         let newRelic = choice(relicPool);
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
-                        getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); ifRelic('Strawberry', function(){maxHp += 7; hp += 7;}); ifRelic('Pear', function(){maxHp += 10; hp += 10;}); ifRelic('Mango', function(){maxHp += 14; hp += 14;}); updateStatLine(); getId('relicReward').style.display = 'none';`);
+                        getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); if(r.name == 'Strawberry'){maxHp += 7; hp += 7;}; if(r.name == 'Pear'){maxHp += 10; hp += 10;}; updateStatLine(); getId('relicReward').style.display = 'none';`);
                     } else {
                         getId("relicReward").style.display = "none";
                     }
@@ -3701,7 +3747,7 @@ updateShopScreen();
             // This has to be at the bottom because it modifies everything else
             getId("ascensionLevel").addEventListener("change", function() {
                 let lv = getId("ascensionLevel").value;
-                if(lv >= 1) {randomThing = () => choice(["elite","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
+                if(lv >= 1) {randomThing = () => choice(["😈","💀","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 2) {
                     possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
@@ -3756,7 +3802,7 @@ updateShopScreen();
                 () => new Enemy("Snecko", 115, [
                     {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
                     {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
-                ])
+                ], ["no-repeat"])
                     ];
                     possibleEnemies_act3 = [
                 () => new Enemy("Huge Jaw Worm", 70, [
@@ -4010,7 +4056,7 @@ updateShopScreen();
                 () => new Enemy("Snecko", 140, [
                     {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
                     {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
-                ])
+                ], ["no-repeat"])
                     ];
                     possibleEnemies_act3 = [
                 () => new Enemy("Huge Jaw Worm", 85, [
@@ -4211,7 +4257,7 @@ updateShopScreen();
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
                 if(lv >= 14) {maxHp -= 5; hp -= 5;}
-                if(lv >= 15) {randomThing = () => choice(["elite","elite","enemy","enemy","enemy","enemy","enemy","shop&nbsp;","elite","rest&nbsp;"]);}
+                if(lv >= 15) {randomThing = () => choice(["😈","😈","💀","💀","💀","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 17) {
                     deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
                 }
@@ -4275,7 +4321,7 @@ updateShopScreen();
                 () => new Enemy("Snecko", 140, [
                     {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
                     {intent: "attacking 9", desc: "deal [DAM11] damage", effect: attack(11)}
-                ])
+                ], ["no-repeat"])
                     ];
                     possibleEnemies_act3 = [
                 () => new Enemy("Huge Jaw Worm", 85, [
