@@ -313,7 +313,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.6.3";
+            let currentVersion = "v2.6.4";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -729,37 +729,17 @@ if(multiChoice.includes(num)) {
                     this.intent = (this.flags.includes("randomize") ? choice(attacks) : attacks[0]);
                 }
                 attack() {
-                    if(this.hp <= 0.5*this.maxHp && this.name == "Slime Boss") {
-                        let addStatus = function(name, amt) {
-                            for(let x=0; x<amt; x++) {discardPile.push(statusCards[name]());}
+                    this.intent.effect(this);
+                    if(this.flags.includes("randomize")) {
+                        let newIntent = choice(this.attacks);
+                        while(newIntent == this.intent) {
+                            newIntent = choice(this.attacks);
                         }
-                        let a = amt => function(me){ me.dealDamage(amt); }
-                        let ap = (what, amt) => function(me){ gainBuff(what, amt); }
-                        let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
-                        enemies.unshift(new Enemy("Slime", this.hp, [
-                            {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
-                            {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
-                            {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
-                        ], ["randomize"]));
-                        enemies.unshift(new Enemy("Slime", this.hp, [
-                            {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
-                            {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
-                        ], ["randomize"]));
-                        this.hp = 0;
-                        updateHtml();
-                    } else {
-                        this.intent.effect(this);
-                        if(this.flags.includes("randomize")) {
-                            let newIntent = choice(this.attacks);
-                            while(newIntent == this.intent) {
-                                newIntent = choice(this.attacks);
-                            }
-                            this.intent = newIntent;
-                        } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
-                            this.intent = this.attacks[0];
-                        } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
-                            this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
-                        }
+                        this.intent = newIntent;
+                    } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
+                        this.intent = this.attacks[0];
+                    } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
+                        this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
                     }
                     updateHtml();
                 }
@@ -918,6 +898,19 @@ if(multiChoice.includes(num)) {
                 }
                 if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
                 if(finalAmt > 0 && enemy.hasBuff("Talk to the Hand") > 0) {gainBuff("Block", enemy.hasBuff("Talk to the Hand"));}
+                if(enemy.name == "Slime Boss" && enemy.hp <= 0.5 * enemy.maxHp) {
+                     enemies.unshift(new Enemy("Slime", enemy.hp, [
+                        {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
+                        {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                        {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
+                    ], ["randomize"]));
+                    enemies.unshift(new Enemy("Slime", enemy.hp, [
+                        {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                        {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
+                    ], ["randomize"]));
+                    enemy.hp = 0;
+                    updateHtml();
+                }
             }
             
             let buffDesc = {
@@ -3606,16 +3599,16 @@ getId("woogleButton").onclick = function() {showMap();}
                     enemyTooltip.innerHTML = e.name+" intends to "+newDesc+".";
                     enemyTooltip.innerHTML += e.buffs.length ? ("<br/>" + e.buffs.map(x => x.name+" "+x.amt+" ("+buffDesc[x.name].replace("[AMT]", x.amt).replace("[DAMT]", e.calcDamage(x.amt)).replace("[BAMT]", e.calcBlock(x.amt)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+")").join("<br/>")) : "";
                     if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
-                        enemyElem.innerHTML += "Time Warp (Whenever you play 12 cards, ends your turn and gains 2 Strength.)";
+                        enemyTooltip.innerHTML += "<br/>Time Warp (Whenever you play 12 cards, ends your turn and gains 2 Strength.)";
                     }
                     if(e.name == "Slime Boss") {
-                        enemyElem.innerHTML += "Split (When this falls under half HP, it splits into 2 slimes.) ";
+                        enemyTooltip.innerHTML += "<br/>Split (When this falls under half HP, it splits into 2 slimes.) ";
                     }
                     if(e.name == "Awakened One") {
                         if(getId("ascensionLevel").value == 20) {
-                            enemyElem.innerHTML += "Curiosity 2 (Whenever you play a Power, gains 2 Strength.)";
+                            enemyTooltip.innerHTML += "<br/>Curiosity 2 (Whenever you play a Power, gains 2 Strength.)";
                         } else {
-                            enemyElem.innerHTML += "Curiosity 1 (Whenever you play a Power, gains 1 Strength.)";
+                            enemyTooltip.innerHTML += "<br/>Curiosity 1 (Whenever you play a Power, gains 1 Strength.)";
                         }
                     }
                     enemyElem.appendChild(enemyTooltip);
