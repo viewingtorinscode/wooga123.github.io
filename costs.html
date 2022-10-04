@@ -313,7 +313,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.6.2";
+            let currentVersion = "v2.6.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -791,7 +791,6 @@ if(multiChoice.includes(num)) {
                     let finalAmt = amt;
                     if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(hasBuff("Wrath")) {finalAmt *= 2;}
-                    if(hasBuff("Divinity")) {finalAmt *= 3;}
                     finalAmt += this.hasBuff("Strength");
                     finalAmt -= this.hasBuff("Minus Strength");
                     if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
@@ -864,7 +863,7 @@ if(multiChoice.includes(num)) {
                     discardPile = discardPile.filter(x=>x.name != "Flurry of Blows");
                     gainBuff("Block", hasBuff("Mental Fortress"));
                 }
-                if(hasBuff("Mantra") >= 10) {gainBuff("Divinity", 1); loseBuff("Mantra", 10);}
+                if(hasBuff("Mantra") >= 10 && hasBuff("Divinity") == 0) {gainBuff("Divinity", 1); loseBuff("Mantra", 10);}
             }
             function loseBuff(name, amt=9999) {
                 let prevAmt;
@@ -886,6 +885,7 @@ if(multiChoice.includes(num)) {
                 finalAmt += Math.floor(target.hasBuff("Mark") * hasBuff("Precision") / 5);
                 if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
                 if(hasBuff("Wrath")) {finalAmt *= 2;}
+                if(hasBuff("Divinity")) {finalAmt *= 3;}
                 if(hasBuff("Pen Nib") >= 9) {
                     if(actuallyDeal) loseBuff("Pen Nib");
                     finalAmt *= 2;
@@ -1005,8 +1005,8 @@ if(multiChoice.includes(num)) {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
                 "Dazed": () => new Card("Dazed", 0, "Status", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]),
                 "Slimed": () => new Card("Slimed", 1, "Status", "Exhaust.", function(enemy){}, ["exhausted"]),
-                "Burn": () => new Card("Burn", 0, "Status", "Unplayable. Lose 1 HP at end of turn.", function(enemy){}, ["unplayable", "burning"]),
-                "Burn+": () => new Card("Burn+", 0, "Status", "Unplayable. Lose 2 HP at end of turn.", function(enemy){}, ["unplayable", "burning+"])
+                "Burn": () => new Card("Burn", 0, "Status", "Unplayable. Lose 1 HP at end of turn.", function(enemy){}, ["unplayable"]),
+                "Burn+": () => new Card("Burn+", 0, "Status", "Unplayable. Lose 2 HP at end of turn.", function(enemy){}, ["unplayable"])
             };
             
             function showMap() {
@@ -1310,10 +1310,10 @@ updateShopScreen();
                 } else if (map[y][x] == "❓") {
                     getId("mapScreen").style.display = "none";
                     getId("eventScreen").style.display = "block";
-                    let event = choice(possibleEvents["Act "+actNum.toString()]);
+                    let event = choice([...possibleEvents["Act "+actNum.toString()], ...possibleEvents["All Acts"]]);
                     getId("eventTitle").innerHTML = event.title;
                     getId("eventDesc").innerHTML = event.desc;
-                    getId("eventChoices").innerHTML = event.choices.map(x=>"<button onclick='"+x[1]+"'>"+x[0]+"</button>");
+                    getId("eventChoices").innerHTML = event.choices.map(x=>"<button onclick='"+x[2]+"'>"+x[0]+"</button> - <i>"+x[1]+"</i>").join("<br/>");
                 }
             }
             let offers = [];
@@ -2256,7 +2256,9 @@ updateShopScreen();
                     hp -= 6; energy += 2; drawCard(5);
                 }, ["exhausted"]), "Reaper": () => new Card("Reaper+", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
                     dealDamage(enemy, 10); hp = Math.min(maxHp, hp + 10);
-                }, ["exhausted"]), "Acrobatics": () => new Card("Acrobatics+", 1, "Skill", "Draw 4 cards. Discard 1 card.", async function(enemy){
+                }, ["exhausted"]), "Corruption": () => new Card("Corruption+", 2, "Power", "Skills cost 0. Whenever you play a Skill, exhaust it.", function(enemy) {
+                gainBuff("Corruption", 1);
+            }, ["exhausted"]), "Acrobatics": () => new Card("Acrobatics+", 1, "Skill", "Draw 4 cards. Discard 1 card.", async function(enemy){
                 drawCard(4);
                 let chosen = await choose(hand.filter(x=>x.name!="Acrobatics+"), "Choose a card to discard.");
                 if(chosen) {
@@ -2810,12 +2812,12 @@ updateShopScreen();
             ];
             
             let possibleEvents = {
-                "Act 1": [
+                "All Acts": [
                     {
                         title: "Bonfire Spirits",
                         desc: "You happen upon a group of what looks like <span style='color:#f7f'>purple fire spirits</span> dancing around a large bonfire. The spirits toss small bones and fragments into the fire, which brilliantly erupts each time. As you approach, the spirits all turn to you expectantly...",
                         choices: [
-                            ["Offer", `let fun = async function(){
+                            ["Offer", "Receive a reward based on your offer.", `let fun = async function(){
 let c = await choose(deck, "Choose a card to offer.");
 if(["Barricade", "Berserk", "Bludgeon", "Brutality", "Demon Form", "Double Tap", "Corruption", "Exhume", "Feed", "Impervious", "Juggernaut", "Limit Break", "Offering", "Reaper", "A Thousand Cuts", "Adrenaline", "After Image", "Burst", "Die Die Die", "Doppelganger", "Envenom", "Grand Finale", "Storm of Steel", "Tools of the Trade"].includes(c.name.replace("+", ""))) {
     getId("eventDesc").innerHTML = "The flames <b>burst</b>, nearly knocking you off your feet, as the fire <b>doubles</b> in strength. The spirits dance around you excitedly before merging with you, filling you with strength. Your Max HP increases by 10 and you heal to full HP.";
@@ -2827,17 +2829,174 @@ if(["Barricade", "Berserk", "Bludgeon", "Brutality", "Demon Form", "Double Tap",
     hp = Math.min(maxHp, hp + 10);
 }
 deck.splice(deck.indexOf(c), 1);
+updateStatLine();
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
 
                             }; fun();`]
                         ]
+                    },
+                    {
+                        title: "We Meet Again!",
+                        desc: '"We meet again!" A cheery, disheveled man walks up to you. "It\'s me, <span style=\'color: bb3\'>Ranwid</span>! Have anything for me today?" You have never met this man before.',
+                        choices: [
+                            ["Give Potion", "Trade one of your potions for a relic.", `
+if(!potions.length) {return;}
+potions.splice(Math.floor(Math.random()*potions.length), 1);
+let r = choice([...relicPool, ...rareRelicPool]);
+relics.push(r);
+if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+if(r.name == "Pear"){maxHp += 10; hp += 10;}
+updateStatLine();
+getId("eventDesc").innerHTML = "He downs the potion in one go and lets out a satisfied burp. “Here, look what I’ve got for you today!” He pulls out a relic and hands it to you.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Give Gold", "Trade 100 gold for a relic.", `
+if(gold < 100) {return;}
+gold -= 100;
+let r = choice([...relicPool, ...rareRelicPool]);
+relics.push(r);
+if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+if(r.name == "Pear"){maxHp += 10; hp += 10;}
+updateStatLine();
+getId("eventDesc").innerHTML = "“Thanks, this will be handy if I run into those mask wearing hoodlums again! Here, look what I’ve got for you today!” He pulls out a relic and hands it to you.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "“Aargh! What a jerk you are sometimes!” He runs away.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
                     }
+                ],
+                "Act 1": [
+                    {
+                        title: "The Ssssserpent",
+                        desc: "You walk into a room with a large hole in the ground. As you approach, an enormous serpent creature appears from within. “Hello adventurer, I ask a simple question. The most fulfilling of lives is that in which you can <span style='color: #bb3'>buy anything!</span> Do you agree?”",
+                        choices: [
+                            ["Yes", "Gain 175 gold, but receive a Curse.", `
+gold += 175;
+deck.push(new Card("Doubt", 0, "Curse", "Unplayable. When drawn, gain 1 Frail.", function(enemy){}, ["unplayable"]));
+updateStatLine();
+getId("eventDesc").innerHTML = "“Yessssssssssssssssssss... This will all be worth it. ..ssSSs... ..ss.. ..sSSsSss...!”<br/>The serpent blasts a stream of gold upwards! It is amazing and terrifying simultaneously.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["No", "No effect.", `
+getId("eventDesc").innerHTML = "The serpent stares at you with a look of disappointment.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "World of Goop",
+                        desc: "You fall into a puddle. <span style='color: #7f7'>IT'S MADE OF SLIME GOOP!!</span> You frantically claw yourself out, but notice that you -- and some other unfortunate adventurers -- left some gold behind.",
+                        choices: [
+                            ["Gather It", "Gain 75 gold, but lose 11 HP.", `
+gold += 75;
+hp -= 11;
+let red = Math.min(255, 11 * 10 + 34);
+let i = 0;
+while(red > 34) {
+    setTimeout(function(r){
+        getId("html").style.background = "rgb("+r+", 34, 34)";
+    }, i * 10, red);
+    i++;
+    red -= 5;
+}
+updateStatLine();
+getId("eventDesc").innerHTML = "Feeling the sting of the prolonged exposure to the goop, you manage to fish out the gold.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave It", "Lose 40 gold.", `
+gold = Math.max(gold-40, 0);
+updateStatLine();
+getId("eventDesc").innerHTML = "You decide that mess is not worth it.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "Big Fish",
+                        desc: "As you make your way down a long corridor, you see a <span style='color: #77f'>banana</span>, a <span style='color: #7f7'>donut</span>, and a <span style='color: #777'>box</span> floating around. On closer inspection, they are actually tied to strings hanging from the ceiling. There is a quiet cackling from above.",
+                        choices: [
+                            ["Banana", "Heal 24 HP.", `
+hp = Math.min(hp + 24, maxHp);
+updateStatLine();
+getId("eventDesc").innerHTML = "You grab the banana. It is nutritious and slightly magical, healing you.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Donut", "Max HP +5.", `
+maxHp += 5; hp += 5;
+updateStatLine();
+getId("eventDesc").innerHTML = "You grab the donut. It really hits the spot! Your Max HP increases.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Box", "Obtain a Relic, but become Cursed.", `
+let r = choice([...relicPool, ...rareRelicPool]);
+relics.push(r);
+if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+if(r.name == "Pear"){maxHp += 10; hp += 10;}
+deck.push(new Card("Regret", 0, "Curse", "Unplayable. At the end of your turn, lose 1 HP per card in your hand.", function(enemy){}, ["unplayable"]));
+updateStatLine();
+getId("eventDesc").innerHTML = "You grab the box and find a relic inside! However, you really craved that donut... You are filled with regret.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    }/*,
+                    {
+                        title: "Face Trader",
+                        desc: "You walk by an eerie statue holding several masks. Something behind you softly whispers “Stop.” You spin around and realize that it's not a statue but a gaunt man. He says to you, “Face. Let me touch? Maybe trade?”",
+                        choices: [
+                            ["Touch", "Gain 75 gold, but take a bit of damage.", `
+gold += 75;
+let hpToLose = Math.round(0.1*maxHp);
+let red = Math.min(255, hpToLose * 10 + 34);
+let i = 0;
+while(red > 34) {
+    setTimeout(function(r){
+        getId("html").style.background = "rgb("+r+", 34, 34)";
+    }, i * 10, red);
+    i++;
+    red -= 5;
+}
+updateStatLine();
+getId("eventDesc").innerHTML = "You grab the banana. It is nutritious and slightly magical, healing you.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Trade", "40%: Good Face. 40%: Bad Face. 20%: Neutral Face.", `
+maxHp += 5; hp += 5;
+updateStatLine();
+getId("eventDesc").innerHTML = "You grab the donut. It really hits the spot! Your Max HP increases.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "nope!";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    }*/
+                ],
+                "Act 2": [
+                ],
+                "Act 3": [
                 ]
             };
             
             // Starting deck, relics, etc...
-            let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
+            let deck = [bash(), strike(), strike(), strike(), neutralize(), worship(), worship(), defend(), eruption(), vigilance()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -3595,6 +3754,9 @@ getId("woogleButton").onclick = function() {showMap();}
                                 dealDamage(e, hasBuff("Fire Breathing"));
                             }
                         }
+                        if(toDraw.name == "Doubt") {
+                            gainBuff("Frail", 1);
+                        }
                     }
                 }
             }
@@ -3693,8 +3855,8 @@ getId("woogleButton").onclick = function() {showMap();}
                         if(c.name == "Perseverance"){stats.pers += 4;}
                         if(c.name == "Perseverance+"){stats.pers += 4;}
                     }
-                    if(c.flags.includes("burning")) {hp -= 1;}
-                    if(c.flags.includes("burning+")) {hp -= 2;}
+                    if(c.name == "Burn") {hp -= 1;}
+                    if(c.name == "Burn+") {hp -= 2;}
                 }
                 hand = hand.filter(x=>x.flags.includes("retain"));
                 if(hasBuff("Combust") > 0) {
@@ -4255,7 +4417,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 ])
                     ];
                 }
-                if(lv >= 10) {deck.push(new Card("Ascenders Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
+                if(lv >= 10) {deck.push(new Card("Ascenders’ Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
                 if(lv >= 14) {maxHp -= 5; hp -= 5;}
                 if(lv >= 15) {randomThing = () => choice(["😈","😈","💀","💀","💀","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 17) {
