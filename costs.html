@@ -710,6 +710,9 @@ if(multiChoice.includes(num)) {
                             endTurn();
                         }
                     }
+                    for(let i of hand) {
+                        if(i.name == "Pain") hp -= 1;
+                    }
                 }
             }
             
@@ -805,15 +808,18 @@ if(multiChoice.includes(num)) {
                             }
                         }
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
-                        let red = Math.min(255, dealt * 10 + 34);
+                        let red = Math.min(255, dealt * 5 + 60);
                         let i = 0;
                         while(red > 34) {
                             setTimeout(function(r){
                                 getId("html").style.background = `rgb(${r}, 34, 34)`;
                             }, i * 10, red);
                             i++;
-                            red -= 5;
+                            red -= 3;
                         }
+                        setTimeout(function(r){
+                            getId("html").style.background = `rgb(34, 34, 34)`;
+                        }, 10*(dealt/3)+90, red);
                     }
                 }
             }
@@ -1303,6 +1309,7 @@ updateShopScreen();
                 } else if (map[y][x] == "❓") {
                     getId("mapScreen").style.display = "none";
                     getId("eventScreen").style.display = "block";
+                    ifRelic("Sssserpent Head", function(){gold += 50;});
                     let event = choice([...possibleEvents["Act "+actNum.toString()], ...possibleEvents["All Acts"]]);
                     getId("eventTitle").innerHTML = event.title;
                     getId("eventDesc").innerHTML = event.desc;
@@ -2863,6 +2870,51 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
+                    },
+                    {
+                        title: "Face Trader",
+                        desc: "You walk by an eerie statue holding several masks. Something behind you softly whispers “Stop.” You spin around and realize that it's not a statue but a gaunt man. He says to you, “Face. Let me touch? Maybe trade?”",
+                        choices: [
+                            ["Touch", "Gain 75 gold, but take a bit of damage.", `
+gold += 75;
+let hpToLose = Math.round(0.1*maxHp);
+hp -= hpToLose;
+let red = Math.min(255, hpToLose * 10 + 34);
+let i = 0;
+while(red > 34) {
+    setTimeout(function(r){
+        getId("html").style.background = "rgb("+r+", 34, 34)";
+    }, i * 10, red);
+    i++;
+    red -= 5;
+}
+setTimeout(function(r){
+    getId("html").style.background = \`rgb(34, 34, 34)\`;
+}, 10*(hpToLose/3)+90, red);
+updateStatLine();
+getId("eventDesc").innerHTML = "“Compensation. Compensation.” He takes out a stack of coins and places them in your pouch. “Nice face. Nice face.” As he touches your face, you feel your life begin to drain out! During this, his mask falls off and shatters. He quickly covers his face with his hands, dropping even more masks! In the commotion, you escape.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Trade", "40%: Good Face. 40%: Bad Face. 20%: Neutral Face.", `
+relics.push(choice([
+{name: "Cultist Headpiece", desc: "You feel more talkative."},
+{name: "Face of Cleric", desc: "Raise your max HP by 1 after combat."},
+{name: "Gremlin Visage", desc: "Start each combat with 1 Weak."},
+{name: "N’loth’s Hungry Face", desc: "The next elite you fight drops no relic."},
+{name: "Sssserpent Head", desc: "Whenever you enter a ❓ room, gain 50 gold."}
+]));
+updateStatLine();
+getId("eventDesc").innerHTML = "His arm flickers for a moment, and afterward, you see your face in it. Your face has been swapped.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "This was probably the right call.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
                     }
                 ],
                 "Act 1": [
@@ -2901,6 +2953,9 @@ while(red > 34) {
     i++;
     red -= 5;
 }
+setTimeout(function(r){
+    getId("html").style.background = \`rgb(34, 34, 34)\`;
+}, 127, red);
 updateStatLine();
 getId("eventDesc").innerHTML = "Feeling the sting of the prolonged exposure to the goop, you manage to fish out the gold.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -2945,15 +3000,41 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
-                    }/*,
+                    },
                     {
-                        title: "Face Trader",
-                        desc: "You walk by an eerie statue holding several masks. Something behind you softly whispers “Stop.” You spin around and realize that it's not a statue but a gaunt man. He says to you, “Face. Let me touch? Maybe trade?”",
+                        title: "Ominous Forge",
+                        desc: "You duck into a small hut. Inside you find what appears to be a forge. The smithing tools are covered with dust, yet a fire still burns in the furnace.",
                         choices: [
-                            ["Touch", "Gain 75 gold, but take a bit of damage.", `
-gold += 75;
-let hpToLose = Math.round(0.1*maxHp);
-let red = Math.min(255, hpToLose * 10 + 34);
+                            ["Forge", "Upgrade a card.", `let fun = async function(){
+let c = await choose(deck, "Choose a card to upgrade.");
+let newCard = upgradedCards[c.name];
+let deckNames = deck.map(x=>x.name);
+deck.splice(deckNames.indexOf(c.name), 1);
+deck.push(newCard());
+updateStatLine();
+getId("eventDesc").innerHTML = "You decide to put the forge to use, improving your arsenal.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Rummage", "Obtain a Relic, but become Cursed.", `
+relics.push({name: "Warped Tongs", desc: "At the start of your turn, upgrade a random card in your hand this combat."});
+deck.push(new Card("Pain", 0, "Curse", "Unplayable. Whenever you play a card this turn, lose 1 HP.", function(enemy){}, ["unplayable"]));
+updateStatLine();
+getId("eventDesc").innerHTML = "You search the hut and eventually find some old tongs! But, you prick yourself on their sharp points...";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "Scrap Ooze",
+                        desc: "As you walk into a room you hear a gurgling and grinding sound. Before you is a slime-like creature that ate too much scrap for its own good. From the center you see glints of strange light, as though you could find something valuable. However, the acid and sharp objects may <span style='#f77'>hurt</span>.",
+                        choices: [
+                            ["Reach Inside", "Lose <span id=hploss>3</span> HP. <span id=relicchance>25</span>% chance to find a relic.", `
+let hpLoss = parseInt(getId("hploss").textContent);
+let relicChance = parseInt(getId("relicchance").textContent);
+hp -= hpLoss;
+let red = Math.min(255, hpLoss * 10 + 34);
 let i = 0;
 while(red > 34) {
     setTimeout(function(r){
@@ -2962,25 +3043,33 @@ while(red > 34) {
     i++;
     red -= 5;
 }
+setTimeout(function(r){
+    getId("html").style.background = \`rgb(34, 34, 34)\`;
+}, 10*(hpLoss/3)+90, red);
+if(Math.random() < relicChance * 0.01) {
+    let r = choice([...relicPool, ...rareRelicPool]);
+    relics.push(r);
+    if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+    if(r.name == "Pear"){maxHp += 10; hp += 10;}
+    getId("eventDesc").innerHTML = "Success! You found a relic inside the slime!";
+    getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+    getId("woogleButton").onclick = function() {showMap();};
+} else {
+    hpLoss += 1;
+    relicChance += 10;
+    getId("eventDesc").innerHTML = "Ouch! You didn’t find a relic, but you’re convinced that there is one...";
+    getId("hploss").innerHTML = hpLoss;
+    getId("relicchance").innerHTML = relicChance;
+}
 updateStatLine();
-getId("eventDesc").innerHTML = "You grab the banana. It is nutritious and slightly magical, healing you.";
-getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
-getId("woogleButton").onclick = function() {showMap();}
-                            `],
-                            ["Trade", "40%: Good Face. 40%: Bad Face. 20%: Neutral Face.", `
-maxHp += 5; hp += 5;
-updateStatLine();
-getId("eventDesc").innerHTML = "You grab the donut. It really hits the spot! Your Max HP increases.";
-getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
-getId("woogleButton").onclick = function() {showMap();}
                             `],
                             ["Leave", "No effect.", `
-getId("eventDesc").innerHTML = "nope!";
+getId("eventDesc").innerHTML = "You decide to leave the area. The slime ignores you, content with its meal.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
-                    }*/
+                    }
                 ],
                 "Act 2": [
                 ],
@@ -2989,7 +3078,7 @@ getId("woogleButton").onclick = function() {showMap();}
             };
             
             // Starting deck, relics, etc...
-            let deck = [bash(), strike(), strike(), strike(), neutralize(), worship(), worship(), defend(), eruption(), vigilance()];
+            let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy
@@ -3653,13 +3742,16 @@ getId("woogleButton").onclick = function() {showMap();}
                     } else {
                         getId("potionReward").style.display = "none";
                     }
-                    if(eliteBattle == true) {
+                    if(eliteBattle == true && !relics.map(x=>x.name).includes("N’loth’s Hungry Face")) {
                         getId("relicReward").style.display = "block";
                         let newRelic = choice(relicPool);
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
                         getId("relicReward").setAttribute("onclick", `let r = ${JSON.stringify(newRelic)}; relics.push(r); if(r.name == 'Strawberry'){maxHp += 7; hp += 7;}; if(r.name == 'Pear'){maxHp += 10; hp += 10;}; updateStatLine(); getId('relicReward').style.display = 'none';`);
                     } else {
                         getId("relicReward").style.display = "none";
+                        if(eliteBattle == true) {
+                            relics = relics.filter(x=>x.name!="N’loth’s Hungry Face");
+                        }
                     }
                     if(bossBattle == true) {
                         getId("bossRelicReward").style.display = "block";
@@ -3668,6 +3760,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     } else {
                         getId("bossRelicReward").style.display = "none";
                     }
+                    ifRelic("Face of Cleric", function(){maxHp += 1; hp += 1;});
                 }
                 if(hp <= 0) {
                     hp = 0;
@@ -3769,6 +3862,8 @@ getId("woogleButton").onclick = function() {showMap();}
                     ifRelic("Fossilized Helix", function(){gainBuff("Buffer", 1)});
                     ifRelic("Thread and Needle", function(){gainBuff("Metallicize", 2)});
                     ifRelic("Teardrop Locket", function(){gainBuff("Calm", 1);});
+                    ifRelic("Gremlin Visage", function(){gainBuff("Weak", 1);});
+                    ifRelic("Cultist Headpiece", function(){alert("CAW!");});
                 }
                 if(turn == 1) {ifRelic("Horn Cleat", function(){gainBuff("Block", 14)})}
                 if(turn == 2) {ifRelic("Captain Wheel", function(){gainBuff("Block", 18)})}
@@ -3783,6 +3878,12 @@ getId("woogleButton").onclick = function() {showMap();}
                     drawCard(5 + hasBuff("Next Turn Cards"));
                     loseBuff("Next Turn Cards");
                 }
+                ifRelic("Warped Tongs", function(){
+                    let c = choice(hand.filter(x=>!x.name.includes("+")));
+                    let newCard = upgradedCards[c.name]();
+                    hand.splice(hand.indexOf(c), 1);
+                    hand.push(newCard);
+                });
                 addSmites(hasBuff("Battle Hymn"));
                 addShivs(hasBuff("Infinite Blades"));
                 if(hasBuff("Collect")) {
