@@ -313,7 +313,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.6.4";
+            let currentVersion = "v2.7";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1310,7 +1310,7 @@ updateShopScreen();
                     getId("mapScreen").style.display = "none";
                     getId("eventScreen").style.display = "block";
                     ifRelic("Sssserpent Head", function(){gold += 50;});
-                    let event = choice([...possibleEvents["Act "+actNum.toString()], ...possibleEvents["All Acts"]]);
+                    let event = choice([...possibleEvents["Act "+/*actNum.toString()*/"1"], ...possibleEvents["All Acts"]]);
                     getId("eventTitle").innerHTML = event.title;
                     getId("eventDesc").innerHTML = event.desc;
                     getId("eventChoices").innerHTML = event.choices.map(x=>"<button onclick='"+x[2]+"'>"+x[0]+"</button> - <i>"+x[1]+"</i>").join("<br/>");
@@ -3069,6 +3069,66 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
+                    },
+                    {
+                        title: "The Cleric",
+                        desc: "A strange blue humanoid with a golden helm approaches you with a huge smile. “<b>Hello friend! I am Cleric! Are you interested in my services!?</b>” the creature shouts loudly.",
+                        choices: [
+                            ["Heal", "Cost: 25 gold. Effect: Heal 20 HP.", `
+if(gold < 25) return;
+gold -= 25;
+hp = Math.min(maxHp, hp + 20);
+updateStatLine();
+getId("eventDesc").innerHTML = "A warm gold flame envelops your body and dissipates. The creature grins. “Cleric talented. Have a good day!”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Purify", "Cost: 50 gold. Effect: Remove a card.", `let fun = async function() {
+if(gold < 50) return;
+gold -= 50;
+let c = await choose(deck, "Choose a card to remove.");
+deck.splice(deck.indexOf(c), 1);
+updateStatLine();
+getId("eventDesc").innerHTML = "A cold blue flame envelops your body and dissipates. The creature grins. “Cleric talented. Have a good day!”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "You don’t trust this Cleric, so you leave.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "Living Wall",
+                        desc: "As you come to a dead end and begin to turn around, three walls slam down from the ceiling, trapping you! Faces materialize from the walls and speak:<br/><span style='color: #7ff'>“Forget what you know, and I'll let you go.”</span><br/><span style='color: #f7f'>“I require change to see a new space.”</span><br/><span style='color: #ff7'>“If you want to pass me, then you must grow.”</span>",
+                        choices: [
+                            ["Forget", "Remove a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to remove.");
+deck.splice(deck.indexOf(c), 1);
+updateStatLine();
+getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Change", "Transform + Upgrade a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to transform.");
+deck.splice(deck.indexOf(c), 1);
+deck.push(upgradedCards[randCard()().name]());
+getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Grow", "Upgrade a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to upgrade.");
+deck.splice(deck.indexOf(c), 1);
+deck.push(upgradedCards[c.name]());
+getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`]
+                        ]
                     }
                 ],
                 "Act 2": [
@@ -3097,8 +3157,8 @@ getId("woogleButton").onclick = function() {showMap();}
             let actNum = 1;
             let turn = 0;
             let crCost = 75;
-            let randomThing = () => choice(["💀","💀","💀","💀","💀","💲","😈","🏕️"]);
-            let topThing = () => choice(["💀", "💀", choice(["💀","💀","💲","🏕️"])]);
+            let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
+            let topThing = () => choice(["❓", "💀", choice(["💀","💀","💲","🏕️"])]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map; //❓
             function mapGen() {
@@ -4003,7 +4063,7 @@ getId("woogleButton").onclick = function() {showMap();}
             // This has to be at the bottom because it modifies everything else
             getId("ascensionLevel").addEventListener("change", function() {
                 let lv = getId("ascensionLevel").value;
-                if(lv >= 1) {randomThing = () => choice(["😈","💀","💀","💀","💲","😈","🏕️"]);}
+                if(lv >= 1) {randomThing = () => choice(["😈","❓","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 2) {
                     possibleEnemies = [
                 () => new Enemy("Cultist", 50, [
@@ -4513,7 +4573,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 }
                 if(lv >= 10) {deck.push(new Card("Ascenders’ Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
                 if(lv >= 14) {maxHp -= 5; hp -= 5;}
-                if(lv >= 15) {randomThing = () => choice(["😈","😈","💀","💀","💀","💀","💀","💲","😈","🏕️"]);}
+                if(lv >= 15) {randomThing = () => choice(["😈","😈","❓","❓","💀","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 17) {
                     deck.push(new Card("Strike", 1, "Attack", "Deal [DAM6] damage.", function(enemy){dealDamage(enemy,6);}))
                 }
