@@ -332,7 +332,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.1";
+            let currentVersion = "v2.7.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -669,12 +669,9 @@ if(multiChoice.includes(num)) {
                         for(let e of enemies) {
                             if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
                         }
-                        if(hasBuff("Burst") > 0 && this.name != "Burst") {
+                        if(hasBuff("Burst") > 0 && this.name != "Burst" && this.name != "Burst+") {
                             loseBuff("Burst", 1);
-                            hand.push(this);
-                            discardPile.splice(discardPile.indexOf(this), 1);
-                            if(this.cost != "X") {energy += this.cost;}
-                            this.play();
+                            this.use(target);
                         }
                     }
                     if(this.type == "Power") {
@@ -705,10 +702,7 @@ if(multiChoice.includes(num)) {
                         if(hasBuff("Rage") > 0) {gainBuff("Block", hasBuff("Rage"));}
                         if(hasBuff("Double Tap") > 0) {
                             loseBuff("Double Tap", 1);
-                            hand.push(this);
-                            discardPile.splice(discardPile.indexOf(this), 1);
-                            if(this.cost != "X") {energy += this.cost;}
-                            this.play();
+                            this.use(target);
                         }
                         ifRelic("Pen Nib", function(){gainBuff("Pen Nib", 1)});
                         if(hasBuff("Vigor") > 0) {Promise.resolve(loseBuff("Vigor"));}
@@ -844,8 +838,8 @@ if(multiChoice.includes(num)) {
                 return 0;
             }
             function gainBuff(name, amt) {
-                if(debuffs.includes(name) && hasBuff("Artifact") > 0) {loseBuff("Artifact", 1); updateHtml(); return;}
                 if(amt == 0) return;
+                if(debuffs.includes(name) && hasBuff("Artifact") > 0) {loseBuff("Artifact", 1); updateHtml(); return;}
                 let newAmt = amt;
                 if(name == "Block") {newAmt = calcYourBlock(amt); for(let e of enemies){e.gainBuff("Weak", hasBuff("Wave of the Hand"));}}
                 if(name == "Weak") {ifRelic("Ginger", function(){newAmt = 0});}
@@ -962,7 +956,7 @@ if(multiChoice.includes(num)) {
                 "Barricade": "Block is not removed at the start of your turn.",
                 "Berserk": "Gain [AMT] more energy each turn.",
                 "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
-                "Double Tap": "The next Attack you play is played [AMT] more time[s]",
+                "Double Tap": "Your next [AMT] Attack[s] [are] played twice.",
                 "Juggernaut": "Whenever you gain Block, deal [DAMT] damage to a random enemy.",
                 "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
                 "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
@@ -981,7 +975,7 @@ if(multiChoice.includes(num)) {
                 "Next Turn Cards": "Draw [AMT] more card[s] next turn.",
                 "Thousand Cuts": "Whenever you play a card, deal [DAMT] damage to ALL enemies.",
                 "After Image": "Whenever you play a card, gain [BAMT] Block.",
-                "Burst": "Your next [AMT] Skill[s] are played twice.",
+                "Burst": "Your next [AMT] Skill[s] [are] played twice.",
                 "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
                 "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
                 "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
@@ -2247,7 +2241,7 @@ updateShopScreen();
                     gainBuff("Brutality", 1);
                 }, ["exhausted", "innate"]), "Demonic Ritual": () => new Card("Demonic Ritual+", 3, "Power", "At the end of your turn, gain 3 Strength.", function(enemy){
                     gainBuff("Ritual", 3);
-                }, ["exhausted"]), "Double Tap": () => new Card("Double Tap+", 1, "Skill", "Your next Attack is played 3 times.", function(enemy){
+                }, ["exhausted"]), "Double Tap": () => new Card("Double Tap+", 1, "Skill", "Your next 2 Attacks are played twice.", function(enemy){
                     gainBuff("Double Tap", 2);
                 }, ["exhausted"]), "Exhume": () => new Card("Exhume+", 0, "Skill", "Put a card from your exhaust pile in your hand. Exhaust.", async function(enemy){
                     let chosen = await choose(exhaustPile, "Choose a card to put into your hand.");
@@ -2403,7 +2397,7 @@ updateShopScreen();
                 energy += 2; drawCard(2);
             }, ["exhausted"]), "After Image": () => new Card("After Image+", 1, "Power", "Innate. Whenever you play a card, gain [BLK1] Block.", function(enemy){
                 gainBuff("After Image", 1);
-            }, ["exhausted", "innate"]), "Burst": () => new Card("Burst+", 1, "Skill", "Your next Skill is played 3 times.", function(enemy){
+            }, ["exhausted", "innate"]), "Burst": () => new Card("Burst+", 1, "Skill", "Your next 2 Skills are played twice.", function(enemy){
                 gainBuff("Burst", 2);
             }), "Die Die Die": () => new Card("Die Die Die+", 1, "Attack", "Deal [DAM17] damage to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {dealDamage(e, 17);}
@@ -3657,6 +3651,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
                                 .replaceAll("[s]", (x.amt==1 ? "" : "s"))
                                 .replaceAll("[es]", (x.amt==1 ? "" : "es"))
+                                .replaceAll("[are]", (x.amt==1 ? "is" : "are"))
                                     +"</span></span> ";
                         } else {
                             playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
@@ -3666,6 +3661,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 .replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5))
                                 .replaceAll("[s]", (x.amt==1 ? "" : "s"))
                                 .replaceAll("[es]", (x.amt==1 ? "" : "es"))
+                                .replaceAll("[are]", (x.amt==1 ? "is" : "are"))
                                     +"</span></span> ";
                         }
                     }
@@ -3782,7 +3778,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
-                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+"</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
@@ -3808,7 +3804,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         newDesc = newDesc.replace("[DAM"+i+"]", newI);
                     }
                     enemyTooltip.innerHTML = e.name+" intends to "+newDesc+".";
-                    enemyTooltip.innerHTML += e.buffs.length ? ("<br/>" + e.buffs.map(x => x.name+" "+x.amt+" ("+buffDesc[x.name].replace("[AMT]", x.amt).replace("[DAMT]", e.calcDamage(x.amt)).replace("[BAMT]", e.calcBlock(x.amt)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es"))+")").join("<br/>")) : "";
+                    enemyTooltip.innerHTML += e.buffs.length ? ("<br/>" + e.buffs.map(x => x.name+" "+x.amt+" ("+buffDesc[x.name].replace("[AMT]", x.amt).replace("[DAMT]", e.calcDamage(x.amt)).replace("[BAMT]", e.calcBlock(x.amt)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+")").join("<br/>")) : "";
                     if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                         enemyTooltip.innerHTML += "<br/>Time Warp (Whenever you play 12 cards, ends your turn and gains 2 Strength.)";
                     }
