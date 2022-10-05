@@ -1,30 +1,46 @@
-<html id="html" style="color: white; background: #222; font-family: monospace;">
+<html id="html" class="default">
     <head>
         <title>Clone of Slay the Spire</title>
         <link rel="shortcut icon" href="./StS/intent-attack.png">
         <style>
-            input {
-                color: white;
-                background: #222;
+            html, input, button {
                 font-family: monospace;
+                color: white;
             }
+            html, input {background: #222;}
+            html.aqua, html.aqua input {background: #005;}
+            html.black, html.black input {background: black;}
             button {
                 border: 2px solid lime;
                 margin: 1px;
                 cursor: pointer;
                 color: lime;
                 background: black;
-                font-family: monospace;
                 transition: 0.3s ease;
                 border-radius: 3px;
             }
+            html.aqua button {
+                border: 2px solid aqua;
+                color: aqua;
+            }
+            #damage {
+                opacity: 0;
+                background: #f00;
+                position: absolute;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                pointer-events: none;
+            }
             .nonbutton {border: 2px solid green; color: green;}
-            .Attack {border: 2px solid red; color: red;}
-            .Skill {border: 2px solid skyblue; color: skyblue;}
-            .Power {border: 2px solid yellow; color: yellow;}
-            .Status {border: 2px solid lightgreen; color: lightgreen;}
-            .Curse {border: 2px solid #666; color: #666;}
-            .unplayable {border: 2px solid #555; color: #555;}
+            html.aqua .nonbutton {border: 2px solid #007; color: #007;}
+            html button.Attack {border: 2px solid red; color: red;}
+            html button.Skill {border: 2px solid skyblue; color: skyblue;}
+            html button.Power {border: 2px solid yellow; color: yellow;}
+            html button.Status {border: 2px solid lightgreen; color: lightgreen;}
+            html button.Curse {border: 2px solid #666; color: #666;}
+            html button.unplayable {border: 2px solid #555; color: #555;}
             button:hover:not(.unplayable) {background-color: #444;}
             button:hover > span {font-size: 13px;}
             table {width: 100%;}
@@ -88,22 +104,20 @@
                 animation: grow 0.8s infinite;
                 margin: 0px 0px 30px 140px;
             }
-            .titleButton {
+            html button.titleButton {
                 text-align: center;
                 width: 100%;
                 border: none;
                 font-size: 16px;
-                transition: 0.2s ease-in-out;
             }
-            .titleButton:hover {
+            html .titleButton:hover {
                 font-size: 21px;
                 color: black;
                 background: lime;
                 font-weight: bold;
             }
-            .selection {
-                font-weight: bold;
-            }
+            html.aqua .titleButton:hover {background: aqua;}
+            .selection {font-weight: bold;}
             @keyframes grow {
                 0%    { transform: scale(1);    }
                 12.5% { transform: scale(1.08); }
@@ -141,7 +155,8 @@
             }
         </style>
     </head>
-    <body>        
+    <body>
+        <div id="damage"></div>
         <div id="msModal" style="display: none;">
             <div id="msModalContent"></div>
         </div>
@@ -243,6 +258,10 @@ Choose the cards that you want to play with:
 <input type="checkbox" id="useWatcher" checked> Watcher Cards
 <button onclick="updateCardList();">Save</button>
 
+Themes:
+<button onclick="getId('html').classList.add('aqua');">Aqua</button><button onclick="getId('html').classList.add('black');">Black</button>
+<button onclick="getId('html').setAttribute('class', 'default');">Reset themes</button>
+
 Credits:
 * MegaCrit (obviously) &lt;-- This is really important
 * ToasterOven#7614 (don't ping him please)
@@ -309,11 +328,11 @@ Credits:
             let choice = x => x[Math.floor(Math.random()*x.length)];
             
             let crand = x => Math.ceil(Math.random()*x);
-            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "hecking", "yellow", "orange"])};
+            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "hecking", "yellow", "new event", "events are more eventful"])};
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7";
+            let currentVersion = "v2.7.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -808,18 +827,14 @@ if(multiChoice.includes(num)) {
                             }
                         }
                         if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
-                        let red = Math.min(255, dealt * 5 + 60);
+                        let red = dealt * 0.02 + 0.24;
                         let i = 0;
-                        while(red > 34) {
-                            setTimeout(function(r){
-                                getId("html").style.background = `rgb(${r}, 34, 34)`;
-                            }, i * 10, red);
+                        while(red > 0) {
+                            setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
                             i++;
-                            red -= 3;
+                            red -= 0.012;
+                            if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
                         }
-                        setTimeout(function(r){
-                            getId("html").style.background = `rgb(34, 34, 34)`;
-                        }, 10*(dealt/3)+90, red);
                     }
                 }
             }
@@ -2879,18 +2894,14 @@ getId("woogleButton").onclick = function() {showMap();}
 gold += 75;
 let hpToLose = Math.round(0.1*maxHp);
 hp -= hpToLose;
-let red = Math.min(255, hpToLose * 10 + 34);
+let red = hpToLose * 0.02 + 0.24;
 let i = 0;
-while(red > 34) {
-    setTimeout(function(r){
-        getId("html").style.background = "rgb("+r+", 34, 34)";
-    }, i * 10, red);
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
     i++;
-    red -= 5;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
 }
-setTimeout(function(r){
-    getId("html").style.background = \`rgb(34, 34, 34)\`;
-}, 10*(hpToLose/3)+90, red);
 updateStatLine();
 getId("eventDesc").innerHTML = "“Compensation. Compensation.” He takes out a stack of coins and places them in your pouch. “Nice face. Nice face.” As he touches your face, you feel your life begin to drain out! During this, his mask falls off and shatters. He quickly covers his face with his hands, dropping even more masks! In the commotion, you escape.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -2911,6 +2922,44 @@ getId("woogleButton").onclick = function() {showMap();}
                             `],
                             ["Leave", "No effect.", `
 getId("eventDesc").innerHTML = "This was probably the right call.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "Designer In-Spire",
+                        desc: "You discover a <span style='color: #7f7'>colorful shop</span> with the banner IN-SPIRE and walk inside. A man appears, and with an exaggerated sigh, points at a list of services.",
+                        choices: [
+                            ["Clean Up", "Pay $60 to remove a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to remove.");
+deck.splice(deck.indexOf(c), 1);
+updateStatLine();
+getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Adjustments", "Pay $40 to upgrade a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to upgrade.");
+deck.splice(deck.indexOf(c), 1);
+deck.push(upgradedCards[c.name]());
+getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Full Service", "Pay $120 to do both.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to upgrade.");
+deck.splice(deck.indexOf(c), 1);
+deck.push(upgradedCards[c.name]());
+let d = await choose(deck, "Choose a card to remove.");
+deck.splice(deck.indexOf(d), 1);
+updateStatLine();
+getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Punch", "Lose 3 HP.", `
+getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
@@ -2944,18 +2993,14 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Gather It", "Gain 75 gold, but lose 11 HP.", `
 gold += 75;
 hp -= 11;
-let red = Math.min(255, 11 * 10 + 34);
+let red = 0.46;
 let i = 0;
-while(red > 34) {
-    setTimeout(function(r){
-        getId("html").style.background = "rgb("+r+", 34, 34)";
-    }, i * 10, red);
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
     i++;
-    red -= 5;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
 }
-setTimeout(function(r){
-    getId("html").style.background = \`rgb(34, 34, 34)\`;
-}, 127, red);
 updateStatLine();
 getId("eventDesc").innerHTML = "Feeling the sting of the prolonged exposure to the goop, you manage to fish out the gold.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3034,18 +3079,14 @@ getId("woogleButton").onclick = function() {showMap();}
 let hpLoss = parseInt(getId("hploss").textContent);
 let relicChance = parseInt(getId("relicchance").textContent);
 hp -= hpLoss;
-let red = Math.min(255, hpLoss * 10 + 34);
+let red = hpLoss * 0.02 + 0.24;
 let i = 0;
-while(red > 34) {
-    setTimeout(function(r){
-        getId("html").style.background = "rgb("+r+", 34, 34)";
-    }, i * 10, red);
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
     i++;
-    red -= 5;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
 }
-setTimeout(function(r){
-    getId("html").style.background = \`rgb(34, 34, 34)\`;
-}, 10*(hpLoss/3)+90, red);
 if(Math.random() < relicChance * 0.01) {
     let r = choice([...relicPool, ...rareRelicPool]);
     relics.push(r);
@@ -3128,6 +3169,27 @@ getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`]
+                        ]
+                    },
+                    {
+                        title: "Wing Statue",
+                        desc: "Among the stone and boulders, you notice an intricate blue statue resembling a wing. You find gold spilling from its cracks. Maybe there is more inside...",
+                        choices: [
+                            ["Pray", "Remove a card from your deck.", `let fun = async function() {
+let c = await choose(deck, "Choose a card to remove.");
+deck.splice(deck.indexOf(c), 1);
+updateStatLine();
+getId("eventDesc").innerHTML = "Someone once told you of a cult that worshipped a giant bird. As you kneel in prayer, you feel a bit lightheaded.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Destroy", "Gain 50 gold.", `
+gold += 50;
+updateStatLine();
+getId("eventDesc").innerHTML = "You hack away at the statue until you can reach all the gold inside. You grab it and continue on.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
                         ]
                     }
                 ],
@@ -3565,7 +3627,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 else {energyElem.style.background = "yellow";}
                 
                 let playerElem = getId("player");
-                playerElem.innerHTML = "<span style='font-size:28px;color:#222;'>0</span>Your Hand ("+hand.length+"/10 cards):";
+                playerElem.innerHTML = "<span style='font-size:28px;opacity:0;'>0</span>Your Hand ("+hand.length+"/10 cards):";
                 if(buffs.length > 0) {
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
