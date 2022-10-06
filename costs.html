@@ -332,7 +332,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.3c";
+            let currentVersion = "v2.7.4";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1703,6 +1703,7 @@ updateStatLine();
                     updateHtml();
                 }
                 energy += 2;
+                updateHtml();
             });
             let cripplingCloud = () => new Card("Crippling Cloud", 2, "Skill", "Apply 4 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {e.gainBuff("Poison", 4); e.gainBuff("Weak", 2); updateHtml();}
@@ -2309,6 +2310,7 @@ updateStatLine();
                     updateHtml();
                 }
                 energy += 2;
+                updateHtml();
             }), "Crippling Cloud": () => new Card("Crippling Cloud+", 2, "Skill", "Apply 7 Poison and 2 Weak to ALL enemies. Exhaust.", function(enemy){
                 for(let e of enemies) {e.gainBuff("Poison", 7); e.gainBuff("Weak", 2); updateHtml();}
             }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Attack", "Deal [DAM13] damage. Gain [BLK13] Block.", function(enemy){
@@ -3449,7 +3451,6 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 15, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 20, [
@@ -3804,7 +3805,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     }
                     enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     enemyElem.appendChild(enemyButton);
-                    enemyElem.innerHTML += " HP: "+e.hp+" / "+e.maxHp;
+                    enemyElem.innerHTML += " HP: <span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime;'" : "")+">"+e.hp+" / "+e.maxHp+"</span>";
                     if(e.buffs.length > 0) {
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
@@ -4144,7 +4145,8 @@ getId("woogleButton").onclick = function() {showMap();}
                 loseBuff("Dexterity", hasBuff("Dexterity Down"));
                 loseBuff("Dexterity Down");
                 if(hasBuff("Vault") == 0) {
-                    for(let e of enemies) {
+                    let toAct = enemies.slice(0); // deep copy
+                    for(let e of toAct) {
                         if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
                         if(e.hasBuff("Metallicize")){e.gainBuff("Block", e.hasBuff("Metallicize"));}
                         if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
@@ -4543,7 +4545,6 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "unknown", desc: "summon allies", effect: function(me){
                         let gremlins = [
                             () => new Enemy("Fat Gremlin", 20, [
-                                {intent: "unknown", desc: "Uh-oh! This is a bug! XD", effect: passTurn()},
                                 {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
                             ], ["no-repeat"]),
                             () => new Enemy("Mad Gremlin", 25, [
