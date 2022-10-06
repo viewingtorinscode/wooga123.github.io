@@ -332,7 +332,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.2";
+            let currentVersion = "v2.7.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -473,12 +473,10 @@ if(multiChoice.includes(num)) {
                             relics.push(r);
                             getId("relicElem_"+(n-6)).style.display = "none";
                             updateStatLine();
-                            updateShopScreen();
                         } else if(getId("cardElem_"+n)) {
                             deck.push(new Card(offer.name, offer.cost, offer.type, offer.desc, offer.use, offer.flags));
                             getId("cardElem_"+n).style.display = "none";
                             updateStatLine();
-                            updateShopScreen();
                         }
                     }
                 } else if(getId("gameScreen").style.display != "none") { hand[n].play(); }
@@ -646,7 +644,7 @@ if(multiChoice.includes(num)) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             gainBuff("Block", hasBuff("Feel No Pain"));
-                            ifRelic("Dead Branch", function(){hand.push(randCard()())});
+                            ifRelic("Dead Branch", function(){hand.push(randCard())});
                             //ifRelic("Charon’s Ashes", function(){for(let e of enemies){dealDamage(e, 3);}});
                         } else if(this.name == "Tantrum") {
                             drawPile.push(this); drawPile = shuffle(drawPile);
@@ -793,6 +791,7 @@ if(multiChoice.includes(num)) {
                     let ub = finalAmt - hasBuff("Block");
                     if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
                     if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
+                    if(hasBuff("Intangible")) {finalAmt = 1;}
                     if(hasBuff("Buffer") > 0 && ub > 0) {finalAmt = 0; if(actuallyDeal){Promise.resolve(loseBuff("Buffer", 1));}}
                     return finalAmt;
                 }
@@ -1006,7 +1005,8 @@ if(multiChoice.includes(num)) {
                 "Blasphemy": "Die next turn.",
                 "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies.",
                 "Mantra": "When you gain 10 Mantra, enter Divinity.",
-                "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength."
+                "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength.",
+                "Intangible": "Reduce damage and HP loss to 1 for [AMT] turn[s]."
             };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];            
             let statusCards = {
@@ -1031,7 +1031,7 @@ if(multiChoice.includes(num)) {
                         actNum = 3;
                     } else if(actNum == 3) {
                         actNum = 0;
-                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); return;
+                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); alert("You win!"); return;
                     }
                 }
                 updateStatLine();
@@ -1053,7 +1053,8 @@ if(multiChoice.includes(num)) {
                                 (map[floor][node]=="💀" ? "Fight some monsters. Get gold, a card and maybe a potion if you win." : 
                                   (map[floor][node]=="😈" ? "Fight a strong monster. Get gold, a rare card, a relic, and maybe a potion if you win." : 
                                     (map[floor][node]=="🏕️" ? "Rest and heal some HP or upgrade a card." : 
-                                     (map[floor][node]=="💲" ? "Buy cards and relics at the shop." : "Fight a Boss. Cool stuff if you win.")))
+                                     (map[floor][node]=="❓" ? "Encounter a random event." : 
+                                       (map[floor][node]=="💲" ? "Buy cards and relics at the shop." : "Fight a Boss. Cool stuff if you win."))))
                                 )+"</span>";
                             nodeButton.setAttribute("class", "tt notbig");
                             if(floor-1 == mapY && Math.abs(node-mapX) <= 1) {
@@ -1119,7 +1120,7 @@ if(multiChoice.includes(num)) {
                     } else {
                         nme = () => choice(possibleEnemies_act3)();
                     }
-                    if(mapY >= 2) {enemies = [nme(), nme()]}
+                    if(mapY >= 4) {enemies = [nme(), nme()]}
                     else {enemies = [nme()]}
                     eliteBattle = false;
                     bossBattle = false;
@@ -1184,6 +1185,7 @@ if(multiChoice.includes(num)) {
                     music.rest.play();
                     announceMusic("No Weapons Here");
                 } else if(map[y][x] == "💲") {
+                    /*debugging*/ try {
                     getId("mapScreen").style.display = "none";
                     getId("merchantScreen").style.display = "block";
                     music.shop.play();
@@ -1192,12 +1194,12 @@ if(multiChoice.includes(num)) {
                     ifRelic("Meal Ticket", function(){hp = Math.min(maxHp, hp + 15)});
                     offers = [];
                     for(let i=0; i<6; i++) {
-                        let offer = randCard()();
+                        let offer = randCard();
                         let cardCost = Math.round(Math.random()*37 + 45); // cost: 45g to 81g
                         if(getId("ascensionLevel").value >= 16) {cardCost = Math.round(Math.random()*43 + 51);} // cost: 51g to 93g
                         offers.push({index: i, price: cardCost, offer: offer});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
-                        if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard()();} // 6th card is rare
+                        if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard();} // 6th card is rare
                         let cardElem = document.createElement("tr");
                         let nameWrapper = document.createElement("td");
                         let nameElem = document.createElement("button");
@@ -1205,14 +1207,10 @@ if(multiChoice.includes(num)) {
                         cardElem.setAttribute("id", `cardElem_${i}`);
                         nameElem.setAttribute("id", `cardName_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+"<br/>"+unformat(offer.desc)+"</span>";
-                        if(gold >= cardCost) {
-                            if(i==0) {
-                                nameElem.setAttribute("class", "Skill tt");
-                            } else {
-                                nameElem.setAttribute("class", "tt");
-                            }
+                        if(i==0) {
+                            nameElem.setAttribute("class", "Skill tt");
                         } else {
-                            nameElem.setAttribute("class", "tt unplayable");
+                            nameElem.setAttribute("class", "tt");
                         }
                         if(offer.cost == "X") {offer.cost = '"X"';}
                         nameElem.setAttribute("onclick", `if(gold >= ${cardCost}) {
@@ -1220,7 +1218,6 @@ gold -= ${cardCost};
 deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.use}, ${JSON.stringify(offer.flags)}));
 getId("cardElem_${i}").style.display = "none";
 updateStatLine();
-updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+cardCost;
@@ -1249,18 +1246,13 @@ updateShopScreen();
                         relicElem.setAttribute("id", `relicElem_${i}`);
                         nameElem.setAttribute("id", `relicName_${i}`);
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
-                        if(gold >= relicCost) {
-                            nameElem.setAttribute("class", "Status tt");
-                        } else {
-                            nameElem.setAttribute("class", "Status tt unplayable");
-                        }
+                        nameElem.setAttribute("class", "Status tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
 gold -= ${relicCost};
 let r = ${JSON.stringify(offer)};
 relics.push(r);
 getId("relicElem_${i}").style.display = "none";
 updateStatLine();
-updateShopScreen();
 }
                         `);
                         costElem.innerHTML = "Cost: $"+relicCost;
@@ -1286,11 +1278,7 @@ updateShopScreen();
                     crElem.setAttribute("id", "crElem");
                     nameElem.setAttribute("id", "crName");
                     nameElem.innerHTML = "Remove a card";
-                    if(gold >= crCost) {
-                        nameElem.setAttribute("class", "Status tt");
-                    } else {
-                        nameElem.setAttribute("class", "Status tt unplayable");
-                    }
+                    nameElem.setAttribute("class", "Power tt");
                     nameElem.setAttribute("onclick", `if(gold >= crCost) {
 gold -= crCost;
 crCost += 25;
@@ -1298,7 +1286,6 @@ let cardToRemove = choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(cardToRemove), 1);
 getId("crElem").remove();
 updateStatLine();
-updateShopScreen();
 }
                     `);
                     costElem.innerHTML = "Cost: $"+crCost;
@@ -1315,6 +1302,9 @@ updateShopScreen();
                     continueWrapper.appendChild(continueBtn);
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
+                    /*debugging*/ } catch(err) {
+                        alert("Uh oh!\n"+err);
+                    }
                 } else if (map[y][x] == "❓") {
                     getId("mapScreen").style.display = "none";
                     getId("eventScreen").style.display = "block";
@@ -1326,43 +1316,6 @@ updateShopScreen();
                 }
             }
             let offers = [];
-            function updateShopScreen() {
-                let helpers = document.getElementsByClassName("helpNumber");
-                while(helpers.length > 0) {
-                    helpers[0].remove();
-                }
-                for(let i of offers) {
-                    if(i.index >= 100) {
-                        let relicElem = getId("relicName_"+(i.index-100));
-                        relicElem.setAttribute("class", "Status tt");
-                        let helpNumber = document.createElement("span");
-                        helpNumber.style.position = "absolute";
-                        helpNumber.setAttribute("class", "helpNumber");
-                        let coords = relicElem.getBoundingClientRect();
-                        helpNumber.style.top = coords.top;
-                        helpNumber.style.left = coords.left - 10;
-                        let ind = offers.indexOf(i) + 1;
-                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
-                        getId("merchantScreen").appendChild(helpNumber);
-                    } else {
-                        let cardElem = getId("cardName_"+i.index);
-                        if(i.index==0) {
-                            cardElem.setAttribute("class", "Skill tt");
-                        } else {
-                            cardElem.setAttribute("class", "tt");
-                        }
-                        let helpNumber = document.createElement("span");
-                        helpNumber.style.position = "absolute";
-                        helpNumber.setAttribute("class", "helpNumber");
-                        let coords = cardElem.getBoundingClientRect();
-                        helpNumber.style.top = coords.top;
-                        helpNumber.style.left = coords.left - 10;
-                        let ind = offers.indexOf(i) + 1;
-                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
-                        getId("merchantScreen").appendChild(helpNumber);
-                    }
-                }
-            }
             
             //
             // Basics
@@ -1513,8 +1466,8 @@ updateShopScreen();
                 hp -= 2; dealDamage(enemy, 15);
             });
             let infernalBlade = () => new Card("Infernal Blade", 0, "Skill", "Add a random Attack to your hand. Exhaust.", function(enemy){
-                let extraCard = randCard()(); // looks weird ik
-                while(extraCard.type != "Attack") {extraCard = randCard()();}
+                let extraCard = randCard();
+                while(extraCard.type != "Attack") {extraCard = randCard();}
                 hand.push(extraCard);
             }, ["exhausted"]);
             let inflame = () => new Card("Enflame", 1, "Power", "Gain 2 Strength.", function(enemy){
@@ -1758,8 +1711,8 @@ updateShopScreen();
                 dealDamage(enemy, 10); gainBuff("Block", 10);
             });
             let distraction = () => new Card("Distraction", 0, "Skill", "Add a random Skill to your hand. Exhaust.", function(enemy){
-                let extraCard = randCard()(); // looks weird ik
-                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                let extraCard = randCard();
+                while(extraCard.type != "Skill") {extraCard = randCard();}
                 hand.push(extraCard);
             }, ["exhausted"]);
             let escapePlan = () => new Card("Escape Plan", 0, "Skill", "Draw a card. If it's a Skill, gain [BLK3] Block.", function(enemy){
@@ -2181,11 +2134,11 @@ updateShopScreen();
                 }, ["ethereal"]), "Hemokinesis": () => new Card("Hemokinesis+", 1, "Attack", "Lose 2 HP. Deal [DAM20] damage.", function(enemy){
                     hp -= 2; dealDamage(enemy, 20);
                 }), "Infernal Blade": () => new Card("Infernal Blade+", 0, "Skill", "Add 2 random Attacks to your hand. Exhaust", function(enemy){
-                    let extraCard = randCard()(); // looks weird ik
-                    while(extraCard.type != "Attack") {extraCard = randCard()();}
+                    let extraCard = randCard();
+                    while(extraCard.type != "Attack") {extraCard = randCard();}
                     hand.push(extraCard);
-                    let extraCard2 = randCard()(); // looks weird ik
-                    while(extraCard2.type != "Attack") {extraCard2 = randCard()();}
+                    let extraCard2 = randCard();
+                    while(extraCard2.type != "Attack") {extraCard2 = randCard();}
                     hand.push(extraCard2);
                 }, ["exhausted"]), "Enflame": () => new Card("Enflame+", 1, "Power", "Gain 3 Strength.", function(enemy){
                     gainBuff("Strength", 3);
@@ -2361,11 +2314,11 @@ updateShopScreen();
             }, ["exhausted"]), "Dash": () => new Card("Dash+", 2, "Attack", "Deal [DAM13] damage. Gain [BLK13] Block.", function(enemy){
                 dealDamage(enemy, 13); gainBuff("Block", 13);
             }), "Distraction": () => new Card("Distraction+", 0, "Skill", "Add 2 random Skills to your hand. Exhaust.", function(enemy){
-                let extraCard = randCard()(); // looks weird ik
-                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                let extraCard = randCard();
+                while(extraCard.type != "Skill") {extraCard = randCard();}
                 hand.push(extraCard);
-                extraCard = randCard()(); // looks weird ik
-                while(extraCard.type != "Skill") {extraCard = randCard()();}
+                extraCard = randCard();
+                while(extraCard.type != "Skill") {extraCard = randCard();}
                 hand.push(extraCard);
             }, ["exhausted"]), "Escape Plan": () => new Card("Escape Plan+", 0, "Skill", "Draw a card. If it's a Skill, gain [BLK5] Block.", function(enemy){
                 drawCard();
@@ -2420,7 +2373,7 @@ updateShopScreen();
                 for(let i of enemies){dealDamage(i, 8);}
             }), "Crescendo": () => new Card("Crescendo+", 0, "Skill", "Retain. Enter Wrath. Exhaust.", function(enemy){
                 gainBuff("Wrath", 1);
-            }, ["retain", "exhausted"]), "Crush Joints+": () => new Card("Crush Joints", 1, "Attack", "Deal [DAM10] damage. If the last card played this combat was a Skill, apply 2 Vulnerable.", function(enemy){
+            }, ["retain", "exhausted"]), "Crush Joints": () => new Card("Crush Joints+", 1, "Attack", "Deal [DAM10] damage. If the last card played this combat was a Skill, apply 2 Vulnerable.", function(enemy){
                 dealDamage(enemy, 10); if(stats.lastType == "Skill") {enemy.gainBuff("Vulnerable", 2);}
             }), "Cut Through Fate": () => new Card("Cut Through Fate+", 1, "Attack", "Deal [DAM9] damage. Scry 3. Draw a card.", function(enemy){
                 dealDamage(enemy, 9); scry(3); drawCard(1);
@@ -2591,20 +2544,21 @@ updateShopScreen();
                 getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
             }
             
-            let randCard = function() {
+            let randCard = function(upg=true) {
                 let card = choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves, followUp, halt, justLucky, pressurePoints, predict, precision, prostrate, protect, sashWhip, thirdEye, tranquility, battleHymn, collect, conclude, deceiveReality, emptyMind, fasting, fearNoEvil, foresight, indignation, innerPeace, likeWater, mentalFortress, nirvana, perseverance, pray, reachHeaven, rushdown, sanctity, sandsOfTime, signatureMove, simmeringFury, study, swivel, talkToTheHand, tantrum, wallop, waveOfTheHand, weave, wheelKick, windmillStrike, worship, wreathOfFlame]);
-                if(Math.random() < 0.3 * (actNum - 1)) {
-                    return upgradedCards[card().name];
+                if(Math.random() < 0.3 * (actNum - 1) && upg) {
+                    alert("Attempting to upgrade random card: "+card().name);
+                    return upgradedCards[card().name]();
                 } else {
-                    return card;
+                    return card();
                 }
             };
-            let randRareCard = function() {
+            let randRareCard = function(upg=true) {
                 let card = choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
-                if(Math.random() < 0.3 * (actNum - 1)) {
-                    return upgradedCards[card().name];
+                if(Math.random() < 0.3 * (actNum - 1) && upg) {
+                    return upgradedCards[card().name]();
                 } else {
-                    return card;
+                    return card();
                 }
             };
             
@@ -2631,20 +2585,20 @@ updateShopScreen();
                     deck.push(strike());
                     deck.push(defend());
                 }
-                randCard = function() {
+                randCard = function(upg) {
                     let card = choice(normals);
-                    if(Math.random() < 0.3 * (actNum - 1)) {
-                        return upgradedCards[card().name];
+                    if(Math.random() < 0.3 * (actNum - 1) && upg) {
+                        return upgradedCards[card().name]();
                     } else {
-                        return card;
+                        return card();
                     }
                 };
-                randRareCard = function() {
+                randRareCard = function(upg) {
                     let card = choice(rares);
-                    if(Math.random() < 0.3 * (actNum - 1)) {
-                        return upgradedCards[card().name];
+                    if(Math.random() < 0.3 * (actNum - 1) && upg) {
+                        return upgradedCards[card().name]();
                     } else {
-                        return card;
+                        return card();
                     }
                 };
             }
@@ -2652,9 +2606,9 @@ updateShopScreen();
             function addCard() {
                 let newCards;
                 if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
-                    newCards = shuffle([randCard()(), randRareCard()(), randRareCard()()]);
+                    newCards = shuffle([randCard(), randRareCard(), randRareCard()]);
                 } else {
-                    newCards = [randCard()(), randCard()(), randCard()()];
+                    newCards = [randCard(), randCard(), randCard()];
                 }
                 possibleCards = newCards;
                 getId("cardModal").style.display = "block";
@@ -2953,7 +2907,7 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Punch", "Lose 3 HP.", `
-getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts.";
+getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
@@ -3150,7 +3104,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Change", "Transform + Upgrade a card from your deck.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to transform.");
 deck.splice(deck.indexOf(c), 1);
-deck.push(upgradedCards[randCard()().name]());
+deck.push(upgradedCards[randCard(upg=false).name]());
 getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
@@ -3169,9 +3123,17 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Wing Statue",
                         desc: "Among the stone and boulders, you notice an intricate blue statue resembling a wing. You find gold spilling from its cracks. Maybe there is more inside...",
                         choices: [
-                            ["Pray", "Remove a card from your deck.", `let fun = async function() {
+                            ["Pray", "Remove a card from your deck. Lose 7 HP.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(c), 1);
+let red = 0.38;
+let i = 0;
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
+    i++;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
+}
 updateStatLine();
 getId("eventDesc").innerHTML = "Someone once told you of a cult that worshipped a giant bird. As you kneel in prayer, you feel a bit lightheaded.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3185,9 +3147,96 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
+                    },
+                    {
+                        title: "Shining Light",
+                        desc: "You find a shimmering <span style='color: bb3'>mass of light</span> in the center of a room. Its warm glow and enchanting patterns invite you in.",
+                        choices:
+                        [
+                            ["Enter", "Upgrade 2 cards. Lose 15 HP.", `
+let c = choice(deck.filter(x=>!x.name.includes("+")));
+deck.push(upgradedCards[c.name]());
+deck.splice(deck.indexOf(c), 1);
+let d = choice(deck.filter(x=>!x.name.includes("+")));
+deck.push(upgradedCards[d.name]());
+deck.splice(deck.indexOf(d), 1);
+let red = 0.54;
+let i = 0;
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
+    i++;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
+}
+getId("eventDesc").innerHTML = "The light is absorbed into your skin. It’s scorching hot, but the pain quickly recedes.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "You walk around it, wondering what could have been.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
                     }
                 ],
                 "Act 2": [
+                    {
+                        title: "Council of Ghosts",
+                        desc: "As you continue your ascent, <span style='color: f7f'>thick smoke</span> begins to billow out of the ground and walls, coalescing into three forms that start to speak. “AnoThEr pUpPEt oF NeOW I tHiNK.”  “AGREED! SHE ALWAYS MAKES THE FUNNIEST TOYS!” ”Ignore the others... would you like a taste of our power?“",
+                        choices:
+                        [
+                            ["Yes", "Receive 5 Apparition. Lose 50% of Max HP.", `
+maxHp = Math.round(0.5 * maxHp);
+hp = Math.min(hp, maxHp);
+for(let i=0; i<5; i++) {
+    deck.push(new Card("Apparition", 1, "Skill", "Ethereal. Reduce damage and HP loss to 1 this turn. Exhaust.", function(enemy){gainBuff("Intangible", 1);}, ["ethereal", "exhausted"]));
+}
+let red = 0.24 + 0.01 * maxHp;
+let i = 0;
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
+    i++;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
+}
+getId("eventDesc").innerHTML = "Smoke spews from the ghostly form as it speaks, enveloping you in darkness. As the sensation stops, you continue on, feeling rather hollow.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["No", "No effect.", `
+getId("eventDesc").innerHTML = "“How disappointing...” “YOu wILl jOIn uS sOoNEr oR LaTEr.” “HA HA HA HAHAHAHA!”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    {
+                        title: "The Library",
+                        desc: "You come across an ornate building which appears abandoned. A plaque that reads “THE LIBRARY” has been torn from a wall. Inside you find countless rows of manuscripts, scrolls, and books.",
+                        choices:
+                        [
+                            ["Read", "Choose 1 of 20 cards to add to your deck.", `let fun = async function(){
+let possibilities = [];
+for(let i=0; i<17; i++) {
+    possibilities.push(randCard());
+}
+for(let i=0; i<3; i++) {
+    possibilities.push(randRareCard());
+}
+deck.push( choice(possibilities, "Choose a card to add to your deck.") );
+getId("eventDesc").innerHTML = "You pick up a stack of books and spend hours reading through them.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Sleep", "Heal 24 HP.", `
+hp = Math.min(hp + 24, maxHp);
+getId("eventDesc").innerHTML = "Reading is for chumps. You doze off in a comfy chair instead. ...zZz.. .zzZz.. ..zzz..";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    }
                 ],
                 "Act 3": [
                 ]
@@ -3213,7 +3262,8 @@ getId("woogleButton").onclick = function() {showMap();}
             let actNum = 1;
             let turn = 0;
             let crCost = 75;
-            let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
+            //let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
+            let randomThing = () => "💲";
             let topThing = () => choice(["❓", "💀", choice(["💀","💀","💲","🏕️"])]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map; //❓
