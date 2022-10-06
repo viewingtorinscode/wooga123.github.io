@@ -3262,8 +3262,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let actNum = 1;
             let turn = 0;
             let crCost = 75;
-            //let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
-            let randomThing = () => "💲";
+            let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
             let topThing = () => choice(["❓", "💀", choice(["💀","💀","💲","🏕️"])]);
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map; //❓
