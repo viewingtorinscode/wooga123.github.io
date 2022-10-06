@@ -7,6 +7,10 @@
                 font-family: monospace;
                 color: white;
             }
+            /*html {
+                background-image: url("./sts-menu.png");
+                background-size: cover;
+            }*/
             html, input {background: #222;}
             html.aqua, html.aqua input {background: #005;}
             html.black, html.black input {background: black;}
@@ -332,7 +336,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.4";
+            let currentVersion = "v2.7.5";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -913,7 +917,10 @@ if(multiChoice.includes(num)) {
                 if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
                 if(finalAmt > 0 && enemy.hasBuff("Talk to the Hand") > 0) {gainBuff("Block", enemy.hasBuff("Talk to the Hand"));}
                 if(enemy.name == "Slime Boss" && enemy.hp <= 0.5 * enemy.maxHp) {
-                     enemies.unshift(new Enemy("Slime", enemy.hp, [
+                    let a = amt => function(me){ me.dealDamage(amt); }
+                    let ap = (what, amt) => function(me){ gainBuff(what, amt); }
+                    let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                    enemies.unshift(new Enemy("Slime", enemy.hp, [
                         {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
                         {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
                         {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
@@ -1998,8 +2005,7 @@ updateStatLine();
                     let eligible = deck.filter(x=>!x.name.includes("+"));
                     if(eligible.length) {
                         let card = choice(eligible);
-                        deck.push(upgradedCards[card.name]);
-                        deck.remove(deck.indexOf(card));
+                        upgradeCard(card);
                     }
                 }
                 dealDamage(enemy, 10);
@@ -2508,8 +2514,7 @@ updateStatLine();
                     let eligible = deck.filter(x=>!x.name.includes("+"));
                     if(eligible.length) {
                         let card = choice(eligible);
-                        deck.push(upgradedCards[card.name]);
-                        deck.remove(deck.indexOf(card));
+                        upgradeCard(card);
                     }
                 }
                 dealDamage(enemy, 13);
@@ -2534,6 +2539,7 @@ updateStatLine();
             
             function upgradeCard(c) {
                 let newCard = upgradedCards[c.name];
+                if(!newCard) return;
                 let deckNames = deck.map(x=>x.name);
                 deck.splice(deckNames.indexOf(c.name), 1);
                 deck.push(newCard());
@@ -2542,8 +2548,13 @@ updateStatLine();
             async function upgradeDialog() {
                 let chosen = await choose(deck.filter(x=>(!x.name.includes("+"))), "Choose a card to upgrade.");
                 cardToUpgrade = chosen;
+                let upg = upgradedCards[cardToUpgrade.name]();
                 getId("upgradeDialog").style.display = "block";
-                getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upgradedCards[cardToUpgrade.name]().cost.toString())+" | "+unformat(upgradedCards[cardToUpgrade.name]().desc);
+                if(upg) {
+                    getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upg.cost.toString())+" | "+unformat(upg.desc);
+                } else {
+                    getId("cardDesc").innerHTML = "That card is not upgradable.";
+                }
             }
             
             let randCard = function(upg=true) {
@@ -2890,16 +2901,14 @@ getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Adjustments", "Pay $40 to upgrade a card from your deck.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to upgrade.");
-deck.splice(deck.indexOf(c), 1);
-deck.push(upgradedCards[c.name]());
+upgradeCard(c);
 getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Full Service", "Pay $120 to do both.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to upgrade.");
-deck.splice(deck.indexOf(c), 1);
-deck.push(upgradedCards[c.name]());
+upgradeCard(c);
 let d = await choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(d), 1);
 updateStatLine();
@@ -3001,10 +3010,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         choices: [
                             ["Forge", "Upgrade a card.", `let fun = async function(){
 let c = await choose(deck, "Choose a card to upgrade.");
-let newCard = upgradedCards[c.name];
-let deckNames = deck.map(x=>x.name);
-deck.splice(deckNames.indexOf(c.name), 1);
-deck.push(newCard());
+upgradeCard(c);
 updateStatLine();
 getId("eventDesc").innerHTML = "You decide to put the forge to use, improving your arsenal.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3112,8 +3118,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Grow", "Upgrade a card from your deck.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to upgrade.");
-deck.splice(deck.indexOf(c), 1);
-deck.push(upgradedCards[c.name]());
+upgradeCard(c);
 getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
@@ -3156,11 +3161,9 @@ getId("woogleButton").onclick = function() {showMap();}
                         [
                             ["Enter", "Upgrade 2 cards. Lose 15 HP.", `
 let c = choice(deck.filter(x=>!x.name.includes("+")));
-deck.push(upgradedCards[c.name]());
-deck.splice(deck.indexOf(c), 1);
+upgradeCard(c);
 let d = choice(deck.filter(x=>!x.name.includes("+")));
-deck.push(upgradedCards[d.name]());
-deck.splice(deck.indexOf(d), 1);
+upgradeCard(c);
 let red = 0.54;
 let i = 0;
 while(red > 0) {
@@ -3184,7 +3187,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 "Act 2": [
                     {
                         title: "Council of Ghosts",
-                        desc: "As you continue your ascent, <span style='color: f7f'>thick smoke</span> begins to billow out of the ground and walls, coalescing into three forms that start to speak. “AnoThEr pUpPEt oF NeOW I tHiNK.”  “AGREED! SHE ALWAYS MAKES THE FUNNIEST TOYS!” ”Ignore the others... would you like a taste of our power?“",
+                        desc: "As you continue your ascent, <span style='color: f7f'>thick smoke</span> begins to billow out of the ground and walls, coalescing into three forms that start to speak. “AnoThEr pUpPEt oF NeOW I tHiNK.”  <span style='color: #f33'>“AGREED! SHE ALWAYS MAKES THE FUNNIEST TOYS!”</span> ”Ignore the others... would you like a taste of our power?“",
                         choices:
                         [
                             ["Yes", "Receive 5 Apparition. Lose 50% of Max HP.", `
@@ -3237,9 +3240,91 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
+                    },
+                    {
+                        title: "Pleading Vagrant",
+                        desc: "While sneaking past a group of shrouded figures, one of them approaches you. “Got anything for me friend? Maybe some gold? I just need somewhere to stay, I have things I can trade...”",
+                        choices:
+                        [
+                            ["Give", "Obtain a relic. Give 85 gold.", `let fun = async function(){
+if(gold < 85) {return;}
+gold -= 85;
+let r = choice([...relicPool, ...rareRelicPool]);
+relics.push(r);
+if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+if(r.name == "Pear"){maxHp += 10; hp += 10;}
+getId("eventDesc").innerHTML = "“Oh yes! Here here, a fair trade!”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Rob", "Obtain a relic, but become Cursed.", `
+let r = choice([...relicPool, ...rareRelicPool]);
+relics.push(r);
+if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
+if(r.name == "Pear"){maxHp += 10; hp += 10;}
+deck.push(new Card("Shame", 0, "Curse", "Unplayable. When drawn, gain 1 Weak.", function(enemy){}, ["unplayable"]));
+getId("eventDesc").innerHTML = "You snatch the relic from him and run away. From behind, you hear, “Have you no shame? HAVE YOU NO SHAAAME!?” You have some shame.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Leave", "No effect.", `
+getId("eventDesc").innerHTML = "...";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
                     }
                 ],
                 "Act 3": [
+                    {
+                        title: "Winding Halls",
+                        desc: "As you make your way up the twisting passageways, the ground and walls seem to shift before your eyes. The constant <span style='color: #f7f'>whispering voices</span> in the back of your head aren't helping either. You start to question if you are going insane, or if the impossible geography of this place is starting to get to you. You need to change something, and soon.",
+                        choices:
+                        [
+                            ["Embrace Madness", "Obtain 2 Madness. Take 10 damage.", `let fun = async function(){
+hp -= 10;
+let red = 0.44;
+let i = 0;
+while(red > 0) {
+    setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
+    i++;
+    red -= 0.012;
+    if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
+}
+deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this turn. Exhaust.", function(enemy){
+    let eligible = hand.filter(x=>x.cost > 0);
+    if(eligible.length == 0) return;
+    let c = eligible[Math.floor(Math.random()*eligible.length)];
+    c.flags.push("nextcost "+c.cost);
+    c.cost = 0;
+}, ["exhausted"]));
+deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this turn. Exhaust.", function(enemy){
+    let eligible = hand.filter(x=>x.cost > 0);
+    if(eligible.length == 0) return;
+    let c = eligible[Math.floor(Math.random()*eligible.length)];
+    c.flags.push("nextcost "+c.cost);
+    c.cost = 0;
+}, ["exhausted"]));
+getId("eventDesc").innerHTML = "“Oh yes! Here here, a fair trade!”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Rob", "Heal 18 HP, but become Cursed.", `
+hp = Math.min(hp + 18, maxHp);
+deck.push(new Card("Writhe", 0, "Curse", "Unplayable. Innate.", function(enemy){}, ["unplayable", "innate"]));
+getId("eventDesc").innerHTML = "You snatch the relic from him and run away. From behind, you hear, “Have you no shame? HAVE YOU NO SHAAAME!?” You have some shame.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `],
+                            ["Retrace Your Steps", "Lose 4 Max HP.", `
+maxHp -= 4;
+hp = Math.min(hp, maxHp);
+getId("eventDesc").innerHTML = "...";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    }
                 ]
             };
             
@@ -4007,14 +4092,14 @@ getId("woogleButton").onclick = function() {showMap();}
                                 dealDamage(e, hasBuff("Fire Breathing"));
                             }
                         }
-                        if(toDraw.name == "Doubt") {
-                            gainBuff("Frail", 1);
-                        }
+                        if(toDraw.name == "Doubt") gainBuff("Frail", 1);
+                        if(toDraw.name == "Shame") gainBuff("Weak", 1);
                     }
                 }
             }
             
             async function startTurn() {
+                /*debugging*/ try {
                 if(hasBuff("Blasphemy")) hp = 0;
                 if(turn == 0) {
                     ifRelic("Snake Ring", function(){drawCard(2)});
@@ -4047,9 +4132,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 }
                 ifRelic("Warped Tongs", function(){
                     let c = choice(hand.filter(x=>!x.name.includes("+")));
-                    let newCard = upgradedCards[c.name]();
-                    hand.splice(hand.indexOf(c), 1);
-                    hand.push(newCard);
+                    upgradeCard(c);
                 });
                 addSmites(hasBuff("Battle Hymn"));
                 addShivs(hasBuff("Infinite Blades"));
@@ -4094,9 +4177,13 @@ getId("woogleButton").onclick = function() {showMap();}
                 for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}
                 loseBuff("Divinity");
                 updateHtml();
+                /*debugging*/} catch(err) {
+                    alert("Oh no!\n"+err);
+                }
             }
             
             function endTurn() {
+                /*debugging*/ try {
                 if(turn == 7) {ifRelic("Stone Calendar", function(){for(let e of enemies){dealDamage(e, 52)}})}
                 let hs = hand.length;
                 for(let c of [...hand, ...drawPile, ...discardPile]) {
@@ -4167,6 +4254,9 @@ getId("woogleButton").onclick = function() {showMap();}
                 }
                 updateHtml();
                 startTurn();
+                /*debugging*/} catch(err) {
+                    alert("Oh no!\n"+err);
+                }
             }
             // This has to be at the bottom because it modifies everything else
             getId("ascensionLevel").addEventListener("change", function() {
