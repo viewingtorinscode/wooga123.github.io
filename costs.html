@@ -336,7 +336,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.6";
+            let currentVersion = "v2.7.6b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3132,6 +3132,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Pray", "Remove a card from your deck. Lose 7 HP.", `let fun = async function() {
 let c = await choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(c), 1);
+hp -= 7;
 let red = 0.38;
 let i = 0;
 while(red > 0) {
@@ -3164,6 +3165,7 @@ let c = choice(deck.filter(x=>!x.name.includes("+")));
 upgradeCard(c);
 let d = choice(deck.filter(x=>!x.name.includes("+")));
 upgradeCard(c);
+hp -= 15;
 let red = 0.54;
 let i = 0;
 while(red > 0) {
