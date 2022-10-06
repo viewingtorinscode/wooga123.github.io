@@ -336,7 +336,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v2.7.5";
+            let currentVersion = "v2.7.6";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -4192,6 +4192,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         c.flags = c.flags.filter(x=>x.split(" ")[0] != "nextcost");
                     }
                 }
+                if(hand.filter(x=>x.name=="Regret").length) hp -= hand.length;
                 for(let c of hand) {
                     if(c.flags.includes("ethereal") && !c.flags.includes("retain")) {exhaustPile.push(c);}
                     else if(!c.flags.includes("retain")) {discardPile.push(c);}
