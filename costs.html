@@ -7,10 +7,6 @@
                 font-family: monospace;
                 color: white;
             }
-            /*html {
-                background-image: url("./sts-menu.png");
-                background-size: cover;
-            }*/
             html, input {background: #222;}
             html.aqua, html.aqua input {background: #005;}
             html.black, html.black input {background: black;}
@@ -337,7 +333,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.0.2";
+            let currentVersion = "v3.0.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -851,8 +847,9 @@ if(multiChoice.includes(num)) {
                 if(name == "Frail") {ifRelic("Turnip", function(){newAmt = 0});}
                 if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
+                if(amt == 0) return;
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
-                if(!foundIt && amt > 0) {buffs.push({name: name, amt: newAmt});}
+                if(!foundIt) {buffs.push({name: name, amt: newAmt});}
                 if(name == "Mantra") {stats.mantraGain += newAmt;}
                 if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity"); drawCard(hasBuff("Rushdown"));}
                 if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
@@ -1031,7 +1028,7 @@ if(multiChoice.includes(num)) {
                 music.shop.currentTime = 0; music.rest.currentTime = 0;
                 if(mapY >= 15) {
                     mapY = 0;
-                    hp = (getId("ascensionLevel").value >= 5 ? hp+0.75*(maxHp-hp) : maxHp);
+                    hp = (getId("ascensionLevel").value >= 5 ? Math.round(hp+0.75*(maxHp-hp)) : maxHp);
                     mapGen();
                     if(actNum == 1) {
                         actNum = 2;
@@ -1284,6 +1281,7 @@ updateStatLine();
                         getId("merchantScreen").appendChild(helpNumber);
                     }
                     
+                    ifRelic("Smiling Mask", function(){crCost = 50;});
                     let crElem = document.createElement("tr");
                     let nameWrapper = document.createElement("td");
                     let nameElem = document.createElement("button");
@@ -2748,7 +2746,7 @@ updateStatLine();
                 {name: "Preserved Insect", desc: "Elites have 25% less HP."},
                 {name: "Red Skull", desc: "Deal 3 more damage when your HP is half or less."},
                 {name: "Regal Pillow", desc: "Heal 15 more HP when you rest."},
-                /*TODO - Smiling Mask - card remove is always 50g*/
+                {name: "Smiling Mask", desc: "The merchant’s card removal service always costs 50 gold."},
                 {name: "Strawberry", desc: "On pickup, gain 7 max HP."},
                 {name: "The Boot", desc: "When you would deal 4 or less damage, deal 5 instead."},
                 {name: "Toy Ornithopter", desc: "When you use a Potion, heal 5 HP."},
@@ -3896,14 +3894,15 @@ getId("woogleButton").onclick = function() {showMap();}
                 }
                 for(let i=0; i<((getId("ascensionLevel").value >= 11 ? 2 : 3)-potions.length); i++) {
                     let potionElem = document.createElement("button");
+                    potionElem.classList.add("nonbutton");
                     potionElem.innerHTML = "Empty Slot";
                     getId("potions").appendChild(potionElem);
                 }
                 if(timerRunning) { currentTimer += Date.now() - beforeTime; }
                 beforeTime = Date.now();
-                let min = Math.floor(currentTimer/60000).toString();
-                let sec = Math.floor(currentTimer%60000/1000).toString();
-                let sec_100ths = Math.floor(currentTimer%1000/10).toString();
+                let min = Math.floor(currentTimer/6e4).toString();
+                let sec = Math.floor(currentTimer%6e4/1e3).toString();
+                let sec_100ths = Math.floor(currentTimer%1e3/10).toString();
                 statusElem.innerHTML += "&nbsp;&nbsp;&nbsp;<button id=\"timer\" class=\""+(timerRunning?"Skill":"Attack")+"\" onclick=\"if(timerRunning){timerRunning=false;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}\"><span style='text-decoration:underline'>T</span>ime: "+min+":"+sec.padStart(2, "0")+"</button>";
                 getId("drawPile").innerHTML = "View Draw <span style='text-decoration:underline'>P</span>ile | <span style='color:white'>"+drawPile.length+"</span>";
                 getId("discardPile").innerHTML = "View D<span style='text-decoration:underline'>i</span>scard Pile | <span style='color:white'>"+discardPile.length+"</span>";
@@ -4353,7 +4352,9 @@ getId('relicReward').style.display = 'none';
                 ifRelic("Serpent Ring", function(){drawCard(1);});
                 ifRelic("Warped Tongs", function(){
                     let c = choice(hand.filter(x=>!x.name.includes("+")));
-                    upgradeCard(c);
+                    let d = upgradedCards[c.name]();
+                    hand.splice(hand.indexOf(c), 1);
+                    hand.push(d);
                 });
                 addSmites(hasBuff("Battle Hymn"));
                 addShivs(hasBuff("Infinite Blades"));
