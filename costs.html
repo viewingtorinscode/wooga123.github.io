@@ -337,7 +337,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.0.1";
+            let currentVersion = "v3.0.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3090,7 +3090,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "You duck into a small hut. Inside you find what appears to be a forge. The smithing tools are covered with dust, yet a fire still burns in the furnace.",
                         choices: [
                             ["Forge", "Upgrade a card.", `let fun = async function(){
-let c = await choose(deck, "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
 upgradeCard(c);
 updateStatLine();
 getId("eventDesc").innerHTML = "You decide to put the forge to use, improving your arsenal.";
@@ -3200,7 +3200,7 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Grow", "Upgrade a card from your deck.", `let fun = async function() {
-let c = await choose(deck, "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
 upgradeCard(c);
 getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
