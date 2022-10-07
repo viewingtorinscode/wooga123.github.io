@@ -337,7 +337,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.0.0";
+            let currentVersion = "v3.0.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -2690,10 +2690,12 @@ updateStatLine();
                     relics.push(r);
                     if(["Busted Crown", "Coffee Dripper", "Cursed Key", "Ectoplasm", "Fusion Hammer", "Philosopher’s Stone", "Runic Dome", "Velvet Choker"].includes(r.name)) maxEnergy += 1;
                     if(r.name == "Empty Cage") {
-                        let c1 = choice(deck, "Choose a card to remove.");
-                        deck.splice(deck.indexOf(c1), 1);
-                        let c2 = choice(deck, "Choose another card to remove.");
-                        deck.splice(deck.indexOf(c2), 1);
+                        let fun = async function() {
+                            let c1 = await choose(deck, "Choose a card to remove.");
+                            deck.splice(deck.indexOf(c1), 1);
+                            let c2 = await choose(deck, "Choose another card to remove.");
+                            deck.splice(deck.indexOf(c2), 1);
+                        }; fun();
                     }
                     if(r.name == "Pandora’s Box") {
                         let toAdd = 0;
