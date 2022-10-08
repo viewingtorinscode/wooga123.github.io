@@ -333,7 +333,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.1.1b";
+            let currentVersion = "v3.1.1c";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -373,7 +373,6 @@ Credits:
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise("+c.number+");");
                     cardButton.setAttribute("class", c.type+" tt");
-                    try{let x = makeTooltip(c); alert(x);}catch(err){alert("Error! "+err);}
                     cardButton.innerHTML = makeTooltip(c);
                     
                     getId("selectionModalContent").appendChild(cardButton);
@@ -1111,7 +1110,7 @@ if(multiChoice.includes(num)) {
                         actNum = 3;
                     } else if(actNum == 3) {
                         actNum = 0;
-                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); alert("You win!"); return;
+                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); alert("You win! Nice job"); return;
                     }
                 }
                 updateStatLine();
