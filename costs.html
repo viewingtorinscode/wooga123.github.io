@@ -333,7 +333,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.1";
+            let currentVersion = "v3.1.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -373,6 +373,7 @@ Credits:
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise("+c.number+");");
                     cardButton.setAttribute("class", c.type+" tt");
+                    try{let x = makeTooltip(c); alert(x);}catch(err){alert("Error! "+err);}
                     cardButton.innerHTML = makeTooltip(c);
                     
                     getId("selectionModalContent").appendChild(cardButton);
@@ -634,41 +635,53 @@ if(multiChoice.includes(num)) {
                 "exhaust": "Removed until end of combat.",
                 "retain": "Not discarded at end of turn.",
                 "scry": "Look at the top X cards of your deck. You may discard any of them.",
-                "enter": "Entering a stance causes you to exit all others."
+                "enter": "Entering a stance causes you to exit all others.",
+                "shiv": "Deals [SHIV] damage."
             };
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
                 return "<b style='color: yellow'>"+circles[char]+"</b>";
                 //return circles[char];
             }
-            function unformat(desc) {
+            function unformat(desc, strike=false) {
                 let newDesc = desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
                     .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
                     .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
                     .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]")
                     .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
                     .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]")
-                    .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
-                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]")
-                    .replace("[PREDICT]", "[BLK"+(enemies.map(x=>x.hasBuff("Mark"))).reduce((ps, a) => ps + a, 0)+"]")
                     .replace("[PERS]", "[BLK"+(5+stats.pers)+"]")
                     .replace("[WINDMILL]", "[DAM"+(7+stats.windmill)+"]")
                     .replace("[BRILLIANCE]", "[DAM"+(12+stats.mantraGain)+"]")
                     .replace("[BRILLIANCE+]", "[DAM"+(16+stats.mantraGain)+"]");
+                if(enemies.length) {
+                    newDesc = newDesc.replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
+                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]")
+                    .replace("[PREDICT]", "[BLK"+(enemies.map(x=>x.hasBuff("Mark"))).reduce((ps, a) => ps + a, 0)+"]");
+                } else {
+                    newDesc = newDesc.replace("[FINISHER]", "0")
+                    .replace("[FINISHER+]", "0")
+                    .replace("[PREDICT]", "0");
+                }
                 for(let i=1; i<300; i++) {
-                    let newI = calcYourDamage(target, i);
+                    let newI; let blockI;
+                    if(enemies.length) {
+                        newI = calcYourDamage(target, i);
+                        blockI = calcYourBlock(i);
+                    } else {
+                        newI = calcYourOOCDamage(i, false, strike);
+                        blockI = calcYourBlock(i);
+                    }
                     if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
                     else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
-                    let blockI = calcYourBlock(i);
                     if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
                     else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
-                    
                     newDesc = newDesc.replaceAll("[DAM"+i+"]", newI).replaceAll("[BLK"+i+"]", blockI);
                 }
                 return newDesc;
             }
             function makeTooltip(card) {
-                let newDesc = unformat(card.desc);
+                let newDesc = unformat(card.desc, card.name.toLowerCase().includes("Strike"));
                 for(let buff in buffDescPlus) {
                     if(card.desc.toLowerCase().includes(buff.toLowerCase()) && buff != ".") {
                         let bd = buffDescPlus[buff]
@@ -678,7 +691,8 @@ if(multiChoice.includes(num)) {
                             .replaceAll(" (currently +[PREC])", "")
                             .replaceAll("[s]", "s")
                             .replaceAll("[es]", "es")
-                            .replaceAll("[are]", "are");
+                            .replaceAll("[are]", "are")
+                            .replaceAll("[SHIV]", calcYourOOCDamage(4, true));
                         newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>") + "<br/><i style='color:#222'>("+buff.charAt(0).toUpperCase() + buff.slice(1)+": "+bd+")</i>";
                     }
                 }
@@ -1006,8 +1020,8 @@ if(multiChoice.includes(num)) {
             function calcYourDamage(enemy, amt, shiv=false, strike=false, actuallyDeal=false) {
                 if(amt == 0) return 0;
                 let finalAmt = amt;
-                if(shiv) {finalAmt += hasBuff("Accuracy"); if(relics.map(x=>x.name).includes("Wrist Blade")) {finalAmt += 6;}}
-                if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3})}
+                if(shiv) {finalAmt += hasBuff("Accuracy"); ifRelic("Wrist Blade", function(){finalAmt += 6;});}
+                if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3;})}
                 if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 finalAmt += Math.floor(target.hasBuff("Mark") * hasBuff("Precision") / 5);
                 if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
@@ -1024,6 +1038,18 @@ if(multiChoice.includes(num)) {
                     if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
                 }
                 if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
+                return finalAmt;
+            }
+            function calcYourOOCDamage(amt, shiv=false, strike=false) {
+                if(amt == 0) return 0;
+                let finalAmt = amt;
+                if(shiv) {ifRelic("Wrist Blade", function(){finalAmt += 6;});}
+                if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3;})}
+                if(finalAmt > 0) {
+                    ifRelic("Vajra", function(){finalAmt += 1;});
+                    ifRelic("Red Skull", function(){if(hp<=0.5*maxHp){finalAmt += 3;}});
+                    if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
+                }
                 return finalAmt;
             }
             function calcYourBlock(amt) {
@@ -2956,11 +2982,10 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Face Trader",
                         desc: "You walk by an eerie statue holding several masks. Something behind you softly whispers “Stop.” You spin around and realize that it's not a statue but a gaunt man. He says to you, “Face. Let me touch? Maybe trade?”",
                         choices: [
-                            ["Touch", "Gain 75 gold, but take a bit of damage.", `
+                            ["Touch", "Gain 75 gold, but take 8 damage.", `
 gold += 75;
-let hpToLose = Math.round(0.1*maxHp);
-hp -= hpToLose;
-let red = hpToLose * 0.02 + 0.24;
+hp -= 8;
+let red = 0.4;
 let i = 0;
 while(red > 0) {
     setTimeout(function(r){getId("damage").style.opacity = r;}, i * 10, red);
