@@ -47,7 +47,7 @@
             .tt {user-select: none;}
             .txt {
                 position: absolute;
-                background: #666;
+                background: #888;
                 color: black;
                 display: none;
                 text-align: left;
@@ -333,7 +333,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.0.3";
+            let currentVersion = "v3.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -373,7 +373,8 @@ Credits:
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise("+c.number+");");
                     cardButton.setAttribute("class", c.type+" tt");
-                    cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
+                    cardButton.innerHTML = makeTooltip(c);
+                    
                     getId("selectionModalContent").appendChild(cardButton);
                     let helpNumber = document.createElement("span");
                     helpNumber.style.position = "absolute";
@@ -409,7 +410,7 @@ if(multiChoice.includes(num)) {
 }`
                     );
                     cardButton.setAttribute("class", c.type+" tt");
-                    cardButton.innerHTML = c.name+"<span class='txt'>"+addCircle(c.cost.toString())+" "+c.type+"<br/>"+unformat(c.desc)+"</span>";
+                    cardButton.innerHTML = makeTooltip(c);
                     getId("msModalContent").appendChild(cardButton);
                 }
                 let confirmButton = document.createElement("button");
@@ -546,13 +547,142 @@ if(multiChoice.includes(num)) {
                     updateHtml();
                 }
             };
-            function unformat(desc) {
-                return desc.replace("[HEAVYBLADE]", 14).replace("[HEAVYBLADE+]", 14).replace("[RAMPAGE]", 8).replace(" ([BLOCK] damage)", "").replaceAll("[DAM", "").replaceAll("[BLK", "").replace(" (Deals [FINISHER] damage)", "").replace(" (Deals [FINISHER+] damage)", "").replace("[SHIV]", 4).replace("[SHIV+]", 6).replace("(Gains [PREDICT] Block)", "").replace("[PERS]", 5).replace("[WINDMILL]", 7).replace("[BRILLIANCE]", 12).replace("[BRILLIANCE+]", 16).replaceAll("]", "");
-            }
+            let buffDesc = {
+                ".": "You weren't supposed to see this. Just ignore it.",
+                "Block": "Until next turn, prevents [AMT] damage.",
+                "Shielding": "Prevents [AMT] damage.",
+                "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
+                "Weak": "Deal 25% less damage for [AMT] turn[s].",
+                "Strength": "Attacks deal [AMT] more damage.",
+                "Dexterity": "Cards gain you [AMT] more Block.",
+                "Strength Down": "At the end of this turn, lose [AMT] Strength.",
+                "No Draw": "Cannot draw cards for [AMT] turn[s].",
+                "Combust": "At the end of your turn, lose 1 HP and deal [DAMT] damage to ALL enemies.",
+                "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
+                "Thorns": "When recieving unblocked damage, deal [DAMT] damage back.",
+                "Ritual": "At end of turn, gain [AMT] Strength.",
+                "Frail": "Gain 25% less Block for [AMT] turn[s].",
+                "Enrage": "When you play a Skill, gains [AMT] Strength.",
+                "Minus Strength": "Attacks deal [AMT] less damage.",
+                "Minus Dexterity": "Gain [AMT] less block from cards.",
+                "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
+                "Pen Nib": "When you get 10 Pen Nib, deal double damage.",
+                "Feel No Pain": "When a card is Exausted, gain [BAMT] Block.",
+                "Fire Breathing": "Whenever you draw a Status card, deal [DAMT] damage to ALL enemies.",
+                "Metallicize": "Start each turn with [BAMT] Block.",
+                "Rage": "For each Attack you play this turn, gain [BAMT] Block.",
+                "Rampage": "Increase Rampage's damage by [AMT].",
+                "Barricade": "Block is not removed at the start of your turn.",
+                "Berserk": "Gain [AMT] more energy each turn.",
+                "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
+                "Double Tap": "Your next [AMT] Attack[s] [are] played twice.",
+                "Juggernaut": "Whenever you gain Block, deal [DAMT] damage to a random enemy.",
+                "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
+                "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
+                "Artifact": "Negates the next [AMT] debuff[s].",
+                "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
+                "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
+                "Buffer": "Prevent the first [AMT] unblocked hit[s].",
+                "Next Turn Block": "Gain [BAMT] Block next turn.",
+                "Vigor": "Your first attack deals [AMT] more damage.",
+                "Next Turn Energy": "Gain [AMT] more energy next turn.",
+                "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
+                "Accuracy": "Shivs deal [AMT] more damage.",
+                "Blur": "Keep your Block for [AMT] turn[s].",
+                "Infinite Blades": "Get [AMT] Shiv[s] each turn.",
+                "Noxious Fumes": "At the start of your turn, apply [AMT] Poison to ALL enemies.",
+                "Next Turn Cards": "Draw [AMT] more card[s] next turn.",
+                "Thousand Cuts": "Whenever you play a card, deal [DAMT] damage to ALL enemies.",
+                "After Image": "Whenever you play a card, gain [BAMT] Block.",
+                "Burst": "Your next [AMT] Skill[s] [are] played twice.",
+                "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
+                "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
+                "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
+                "Confused": "All card costs become randomized.",
+                "Corruption": "Skills cost 0, but they Exhaust.",
+                "Calm": "When you exit this stance, gain 2 energy.",
+                "Wrath": "You deal 2x damage but take 2x damage.",
+                "Divinity": "When you enter this stance, gain 3 energy. You deal 3x damage. Exit this stance at start of turn.",
+                "Mark": "Does nothing by itself, but is useful for other things.",
+                "Precision": "Deal [AMT] more damage per 5 Mark on the enemy. (currently +[PREC])",
+                "Battle Hymn": "At the start of your turn, add [AMT] Smite[s] to your hand.",
+                "Fasting": "Gain [AMT] less energy each turn.",
+                "Collect": "Get a Miracle+ each turn for [AMT] turn[s].",
+                "Foresight": "At the start of your turn, scry [AMT].",
+                "Like Water": "When you end your turn in Calm, gain [BAMT] Block.",
+                "Mental Fortress": "Whenever you change stances, gain [BAMT] Block.",
+                "Nirvana": "Whenever you scry, gain [BAMT] Block.",
+                "Rushdown": "Whenever you enter Wrath, draw [AMT] card[s].",
+                "Study": "Add [AMT] Insight[s] to your draw pile each turn.",
+                "Deva Form": "At the start of your turn, gain [AMT] energy and increase the gain by 1.",
+                "Devotion": "At the start of your turn, gain [AMT] Mantra.",
+                "Establishment": "When a card is Retained, it gets -[AMT] cost until end of combat.",
+                "Simmering Fury": "At the start of your next turn, enter Wrath.",
+                "Swivel": "The next [AMT] Attack[s] you play costs 0.",
+                "Talk to the Hand": "When this gets attacked, you gain [BAMT] Block.",
+                "Wave of the Hand": "Whenever you gain Block this turn, apply [AMT] Weak to ALL enemies.",
+                "Vault": "Skip the next [AMT] enemy turn[s].",
+                "Blasphemy": "Die next turn.",
+                "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies.",
+                "Mantra": "When you gain 10 Mantra, enter Divinity.",
+                "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength.",
+                "Intangible": "Reduce damage and HP loss to 1 for [AMT] turn[s]."
+            };
+            let buffDescPlus = {
+                ...buffDesc,
+                "ethereal": "Disappears if not used.",
+                "exhaust": "Removed until end of combat.",
+                "retain": "Not discarded at end of turn.",
+                "scry": "Look at the top X cards of your deck. You may discard any of them.",
+                "enter": "Entering a stance causes you to exit all others."
+            };
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
-                return "<b>"+circles[char]+"</b>";
+                return "<b style='color: yellow'>"+circles[char]+"</b>";
                 //return circles[char];
+            }
+            function unformat(desc) {
+                let newDesc = desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
+                    .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
+                    .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
+                    .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]")
+                    .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
+                    .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]")
+                    .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
+                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]")
+                    .replace("[PREDICT]", "[BLK"+(enemies.map(x=>x.hasBuff("Mark"))).reduce((ps, a) => ps + a, 0)+"]")
+                    .replace("[PERS]", "[BLK"+(5+stats.pers)+"]")
+                    .replace("[WINDMILL]", "[DAM"+(7+stats.windmill)+"]")
+                    .replace("[BRILLIANCE]", "[DAM"+(12+stats.mantraGain)+"]")
+                    .replace("[BRILLIANCE+]", "[DAM"+(16+stats.mantraGain)+"]");
+                for(let i=1; i<300; i++) {
+                    let newI = calcYourDamage(target, i);
+                    if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
+                    else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
+                    let blockI = calcYourBlock(i);
+                    if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
+                    else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
+                    
+                    newDesc = newDesc.replaceAll("[DAM"+i+"]", newI).replaceAll("[BLK"+i+"]", blockI);
+                }
+                return newDesc;
+            }
+            function makeTooltip(card) {
+                let newDesc = unformat(card.desc);
+                for(let buff in buffDescPlus) {
+                    if(card.desc.toLowerCase().includes(buff.toLowerCase()) && buff != ".") {
+                        let bd = buffDescPlus[buff]
+                            .replaceAll("[DAMT]", "X")
+                            .replaceAll("[BAMT]", "X")
+                            .replaceAll("[AMT]", "X")
+                            .replaceAll(" (currently +[PREC])", "")
+                            .replaceAll("[s]", "s")
+                            .replaceAll("[es]", "es")
+                            .replaceAll("[are]", "are");
+                        newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>") + "<br/><i style='color:#222'>("+buff.charAt(0).toUpperCase() + buff.slice(1)+": "+bd+")</i>";
+                    }
+                }
+                return card.name+"<span class='txt'>"+addCircle(card.cost.toString())+" "+card.type+"<br/>"+newDesc+"</span>";
             }
             
             let music = {
@@ -933,87 +1063,6 @@ if(multiChoice.includes(num)) {
                 }
             }
             
-            let buffDesc = {
-                ".": "You weren't supposed to see this. Just ignore it.",
-                "Block": "Until next turn, prevents [AMT] damage.",
-                "Shielding": "Prevents [AMT] damage.",
-                "Vulnerable": "Take 50% more damage for [AMT] turn[s].",
-                "Weak": "Deal 25% less damage for [AMT] turn[s].",
-                "Strength": "Attacks deal [AMT] more damage.",
-                "Dexterity": "Cards gain you [AMT] more Block.",
-                "Strength Down": "At the end of this turn, lose [AMT] Strength.",
-                "No Draw": "Cannot draw cards for [AMT] turn[s].",
-                "Combust": "At the end of your turn, lose 1 HP and deal [DAMT] damage to ALL enemies.",
-                "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
-                "Thorns": "When recieving unblocked damage, deal [DAMT] damage back.",
-                "Ritual": "At end of turn, gain [AMT] Strength.",
-                "Frail": "Gain 25% less Block for [AMT] turn[s].",
-                "Enrage": "When you play a Skill, gains [AMT] Strength.",
-                "Minus Strength": "Attacks deal [AMT] less damage.",
-                "Minus Dexterity": "Gain [AMT] less block from cards.",
-                "Evolve": "Whenever you draw a Status card, draw [AMT] card[s].",
-                "Pen Nib": "When you get 10 Pen Nib, deal double damage.",
-                "Feel No Pain": "When a card is Exausted, gain [BAMT] Block.",
-                "Fire Breathing": "Whenever you draw a Status card, deal [DAMT] damage to ALL enemies.",
-                "Metallicize": "Start each turn with [BAMT] Block.",
-                "Rage": "For each Attack you play this turn, gain [BAMT] Block.",
-                "Rampage": "Increase Rampage's damage by [AMT].",
-                "Barricade": "Block is not removed at the start of your turn.",
-                "Berserk": "Gain [AMT] more energy each turn.",
-                "Brutality": "At the start of your turn, lose 1 HP and draw [AMT] card[s].",
-                "Double Tap": "Your next [AMT] Attack[s] [are] played twice.",
-                "Juggernaut": "Whenever you gain Block, deal [DAMT] damage to a random enemy.",
-                "Regen": "At end of turn, heal [AMT] HP and reduce Regen by 1.",
-                "Dexterity Down": "At end of turn, lose [AMT] Dexterity.",
-                "Artifact": "Negates the next [AMT] debuff[s].",
-                "Hex": "When you play a non-Attack card, add [AMT] Dazed to your discard pile.",
-                "Draw Reduction": "Draw 1 fewer card for [AMT] turn[s].",
-                "Buffer": "Prevent the first [AMT] unblocked hit[s].",
-                "Next Turn Block": "Gain [BAMT] Block next turn.",
-                "Vigor": "Your first attack deals [AMT] more damage.",
-                "Next Turn Energy": "Gain [AMT] more energy next turn.",
-                "Poison": "Lose [AMT] HP at start of turn. Poison goes down each turn.",
-                "Accuracy": "Shivs deal [AMT] more damage.",
-                "Blur": "Keep your Block for [AMT] turn[s].",
-                "Infinite Blades": "Get [AMT] Shiv[s] each turn.",
-                "Noxious Fumes": "At the start of your turn, apply [AMT] Poison to ALL enemies.",
-                "Next Turn Cards": "Draw [AMT] more card[s] next turn.",
-                "Thousand Cuts": "Whenever you play a card, deal [DAMT] damage to ALL enemies.",
-                "After Image": "Whenever you play a card, gain [BAMT] Block.",
-                "Burst": "Your next [AMT] Skill[s] [are] played twice.",
-                "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
-                "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
-                "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
-                "Confused": "All card costs become randomized.",
-                "Corruption": "Skills cost 0, but they Exhaust.",
-                "Calm": "When you exit this stance, gain 2 energy.",
-                "Wrath": "You deal 2x damage but take 2x damage.",
-                "Divinity": "When you enter this stance, gain 3 energy. You deal 3x damage. Exit this stance at start of turn.",
-                "Mark": "Does nothing by itself, but is useful for other things.",
-                "Precision": "Deal [AMT] more damage per 5 Mark on the enemy. (currently +[PREC])",
-                "Battle Hymn": "At the start of your turn, add [AMT] Smite[s] to your hand.",
-                "Fasting": "Gain [AMT] less energy each turn.",
-                "Collect": "Get a Miracle+ each turn for [AMT] turn[s].",
-                "Foresight": "At the start of your turn, scry [AMT].",
-                "Like Water": "When you end your turn in Calm, gain [BAMT] Block.",
-                "Mental Fortress": "Whenever you change stances, gain [BAMT] Block.",
-                "Nirvana": "Whenever you scry, gain [BAMT] Block.",
-                "Rushdown": "Whenever you enter Wrath, draw [AMT] card[s].",
-                "Study": "Add [AMT] Insight[s] to your draw pile each turn.",
-                "Deva Form": "At the start of your turn, gain [AMT] energy and increase the gain by 1.",
-                "Devotion": "At the start of your turn, gain [AMT] Mantra.",
-                "Establishment": "When a card is Retained, it gets -[AMT] cost until end of combat.",
-                "Simmering Fury": "At the start of your next turn, enter Wrath.",
-                "Swivel": "The next [AMT] Attack[s] you play costs 0.",
-                "Talk to the Hand": "When this gets attacked, you gain [BAMT] Block.",
-                "Wave of the Hand": "Whenever you gain Block this turn, apply [AMT] Weak to ALL enemies.",
-                "Vault": "Skip the next [AMT] enemy turn[s].",
-                "Blasphemy": "Die next turn.",
-                "Omega": "At the end of your turn, deal [DAMT] damage to ALL enemies.",
-                "Mantra": "When you gain 10 Mantra, enter Divinity.",
-                "Time Warp": "When this reaches 12, ends your turn and gains 2 Strength.",
-                "Intangible": "Reduce damage and HP loss to 1 for [AMT] turn[s]."
-            };
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];            
             let statusCards = {
                 "Wound": () => new Card("Wound", 0, "Status", "Unplayable.", function(enemy){}, ["unplayable"]),
@@ -1216,7 +1265,7 @@ if(multiChoice.includes(num)) {
                         let costElem = document.createElement("td");
                         cardElem.setAttribute("id", `cardElem_${i}`);
                         nameElem.setAttribute("id", `cardName_${i}`);
-                        nameElem.innerHTML = offer.name+"<span class='txt'>"+addCircle(offer.cost.toString())+" "+offer.type+"<br/>"+unformat(offer.desc)+"</span>";
+                        nameElem.innerHTML = makeTooltip(offer);
                         if(i==0) {
                             nameElem.setAttribute("class", "Skill tt");
                         } else {
@@ -1313,7 +1362,7 @@ updateStatLine();
                     continueElem.appendChild(continueWrapper);
                     getId("merchantScreen").appendChild(continueElem);
                     /*debugging*/ } catch(err) {
-                        alert("Uh oh!\n"+err);
+                        alert("Oh no!\n"+err);
                     }
                 } else if (map[y][x] == "❓") {
                     getId("mapScreen").style.display = "none";
@@ -2110,7 +2159,7 @@ updateStatLine();
                     dealDamage(enemy, 28);
                 }, ["ethereal"]), "Combust": () => new Card("Combust+", 1, "Power", "At the end of your turn, lose 1 HP and deal [DAM7] damage to ALL enemies.", function(enemy){
                     gainBuff("Combust", 7);
-                }, ["exhausted"]), "Dark Embrace+": () => new Card("Dark Embrace+", 1, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
+                }, ["exhausted"]), "Dark Embrace": () => new Card("Dark Embrace+", 1, "Power", "Whenever a card is Exhausted, draw a card.", function(enemy){
                     gainBuff("Dark Embrace", 1);
                 }, ["exhausted"]), "Disarm": () => new Card("Disarm+", 1, "Skill", "Enemy gets -3 Strength. Exhaust.", function(enemy){
                     enemy.gainBuff("Minus Strength", 3);
@@ -2459,7 +2508,7 @@ updateStatLine();
                 gainBuff("Rushdown", 2);
             }, ["exhausted"]), "Sanctity": () => new Card("Sanctity+", 1, "Skill", "Gain [BLK9] Block. If the last card played this combat was a Skill, draw 2 cards.", function(enemy) {
                 gainBuff("Block", 9); if(stats.lastType = "Skill") {drawCard(2);}
-            }), "Sands Of Time": () => new Card("Sands of Time+", 4, "Attack", "Deal [DAM25] damage. Retain. When this is Retained, it gets -1 cost this combat.", function(enemy){
+            }), "Sands of Time": () => new Card("Sands of Time+", 4, "Attack", "Deal [DAM25] damage. Retain. When this is Retained, it gets -1 cost this combat.", function(enemy){
                 dealDamage(enemy, 25);
             }, ["retain"]), "Signature Move": () => new Card("Signature Move+", 2, "Attack", "Can only be played if this is the only Attack in your hand. Deal [DAM40] damage.", function(enemy){
                 if(!hand.filter(x=>x.type=="Attack"&&x.name!="Signature Move").length) {dealDamage(enemy, 40);} else {alert("Failed to play Signature Move: There are other Attack cards in your hand.");}
@@ -2554,7 +2603,7 @@ updateStatLine();
                 let upg = upgradedCards[cardToUpgrade.name]();
                 getId("upgradeDialog").style.display = "block";
                 if(upg) {
-                    getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>: "+addCircle(cardToUpgrade.cost.toString())+" | "+unformat(cardToUpgrade.desc)+"<br/><span style='color:#afa'>New</span>: "+addCircle(upg.cost.toString())+" | "+unformat(upg.desc);
+                    getId("cardDesc").innerHTML = "Upgrading <b>"+cardToUpgrade.name+"</b>:<br/><span style='color:#faa'>Old</span>:<br/>"+makeTooltip(cardToUpgrade).split("<span class='txt'>")[1].replace("</span>", "")+"<br/><span style='color:#afa'>New</span>:<br/>"+makeTooltip(upg).split("<span class='txt'>")[1].replace("</span>", "");
                 } else {
                     getId("cardDesc").innerHTML = "That card is not upgradable.";
                 }
@@ -2569,7 +2618,7 @@ updateStatLine();
                 }
             };
             let randRareCard = function(upg=true) {
-                let card = choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade]);
+                let card = choice([barricade, berserk, bludgeon, brutality, demonForm, doubleTap, corruption, exhume, feed, impervious, juggernaut, limitBreak, offering, reaper, thousandCuts, adrenaline, afterImage, burst, dieDieDie, doppelganger, envenom, grandFinale, stormOfSteel, toolsOfTheTrade, alpha, blasphemy, brilliance, conjureBlade, deusExMachina, devaForm, devotion, establishment, judgment, lessonLearned, ragnarok, scrawl, spiritShield, vault, wish]);
                 if(Math.random() < 0.3 * (actNum - 1) && upg) {
                     return upgradedCards[card().name]();
                 } else {
@@ -2632,10 +2681,7 @@ updateStatLine();
                 for(let x=0; x<3; x++) {
                     let cardTooltip = document.createElement("span");
                     let modalCard = getId("modalCard"+(x+1));
-                    modalCard.innerHTML = newCards[x].name;
-                    cardTooltip.innerHTML = addCircle(newCards[x].cost.toString())+" "+newCards[x].type+" | "+unformat(newCards[x].desc);
-                    cardTooltip.setAttribute("class", "txt");
-                    modalCard.appendChild(cardTooltip);
+                    modalCard.innerHTML = makeTooltip(newCards[x]);
                 }
             };
             async function scry(amount) {
@@ -2852,6 +2898,9 @@ if(["Barricade", "Berserk", "Bludgeon", "Brutality", "Demon Form", "Double Tap",
     maxHp += 10; hp = maxHp;
 } else if(["Strike", "Defend", "Bash", "Neutralize", "Eruption", "Vigilance"].includes(c.name.replace("+", ""))) {
     getId("eventDesc").innerHTML = "Nothing happens. The spirits seem to be ignoring you now. Disappointing...";
+} else if(c.type == "Curse") {
+    getId("eventDesc").innerHTML = "The spirits aren’t happy that you offered a Curse. You receive... something... in return.";
+    relics.push({name: "Spirit Poop", desc: "It’s unpleasant."});
 } else {
     getId("eventDesc").innerHTML = "The flames grow slightly brighter and you feel warmer. The spirits continue dancing. You heal 10 HP.";
     hp = Math.min(maxHp, hp + 10);
@@ -3514,7 +3563,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
-            let drawPile = shuffle(deck.slice(0)); // no shallow copy
+            let drawPile = shuffle(deck.slice(0)); // no shallow copy //
             let discardPile = [];
             let exhaustPile = [];
             let hand = [];
@@ -3531,7 +3580,9 @@ getId("woogleButton").onclick = function() {showMap();}
             let turn = 0;
             let crCost = 75;
             let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
+            //let randomThing = () => "💲";
             let topThing = () => choice(["❓", "💀", choice(["💀","💀","💲","🏕️"])]);
+            //let topThing = () => "💲";
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map; //❓
             function mapGen() {
@@ -3993,37 +4044,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     cardElem.onclick = playcard;
                     if(c.flags.includes("unplayable") || energy < c.cost) {cardElem.setAttribute("class", "tt unplayable "+c.type);}
                     else {cardElem.setAttribute("class", "tt "+c.type);}
-                    cardElem.innerHTML = c.name;
-                    let cardTooltip = document.createElement("span");
-                    cardTooltip.setAttribute("class", "txt");
-                    
-                    let newDesc = c.desc.replace("[BLOCK]", "[DAM"+hasBuff("Block")+"]")
-                    .replace("[HEAVYBLADE]", "[DAM"+(14+hasBuff("Strength")*2)+"]")
-                    .replace("[HEAVYBLADE+]", "[DAM"+(14+hasBuff("Strength")*4)+"]")
-                    .replace("[RAMPAGE]", "[DAM"+(8+hasBuff("Rampage"))+"]")
-                    .replace("[SHIV]", "[DAM"+(4+hasBuff("Accuracy"))+"]")
-                    .replace("[SHIV+]", "[DAM"+(6+hasBuff("Accuracy"))+"]")
-                    .replace("[FINISHER]", "[DAM"+(6*stats.attacksThisTurn)+"]")
-                    .replace("[FINISHER+]", "[DAM"+(8*stats.attacksThisTurn)+"]")
-                    .replace("[PREDICT]", "[BLK"+(enemies.map(x=>x.hasBuff("Mark"))).reduce((ps, a) => ps + a, 0)+"]")
-                    .replace("[PERS]", "[BLK"+(5+stats.pers)+"]")
-                    .replace("[WINDMILL]", "[DAM"+(7+stats.windmill)+"]")
-                    .replace("[BRILLIANCE]", "[DAM"+(12+stats.mantraGain)+"]")
-                    .replace("[BRILLIANCE+]", "[DAM"+(16+stats.mantraGain)+"]");
-                    for(let i=1; i<300; i++) {
-                        let newI = calcYourDamage(target, i);
-                        if(newI > i) {newI = "<span style='color:lime'>"+newI+"</span>";}
-                        else if(newI < i) {newI = "<span style='color:#f00'>"+newI+"</span>";}
-                        let blockI = calcYourBlock(i);
-                        if(blockI > i) {blockI = "<span style='color:lime'>"+blockI+"</span>";}
-                        else if(blockI < i) {blockI = "<span style='color:#f00'>"+blockI+"</span>";}
-                        
-                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
-                        newDesc = newDesc.replace("[DAM"+i+"]", newI).replace("[BLK"+i+"]", blockI);
-                    }
-                    cardTooltip.innerHTML = addCircle(c.cost.toString())+" "+c.type+"<br/>"+newDesc;
-                    
-                    cardElem.appendChild(cardTooltip);
+                    cardElem.innerHTML = makeTooltip(c);
                     handElem.appendChild(cardElem);
                     
                     let helpNumber = document.createElement("span");
@@ -4105,7 +4126,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
-                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
@@ -4400,6 +4421,7 @@ getId('relicReward').style.display = 'none';
                 hp -= hasBuff("Poison"); loseBuff("Poison", 1);
                 for(let e of enemies){e.gainBuff("Poison", hasBuff("Noxious Fumes"));}
                 loseBuff("Divinity");
+                loseBuff("Intangible", 1);
                 updateHtml();
                 /*debugging*/} catch(err) {
                     alert("Oh no!\n"+err);
@@ -4422,7 +4444,7 @@ getId('relicReward').style.display = 'none';
                         if(c.flags.includes("ethereal") && !c.flags.includes("retain")) {exhaustPile.push(c);}
                         else if(!c.flags.includes("retain")) {discardPile.push(c);}
                         if(c.flags.includes("retain")) {
-                            c.cost -= hasBuff("Establishment");
+                            c.cost = Math.min(0, c.cost - hasBuff("Establishment"));
                             if(c.name == "Sands of Time" && c.cost > 0){c.cost -= 1;}
                             if(c.name == "Windmill Strike"){stats.windmill += 4;}
                             if(c.name == "Windmill Strike+"){stats.windmill += 7;}
