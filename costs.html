@@ -263,9 +263,10 @@ Themes:
 <button onclick="getId('html').classList.add('aqua');">Aqua</button><button onclick="getId('html').classList.add('black');">Black</button>
 <button onclick="getId('html').setAttribute('class', 'default');">Reset themes</button>
 
-Credits:
-* MegaCrit (obviously) &lt;-- This is really important
-* ToasterOven#7614 (don't ping him please)
+Credits (in order of importance):
+* MegaCrit
+* ToasterOven<span style="color: #aaa">#????</span>
+* A bunch of people at WSMS
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -301,7 +302,7 @@ Credits:
             <button onclick="if(!relics.map(x=>x.name).includes('Coffee Dripper')){ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; ifRelic('Dream Catcher', function(){addCard()}); showMap();}" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="if(!relics.map(x=>x.name).includes('Fusion Hammer')){upgradeDialog();}" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
-                <p id="cardDesc style='background: #888;'"></p>
+                <p id="cardDesc" style="background: #888;"></p>
                 <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();"><span style='text-decoration:underline'>C</span>onfirm</button>
             </div>
         </div>
@@ -333,7 +334,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.1.2";
+            let currentVersion = "v3.1.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
