@@ -301,7 +301,7 @@ Credits:
             <button onclick="if(!relics.map(x=>x.name).includes('Coffee Dripper')){ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; ifRelic('Dream Catcher', function(){addCard()}); showMap();}" class="tt"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="if(!relics.map(x=>x.name).includes('Fusion Hammer')){upgradeDialog();}" class="tt"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
             <div id="upgradeDialog" style="display: none;">
-                <p id="cardDesc"></p>
+                <p id="cardDesc style='background: #888;'"></p>
                 <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();"><span style='text-decoration:underline'>C</span>onfirm</button>
             </div>
         </div>
@@ -333,7 +333,7 @@ Credits:
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.1.1c";
+            let currentVersion = "v3.1.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1070,22 +1070,6 @@ if(multiChoice.includes(num)) {
                 }
                 if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
                 if(finalAmt > 0 && enemy.hasBuff("Talk to the Hand") > 0) {gainBuff("Block", enemy.hasBuff("Talk to the Hand"));}
-                if(enemy.name == "Slime Boss" && enemy.hp <= 0.5 * enemy.maxHp) {
-                    let a = amt => function(me){ me.dealDamage(amt); }
-                    let ap = (what, amt) => function(me){ gainBuff(what, amt); }
-                    let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
-                    enemies.unshift(new Enemy("Slime", enemy.hp, [
-                        {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
-                        {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
-                        {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
-                    ], ["randomize"]));
-                    enemies.unshift(new Enemy("Slime", enemy.hp, [
-                        {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
-                        {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
-                    ], ["randomize"]));
-                    enemy.hp = 0;
-                    updateHtml();
-                }
             }
             
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];            
@@ -4156,7 +4140,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
                         }
                         if(e.name == "Slime Boss") {
-                            enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'><span class='txt'>Split: When this falls under half HP, it splits into 2 slimes.</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'><img src='StS/split.png'><span class='txt'>Split: When this falls under half HP, it splits into 2 slimes at the end of the turn.</span></span> ";
                         }
                         if(e.name == "Awakened One") {
                             if(getId("ascensionLevel").value == 20) {
@@ -4185,7 +4169,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyTooltip.innerHTML += "<br/>Time Warp (Whenever you play 12 cards, ends your turn and gains 2 Strength.)";
                     }
                     if(e.name == "Slime Boss") {
-                        enemyTooltip.innerHTML += "<br/>Split (When this falls under half HP, it splits into 2 slimes.) ";
+                        enemyTooltip.innerHTML += "<br/>Split (When this falls under half HP, it splits into 2 slimes at the end of the turn.) ";
                     }
                     if(e.name == "Awakened One") {
                         if(getId("ascensionLevel").value == 20) {
@@ -4507,6 +4491,23 @@ getId('relicReward').style.display = 'none';
                 if(hasBuff("Vault") == 0) {
                     let toAct = enemies.slice(0); // deep copy
                     for(let e of toAct) {
+                        if(e.name == "Slime Boss" && enemy.hp <= 0.5 * enemy.maxHp) {
+                            let a = amt => function(me){ me.dealDamage(amt); }
+                            let ap = (what, amt) => function(me){ gainBuff(what, amt); }
+                            let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                            enemies.unshift(new Enemy("Acid Slime", enemy.hp, [
+                                {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
+                                {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                                {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
+                            ], ["randomize"]));
+                            enemies.unshift(new Enemy("Spike Slime", enemy.hp, [
+                                {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
+                                {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
+                            ], ["randomize"]));
+                            enemy.hp = 0;
+                            updateHtml();
+                            continue;
+                        }
                         if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
                         if(e.hasBuff("Metallicize")){e.gainBuff("Block", e.hasBuff("Metallicize"));}
                         if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
