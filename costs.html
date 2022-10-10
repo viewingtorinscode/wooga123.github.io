@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.2.2";
+            let currentVersion = "v3.2.2b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1398,7 +1398,7 @@ updateStatLine();
                     continueBtn.innerHTML = "<span style='text-decoration:underline'>C</span>ontinue";
                     continueBtn.setAttribute("onclick", "showMap();");
                     continueElem.appendChild(continueBtn);
-                    //getId("merchantScreen").appendChild(continueElem);
+                    getId("merchantScreen").appendChild(continueElem);
                     /*debugging*/ } catch(err) {
                         alert("Oh no!\n"+err);
                     }
