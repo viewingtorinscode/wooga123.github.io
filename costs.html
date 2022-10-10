@@ -135,9 +135,7 @@
                 font-size: 50px;
             }
             .selection {font-weight: bold;}
-            #restScreen {
-                text-align: center;
-            }
+            #restScreen, #eventScreen, #merchantScreen {text-align: center;}
             .restSite, .eventButton {
                 display: inline-block;
                 padding: 10px;
@@ -147,8 +145,18 @@
             .restSite .txt {font-size: 13px;}
             #rester {background: green;}
             #smither {background: darkred;}
-            #eventScreen {
-                text-align: center;
+            #selectionModal {z-index: 100;}
+            #merchantScreen {
+                display: flex;
+            }
+            .shopCard, .shopRelic, #crElem {
+                display: inline-block;
+                padding: 0px 0px 20px 0px;
+                width: 15%;
+            }
+            .shopCard button, .shopRelic button, #crElem button {
+                padding: 10px;
+                font-size: 16px;
             }
             @keyframes grow {
                 0%    { transform: scale(1);    }
@@ -340,8 +348,8 @@ Credits (in order of importance):
                 <button onclick="upgradeCard(cardToUpgrade); getId('upgradeDialog').style.display = 'none'; showMap();"><span style='text-decoration:underline'>C</span>onfirm</button>
             </div>
         </div>
-        <table id="merchantScreen" style="display: none;">
-        </table>
+        <div id="merchantScreen" style="display: none;">
+        </div>
         <div id="eventScreen" style="display: none;">
             <h2 id="eventTitle"></h2>
             <span id="eventDesc"></span><br/><br/>
@@ -368,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.2";
+            let currentVersion = "v3.2.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -719,6 +727,7 @@ if(multiChoice.includes(num)) {
             function makeTooltip(card) {
                 let newDesc = unformat(card.desc, card.name.toLowerCase().includes("Strike"));
                 for(let buff in buffDescPlus) {
+                    let cap = buff.charAt(0).toUpperCase() + buff.slice(1);
                     if(card.desc.toLowerCase().includes(buff.toLowerCase()) && buff != ".") {
                         let bd = buffDescPlus[buff]
                             .replaceAll("[DAMT]", "X")
@@ -733,7 +742,7 @@ if(multiChoice.includes(num)) {
                         } else {
                             bd = bd.replaceAll("[SHIV]", calcYourOOCDamage(4, true)).replaceAll("[SMITE]", calcYourOOCDamage(4));
                         }
-                        newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>") + "<br/><i style='color:#222'>("+buff.charAt(0).toUpperCase() + buff.slice(1)+": "+bd+")</i>";
+                        newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>").replaceAll(cap, "<b>"+cap+"</b>") + "<br/><i style='color:#222'>("+cap+": "+bd+")</i>";
                     }
                 }
                 return card.name+"<span class='txt'>"+addCircle(card.cost.toString())+" "+card.type+"<br/>"+newDesc+"</span>";
@@ -1309,12 +1318,13 @@ if(multiChoice.includes(num)) {
                         offers.push({index: i, price: cardCost, offer: offer});
                         if(i==0) {cardCost = Math.round(cardCost * 0.45);}
                         if(i==5) {cardCost = Math.round(Math.random()*30 + 135); offer = randRareCard();} // 6th card is rare
-                        let cardElem = document.createElement("tr");
-                        let nameWrapper = document.createElement("td");
+                        let cardElem = document.createElement("div");
                         let nameElem = document.createElement("button");
-                        let costElem = document.createElement("td");
+                        let costElem = document.createElement("div");
                         cardElem.setAttribute("id", `cardElem_${i}`);
+                        cardElem.setAttribute("class", "shopCard");
                         nameElem.setAttribute("id", `cardName_${i}`);
+                        nameElem.setAttribute("class", "shopName");
                         nameElem.innerHTML = makeTooltip(offer);
                         if(i==0) {
                             nameElem.setAttribute("class", "Skill tt");
@@ -1329,31 +1339,23 @@ getId("cardElem_${i}").style.display = "none";
 updateStatLine();
 }
                         `);
-                        costElem.innerHTML = "Cost: $"+cardCost;
-                        nameWrapper.appendChild(nameElem);
-                        cardElem.appendChild(nameWrapper);
+                        costElem.innerHTML = "🪙 "+cardCost;
+                        cardElem.appendChild(nameElem);
                         cardElem.appendChild(costElem);
                         getId("merchantScreen").appendChild(cardElem);
-                        let helpNumber = document.createElement("span");
-                        helpNumber.style.position = "absolute";
-                        helpNumber.setAttribute("class", "helpNumber");
-                        let coords = cardElem.getBoundingClientRect();
-                        helpNumber.style.top = coords.top;
-                        helpNumber.style.left = coords.left - 10;
-                        let ind = i + 1;
-                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
-                        getId("merchantScreen").appendChild(helpNumber);
                     }
+                    getId("merchantScreen").innerHTML += "<br/>";
                     for(let i=0; i<3; i++) {
                         let offer = choice(relicPool);
                         let relicCost = Math.round(Math.random()*119 + 143);
                         offers.push({index: i+100, price: relicCost, offer: offer});
-                        let relicElem = document.createElement("tr");
-                        let nameWrapper = document.createElement("td");
+                        let relicElem = document.createElement("div");
                         let nameElem = document.createElement("button");
-                        let costElem = document.createElement("td");
+                        let costElem = document.createElement("div");
                         relicElem.setAttribute("id", `relicElem_${i}`);
+                        relicElem.setAttribute("class", "shopRelic");
                         nameElem.setAttribute("id", `relicName_${i}`);
+                        nameElem.setAttribute("class", "shopName");
                         nameElem.innerHTML = offer.name+"<span class='txt'>"+offer.desc+"</span>";
                         nameElem.setAttribute("class", "Status tt");
                         nameElem.setAttribute("onclick", `if(gold >= ${relicCost}) {
@@ -1364,27 +1366,16 @@ getId("relicElem_${i}").style.display = "none";
 updateStatLine();
 }
                         `);
-                        costElem.innerHTML = "Cost: $"+relicCost;
-                        nameWrapper.appendChild(nameElem);
-                        relicElem.appendChild(nameWrapper);
+                        costElem.innerHTML = "🪙 "+relicCost;
+                        relicElem.appendChild(nameElem);
                         relicElem.appendChild(costElem);
                         getId("merchantScreen").appendChild(relicElem);
-                        let helpNumber = document.createElement("span");
-                        helpNumber.style.position = "absolute";
-                        helpNumber.setAttribute("class", "helpNumber");
-                        let coords = relicElem.getBoundingClientRect();
-                        helpNumber.style.top = coords.top;
-                        helpNumber.style.left = coords.left - 10;
-                        let ind = i + 7;
-                        helpNumber.innerHTML = (ind > 10 ? "" : (ind == 10 ? "0" : ind));
-                        getId("merchantScreen").appendChild(helpNumber);
                     }
                     
                     ifRelic("Smiling Mask", function(){crCost = 50;});
-                    let crElem = document.createElement("tr");
-                    let nameWrapper = document.createElement("td");
+                    let crElem = document.createElement("div");
                     let nameElem = document.createElement("button");
-                    let costElem = document.createElement("td");
+                    let costElem = document.createElement("div");
                     crElem.setAttribute("id", "crElem");
                     nameElem.setAttribute("id", "crName");
                     nameElem.innerHTML = "Remove a card";
@@ -1397,20 +1388,17 @@ deck.splice(deck.indexOf(cardToRemove), 1);
 getId("crElem").remove();
 updateStatLine();
                     }}; fun();`);
-                    costElem.innerHTML = "Cost: $"+crCost;
-                    nameWrapper.appendChild(nameElem);
-                    crElem.appendChild(nameWrapper);
+                    costElem.innerHTML = "🪙 "+crCost;
+                    crElem.appendChild(nameElem);
                     crElem.appendChild(costElem);
                     getId("merchantScreen").appendChild(crElem);
                     
-                    let continueElem = document.createElement("tr");
-                    let continueWrapper = document.createElement("td");
+                    let continueElem = document.createElement("div");
                     let continueBtn = document.createElement("button");
                     continueBtn.innerHTML = "<span style='text-decoration:underline'>C</span>ontinue";
                     continueBtn.setAttribute("onclick", "showMap();");
-                    continueWrapper.appendChild(continueBtn);
-                    continueElem.appendChild(continueWrapper);
-                    getId("merchantScreen").appendChild(continueElem);
+                    continueElem.appendChild(continueBtn);
+                    //getId("merchantScreen").appendChild(continueElem);
                     /*debugging*/ } catch(err) {
                         alert("Oh no!\n"+err);
                     }
@@ -4049,7 +4037,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     for(let x of buffs) {
                         let buffStuff = "";
                         if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark", "Precision", "Battle Hymn", "Fasting", "Collect", "Mantra", "Foresight", "Like Water", "Mental Fortress", "Nirvana", "Rushdown", "Study", "Deva Form", "Establishment", "Simmering Fury", "Swivel", "Wave of the Hand", "Vault", "Blasphemy", "Omega"].includes(x.name)) {
-                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_").replace(" ","_").replace(" ","_")+".png'>";
+                            buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
                         }
@@ -4162,7 +4150,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         for(let x of e.buffs) {
                             let buffStuff = "";
                             if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp"].includes(x.name)) {
-                                buffStuff += "<img src='StS/"+x.name.toLowerCase().replace(" ","_").replace(" ","_")+".png'>";
+                                buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
                             }
@@ -4178,7 +4166,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
-                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+x.amt+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+("Barricade"==x.name?"":x.amt)+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
@@ -4535,20 +4523,20 @@ getId('relicReward').style.display = 'none';
                 if(hasBuff("Vault") == 0) {
                     let toAct = enemies.slice(0); // deep copy
                     for(let e of toAct) {
-                        if(e.name == "Slime Boss" && enemy.hp <= 0.5 * enemy.maxHp) {
+                        if(e.name == "Slime Boss" && e.hp <= 0.5 * e.maxHp) {
                             let a = amt => function(me){ me.dealDamage(amt); }
                             let ap = (what, amt) => function(me){ gainBuff(what, amt); }
                             let as = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
-                            enemies.unshift(new Enemy("Acid Slime", enemy.hp, [
+                            enemies.unshift(new Enemy("Acid Slime", e.hp, [
                                 {intent: "attacking 16", desc: "deal [DAM16] damage", effect: a(16)},
                                 {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
                                 {intent: "nerfing", desc: "apply a negative effect", effect: ap("Weak", 2)},
                             ], ["randomize"]));
-                            enemies.unshift(new Enemy("Spike Slime", enemy.hp, [
+                            enemies.unshift(new Enemy("Spike Slime", e.hp, [
                                 {intent: "attack-nerf 11", desc: "deal [DAM11] damage and generate Status cards", effect: as(11, "Slimed", 2)},
                                 {intent: "nerfing", desc: "apply a negative effect", effect: ap("Frail", 2)},
                             ], ["randomize"]));
-                            enemy.hp = 0;
+                            e.hp = 0;
                             updateHtml();
                             continue;
                         }
