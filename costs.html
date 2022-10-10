@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.2.1";
+            let currentVersion = "v3.2.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3069,7 +3069,12 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Punch", "Lose 3 HP.", `
+<<<<<<< HEAD
+hp -= 3;
 getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
+=======
+getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
+>>>>>>> 2c288a631c2d03ddf14ecf729d1e3ee6af81d865
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
@@ -3601,6 +3606,7 @@ getId("woogleButton").onclick = function() {showMap();}
             
             // Starting deck, relics, etc...
             let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
+            //let deck = [new Card("Wooga", 0, "Status", "blah blah blah", function(enemy){})];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy //
@@ -4003,7 +4009,6 @@ getId("woogleButton").onclick = function() {showMap();}
             let timerRunning = true;
             let currentTimer = 0;
             let beforeTime = Date.now();
-            
             function updateHtml() {
                 timerRunning = true;
                 updateStatLine();
@@ -4412,7 +4417,8 @@ getId('relicReward').style.display = 'none';
                 ifRelic("Snecko Eye", function(){drawCard(2);});
                 ifRelic("Serpent Ring", function(){drawCard(1);});
                 ifRelic("Warped Tongs", function(){
-                    let c = choice(hand.filter(x=>!x.name.includes("+")));
+                    let c = choice(hand.filter( x=>(!x.name.includes("+") && x.type!="Status" && x.type!="Curse") ));
+                    if(!c) return;
                     let d = upgradedCards[c.name]();
                     hand.splice(hand.indexOf(c), 1);
                     hand.push(d);
