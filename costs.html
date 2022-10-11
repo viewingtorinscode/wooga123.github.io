@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.2.2b";
+            let currentVersion = "v3.2.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3069,12 +3069,8 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Punch", "Lose 3 HP.", `
-<<<<<<< HEAD
 hp -= 3;
 getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
-=======
-getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
->>>>>>> 2c288a631c2d03ddf14ecf729d1e3ee6af81d865
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
