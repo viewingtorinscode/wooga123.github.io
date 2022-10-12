@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.2.3";
+            let currentVersion = "v3.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -566,6 +566,8 @@ if(multiChoice.includes(num)) {
                         } else if(getId("bossRelicReward").style.display != "none") {
                             let func = getId("bossRelicReward").getAttribute("onclick"); eval(func);
                         } else { showMap(); }
+                    } else if(getId("eventChoices").textContent == "Leave") {
+                        showMap();
                     }
                 } else if(e.keyCode == 99) { // c
                     if(getId("merchantScreen").style.display != "none" || getId("rewardsScreen").style.display != "none") {
@@ -599,7 +601,7 @@ if(multiChoice.includes(num)) {
                 "Strength": "Attacks deal [AMT] more damage.",
                 "Dexterity": "Cards gain you [AMT] more Block.",
                 "Strength Down": "At the end of this turn, lose [AMT] Strength.",
-                "No Draw": "Cannot draw cards for [AMT] turn[s].",
+                "No Draw": "Cannot draw cards this turn.",
                 "Combust": "At the end of your turn, lose 1 HP and deal [DAMT] damage to ALL enemies.",
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
                 "Thorns": "When recieving unblocked damage, deal [DAMT] damage back.",
@@ -946,7 +948,11 @@ if(multiChoice.includes(num)) {
                         }
                         this.intent = newIntent;
                     } else if(this.attacks.indexOf(this.intent) + 1 == this.attacks.length && !(this.flags.includes("no-repeat"))) {
+                        if(this.flags.includes("skip-first")) {
+                            this.intent = this.attacks[1];
+                        } else {
                         this.intent = this.attacks[0];
+                        }
                     } else if(this.attacks.indexOf(this.intent) + 1 != this.attacks.length) {
                         this.intent = this.attacks[this.attacks.indexOf(this.intent) + 1];
                     }
@@ -1048,9 +1054,9 @@ if(multiChoice.includes(num)) {
                 if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
                 if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3;}
                 if(["Wrath","Calm","Divinity"].includes(name)) {
-                    let fobs = discardPile.filter(x=>x.name == "Flurry of Blows");
+                    let fobs = discardPile.filter(x=>x.name.includes("Flurry of Blows"));
                     hand = [...hand, ...fobs];
-                    discardPile = discardPile.filter(x=>x.name != "Flurry of Blows");
+                    discardPile = discardPile.filter(x=>!x.name.includes("Flurry of Blows"));
                     gainBuff("Block", hasBuff("Mental Fortress"));
                 }
                 if(hasBuff("Mantra") >= 10 && hasBuff("Divinity") == 0) {gainBuff("Divinity", 1); loseBuff("Mantra", 10);}
@@ -1252,6 +1258,10 @@ if(multiChoice.includes(num)) {
                         nme = () => choice(possibleElites_act3)();
                     }
                     enemies = [nme()];
+                    if(enemies[0].name == "Sentry") {
+                        enemies.push("Sentry", enemies[0].name, [enemies[0].attacks[1], enemies[0].attacks[0]]);
+                        enemies.push("Sentry", enemies[0].name, enemies[0].attacks);
+                    }
                     eliteBattle = true;
                     bossBattle = false;
                     readyBattle();
@@ -1290,6 +1300,16 @@ if(multiChoice.includes(num)) {
                             ]));
                         }
                         for(let i of enemies) i.gainBuff("Artifact", 3);
+                    }
+                    if(enemies[0].name == "Awakened One") {
+                        enemies.push(new Enemy("Cultist", 50, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
+                            {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                        ], ["no-repeat"]));
+                        enemies.push(new Enemy("Cultist", 50, [
+                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
+                            {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
+                        ], ["no-repeat"]));
                     }
                     eliteBattle = false;
                     bossBattle = true;
@@ -2070,7 +2090,7 @@ updateStatLine();
                 gainBuff("Divinity", 1); gainBuff("Blasphemy", 1);
             }, ["exhausted"]);
             let brilliance = () => new Card("Brilliance", 1, "Attack", "Deal [BRILLIANCE] damage. More effective based on Mantra gained this combat.", function(enemy){
-                dealDamage(12 + stats.mantraGain);
+                dealDamage(enemy, 12 + stats.mantraGain);
             });
             let conjureBlade = () => new Card("Conjure Blade", "X", "Skill", "Shuffle X Expungers into your draw pile. Exhaust.", function(enemy){
                 drawPile.push(new Card("Expunger", 1, "Attack", "Deal [DAM9] damage. Draw a card.", function(enemy){dealDamage(enemy,9);drawCard();}));
@@ -2585,7 +2605,7 @@ updateStatLine();
             }, ["exhausted", "innate"]), "Blasphemy": () => new Card("Blasphemy+", 1, "Skill", "Retain. Enter Divinity. Die next turn. Exhaust.", function(enemy){
                     gainBuff("Divinity", 1); gainBuff("Blasphemy", 1);
             }, ["exhausted", "retain"]), "Brilliance": () => new Card("Brilliance+", 1, "Attack", "Deal [BRILLIANCE+] damage. More effective based on Mantra gained this combat.", function(enemy){
-                    dealDamage(16 + stats.mantraGain);
+                    dealDamage(enemy, 16 + stats.mantraGain);
             }), "Conjure Blade": () => new Card("Conjure Blade+", "X", "Skill", "Shuffle X upgraded Expungers into your draw pile. Exhaust.", function(enemy){
                 drawPile.push(new Card("Expunger+", 1, "Attack", "Deal [DAM15] damage. Draw a card.", function(enemy){dealDamage(enemy,15);drawCard();}));
             }, ["exhausted"]), "Deus Ex Machina": () => new Card("Deus Ex Machina+", 0, "Skill", "Add 3 Miracles to your hand. Exhaust.", function(enemy){
@@ -3401,7 +3421,7 @@ for(let i=0; i<17; i++) {
 for(let i=0; i<3; i++) {
     possibilities.push(randRareCard());
 }
-deck.push( choice(possibilities, "Choose a card to add to your deck.") );
+deck.push( await choose(possibilities, "Choose a card to add to your deck.") );
 getId("eventDesc").innerHTML = "You pick up a stack of books and spend hours reading through them.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
@@ -3735,12 +3755,12 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
-                ], ["no-repeat"])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ], ["skip-first"]),
+                () => new Enemy("Sentry", 40, [
+                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)},
+                    {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
+                ])
             ];
             let possibleBosses = [
                 () => new Enemy("Slime Boss", 140, [
@@ -3858,7 +3878,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
                     {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
                     {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
-                ]),
+                ], ["skip-first"]),
                 () => new Enemy("The Collector", 280, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
@@ -3874,7 +3894,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
-                ], ["randomize"])
+                ], ["skip-first"])
             ];
             let possibleEnemies_act3 = [
                 () => new Enemy("Huge Jaw Worm", 70, [
@@ -3935,15 +3955,8 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                 ]),
                 () => new Enemy("Awakened One", 300, [
-                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
-                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
-                    {intent: "unknown", desc: "summon a friend", effect: function(me){
-                        let ct = () => new Enemy("Cultist", 50, [
-                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
-                            {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                        ], ["no-repeat"]);
-                        enemies.unshift(ct());
-                    }}
+                    {intent: "attacking 22", desc: "deal [DAM22] damage", effect: attack(22)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)}
                 ])
             ];
             
@@ -4054,7 +4067,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                             else {return blockI;}
                         }
-                        if(["Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"].includes(x.name)) {
+                        if(["No Draw", "Barricade", "Confused", "Corruption", "Calm", "Wrath", "Divinity", "Simmering Fury", "Blasphemy"].includes(x.name)) {
                             playerElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+"<span class='txt'>"+x.name+": "+buffDesc[x.name]
                                 .replaceAll("[DAMT]", adjustedDamage(x.amt))
                                 .replaceAll("[BAMT]", adjustedBlock(x.amt))
@@ -4150,7 +4163,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Poison", "Blur", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -4216,6 +4229,16 @@ getId("woogleButton").onclick = function() {showMap();}
                     enemiesElem.appendChild(document.createElement("br"));
                 }
                 if(enemies.filter(x => x.hp <= 0).length > 0) {
+                    if(enemies.filter(x => x.hp <= 0).includes("Awakened One")) {
+                        let awakened = enemies.filter(x=>x.name == "Awakened One")[0];
+                        let attack = amt => function(me){ me.dealDamage(amt); }
+                        let attack_status = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
+                        enemies.push(new Enemy("Awakened One (Second Form)", awakened.hp, [
+                            {intent: "attacking 40", desc: "deal [DAM40] damage", effect: attack(40)},
+                            {intent: "attack-nerf 18", desc: "deal [DAM18] damage and apply a negative effect", effect: attack_status(18, "Void", 1)},
+                            {intent: "attacking 30", desc: "deal [DAM30] damage", effect: attack(30)}
+                        ], ["skip-first"]));
+                    }
                     let livingEnemies = enemies.filter(x => x.hp > 0);
                     let numDead = enemies.length - livingEnemies.length;
                     ifRelic("Gremlin Horn", function(){energy += numDead; drawCard(numDead);});
@@ -4237,6 +4260,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             music.enemy.volume = 0.5; music.elite.volume = 0.5;
                         }, 2000);
                     }
+                    buffs = [];
                     ifRelic("Meat on the Bone", function(){hp = Math.min(Math.round(0.5*maxHp), hp + 12)});
                     ifRelic("Burning Blood", function(){hp = maxHp, hp + 6;});
                     getId("rewardsScreen").style.display = "block";
@@ -4490,7 +4514,7 @@ getId('relicReward').style.display = 'none';
                             if(c.name == "Sands of Time" && c.cost > 0){c.cost -= 1;}
                             if(c.name == "Windmill Strike"){stats.windmill += 4;}
                             if(c.name == "Windmill Strike+"){stats.windmill += 7;}
-                            if(c.name == "Perseverance"){stats.pers += 4;}
+                            if(c.name == "Perseverance"){stats.pers += 2;}
                             if(c.name == "Perseverance+"){stats.pers += 4;}
                         }
                         if(c.name == "Burn") {hp -= 1;}
@@ -4671,12 +4695,12 @@ getId('relicReward').style.display = 'none';
                     {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
-                ], ["no-repeat"])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ], ["skip-first"]),
+                () => new Enemy("Sentry", 40, [
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                    {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
+                ])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 160, [
@@ -4780,7 +4804,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
                     {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
                     {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
-                ]),
+                ], ["skip-first"]),
                 () => new Enemy("The Collector", 280, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
@@ -4796,7 +4820,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
-                ], ["randomize"])
+                ], ["skip-first"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 456, [
@@ -4812,14 +4836,7 @@ getId('relicReward').style.display = 'none';
                 ]),
                 () => new Enemy("Awakened One", 300, [
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "unknown", desc: "summon a friend", effect: function(me){
-                        let ct = () => new Enemy("Cultist", 50, [
-                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
-                        ], ["no-repeat"]);
-                        enemies.unshift(ct());
-                    }}
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                 ])
                     ];
                 }
@@ -4924,12 +4941,12 @@ getId('relicReward').style.display = 'none';
                     {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
-                ], ["no-repeat"])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 1], ["Minus Dexterity", 1]])}
+                ], ["skip-first"]),
+                () => new Enemy("Sentry", 50, [
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                    {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
+                ])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 190, [
@@ -5033,7 +5050,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 3)},
                     {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
                     {intent: "unknown", desc: "do nothing (stunned)", effect: passTurn()}
-                ]),
+                ], ["skip-first"]),
                 () => new Enemy("The Collector", 300, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
@@ -5049,7 +5066,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
-                ], ["randomize"])
+                ], ["skip-first"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 500, [
@@ -5065,14 +5082,7 @@ getId('relicReward').style.display = 'none';
                 ]),
                 () => new Enemy("Awakened One", 333, [
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "unknown", desc: "summon a friend", effect: function(me){
-                        let ct = () => new Enemy("Cultist", 60, [
-                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
-                        ], ["no-repeat"]);
-                        enemies.unshift(ct());
-                    }}
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                 ])
                     ];
                 }
@@ -5085,12 +5095,7 @@ getId('relicReward').style.display = 'none';
                 if(lv >= 18) {
                     possibleEnemies = [
                 () => new Enemy("Cultist", 60, [
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
-                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                    {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
+                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 5)},
                     {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
                 ], ["no-repeat"]),
                 () => new Enemy("Jaw Worm", 50, [
@@ -5190,12 +5195,12 @@ getId('relicReward').style.display = 'none';
                     {intent: "unknown", desc: "sleep", effect: passTurn()},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                     {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])},
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)}
-                ], ["no-repeat"])
+                    {intent: "meganerf", desc: "apply a <b>powerful negative effect</b>", effect: multi_apply([["Minus Strength", 2], ["Minus Dexterity", 1]])}
+                ], ["skip-first"]),
+                () => new Enemy("Sentry", 50, [
+                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                    {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 3)}
+                ])
                     ];
                     possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", 190, [
@@ -5300,7 +5305,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)},
                     {intent: "attacking 45", desc: "deal [DAM45] damage", effect: attack(45)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)}
-                ]),
+                ], ["skip-first"]),
                 () => new Enemy("The Collector", 300, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                         if(enemies.length <= 8) {
@@ -5316,7 +5321,7 @@ getId('relicReward').style.display = 'none';
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 4], ["Vulnerable", 4], ["Frail", 4]])}
-                ], ["randomize"])
+                ], ["skip-first"])
                     ];
                     possibleBosses_act3 = [
                 () => new Enemy("Time Eater", 500, [
@@ -5332,19 +5337,7 @@ getId('relicReward').style.display = 'none';
                 ]),
                 () => new Enemy("Awakened One", 333, [
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "unknown", desc: "summon a friend", effect: function(me){
-                        let ct = () => new Enemy("Cultist", 60, [
-                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)},
-                            {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 4)},
-                            {intent: "attacking 2", desc: "deal [DAM2] damage", effect: attack(2)}
-                        ], ["no-repeat"])
-                        enemies.unshift(ct());
-                    }}
+                    {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)}
                 ])
                     ];
                 }
