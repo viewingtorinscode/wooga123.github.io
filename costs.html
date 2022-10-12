@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.1";
+            let currentVersion = "v3.3.1b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -566,7 +566,7 @@ if(multiChoice.includes(num)) {
                         } else if(getId("bossRelicReward").style.display != "none") {
                             let func = getId("bossRelicReward").getAttribute("onclick"); eval(func);
                         } else { showMap(); }
-                    } else if(getId("eventChoices").textContent == "Leave") {
+                    } else if(getId("eventChoices").textContent == "Leave" && getId("eventScreen").style.display != "none") {
                         showMap();
                     }
                 } else if(e.keyCode == 99) { // c
@@ -830,7 +830,7 @@ if(multiChoice.includes(num)) {
                         }
                         if(energy >= newCost && !(this.flags.includes("unplayable"))) {
                             energy -= newCost;
-                            Promise.resolve(this.use(target));
+                            this.use(target);
                             played = true;
                         }
                     }
@@ -900,7 +900,7 @@ if(multiChoice.includes(num)) {
                             this.use(target);
                         }
                         ifRelic("Pen Nib", function(){gainBuff("Pen Nib", 1)});
-                        if(hasBuff("Vigor") > 0) {Promise.resolve(loseBuff("Vigor"));}
+                        if(hasBuff("Vigor") > 0) {loseBuff("Vigor");}
                     }
                     if(this.name.toLowerCase().includes("strike")) {
                     }
@@ -993,7 +993,7 @@ if(multiChoice.includes(num)) {
                     if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
                     if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
                     if(hasBuff("Intangible")) {finalAmt = 1;}
-                    if(hasBuff("Buffer") > 0 && ub > 0) {finalAmt = 0; if(actuallyDeal){Promise.resolve(loseBuff("Buffer", 1));}}
+                    if(hasBuff("Buffer") > 0 && ub > 0) {finalAmt = 0; if(actuallyDeal){loseBuff("Buffer", 1);}}
                     return finalAmt;
                 }
                 
@@ -1045,7 +1045,7 @@ if(multiChoice.includes(num)) {
                 if(name == "Weak") {ifRelic("Ginger", function(){newAmt = 0});}
                 if(name == "Frail") {ifRelic("Turnip", function(){newAmt = 0});}
                 if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
-                if(name == "Vulnerable") {Promise.resolve(gainBuff(".", 1));}
+                if(name == "Vulnerable") {gainBuff(".", 1);}
                 if(amt == 0) return;
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {b.amt += newAmt; foundIt = true;}}
                 if(!foundIt) {buffs.push({name: name, amt: newAmt});}
@@ -1120,7 +1120,7 @@ if(multiChoice.includes(num)) {
                 let finalAmt = calcYourDamage(enemy, amt, shiv, strike, true);
                 let dealt = Math.max(0, finalAmt - enemy.hasBuff("Block"));
                 enemy.hp -= dealt;
-                Promise.resolve(enemy.loseBuff("Block", finalAmt));
+                enemy.loseBuff("Block", finalAmt);
                 if(dealt > 0) {
                     if(hasBuff("Envenom") > 0) {enemy.gainBuff("Poison", hasBuff("Envenom"));}
                 }
