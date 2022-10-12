@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.1b";
+            let currentVersion = "v3.3.1c";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1259,8 +1259,8 @@ if(multiChoice.includes(num)) {
                     }
                     enemies = [nme()];
                     if(enemies[0].name == "Sentry") {
-                        enemies.push("Sentry", enemies[0].name, [enemies[0].attacks[1], enemies[0].attacks[0]]);
-                        enemies.push("Sentry", enemies[0].name, enemies[0].attacks);
+                        enemies.push(new Enemy("Sentry", enemies[0].hp, [enemies[0].attacks[1], enemies[0].attacks[0]]));
+                        enemies.push(new Enemy("Sentry", enemies[0].hp, enemies[0].attacks));
                     }
                     eliteBattle = true;
                     bossBattle = false;
