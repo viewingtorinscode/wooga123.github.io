@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.2";
+            let currentVersion = "v3.3.2b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -4510,7 +4510,7 @@ getId('relicReward').style.display = 'none';
                         if(c.flags.includes("ethereal") && !c.flags.includes("retain")) {exhaustPile.push(c);}
                         else if(!c.flags.includes("retain")) {discardPile.push(c);}
                         if(c.flags.includes("retain")) {
-                            c.cost = Math.min(0, c.cost - hasBuff("Establishment"));
+                            c.cost = Math.max(0, c.cost - hasBuff("Establishment"));
                             if(c.name == "Sands of Time" && c.cost > 0){c.cost -= 1;}
                             if(c.name == "Sands of Time+" && c.cost > 0){c.cost -= 1;}
                             if(c.name == "Windmill Strike"){stats.windmill += 4;}
