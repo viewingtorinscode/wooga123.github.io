@@ -376,7 +376,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3";
+            let currentVersion = "v3.3.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1005,7 +1005,7 @@ if(multiChoice.includes(num)) {
                     return newAmt;
                 }
                 
-                dealDamage(amt) {
+                dealDamage(amt, procThorns=true) {
                     let finalAmt = this.calcDamage(amt, true);
                     let dealt = Math.max(0, finalAmt - hasBuff("Block"));
                     hp -= dealt;
@@ -1020,7 +1020,7 @@ if(multiChoice.includes(num)) {
                                 i.cost -= 1;
                             }
                         }
-                        if(hasBuff("Thorns") > 0) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
+                        if(hasBuff("Thorns") > 0 && procThorns) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
                         let red = dealt * 0.02 + 0.24;
                         let i = 0;
                         while(red > 0) {
@@ -1124,7 +1124,7 @@ if(multiChoice.includes(num)) {
                 if(dealt > 0) {
                     if(hasBuff("Envenom") > 0) {enemy.gainBuff("Poison", hasBuff("Envenom"));}
                 }
-                if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {Promise.resolve(enemy.dealDamage(enemy.hasBuff("Thorns"))); updateHtml();}
+                if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {enemy.dealDamage(enemy.hasBuff("Thorns"), false); updateHtml();}
                 if(finalAmt > 0 && enemy.hasBuff("Talk to the Hand") > 0) {gainBuff("Block", enemy.hasBuff("Talk to the Hand"));}
             }
             
