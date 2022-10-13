@@ -378,7 +378,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.3";
+            let currentVersion = "v3.3.4";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -2814,7 +2814,7 @@ updateStatLine();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let r = possibleCards[cardNumber];
                     relics.push(r);
-                    if(["Busted Crown", "Coffee Dripper", "Cursed Key", "Ectoplasm", "Fusion Hammer", "Philosopher’s Stone", "Runic Dome", "Velvet Choker"].includes(r.name)) maxEnergy += 1;
+                    if(["Busted Crown", "Coffee Dripper", "Cursed Key", "Ectoplasm", "Fusion Hammer", "Philosopher’s Stone", "Runic Dome", "Velvet Choker", "Sozu"].includes(r.name)) maxEnergy += 1;
                     if(r.name == "Empty Cage") {
                         let fun = async function() {
                             let c1 = await choose(deck, "Choose a card to remove.");
