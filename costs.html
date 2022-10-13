@@ -378,7 +378,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.4";
+            let currentVersion = "v3.3.4b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -2760,7 +2760,7 @@ updateStatLine();
                 if(relics.map(x=>x.name).includes("Busted Crown")) newCards = [newCards[0]];
                 possibleCards = newCards;
                 getId("cardModal").style.display = "block";
-                for(let x=0; x<3; x++) {
+                for(let x=0; x<newCards.length; x++) {
                     let cardTooltip = document.createElement("span");
                     let modalCard = getId("modalCard"+(x+1));
                     modalCard.innerHTML = makeTooltip(newCards[x]);
