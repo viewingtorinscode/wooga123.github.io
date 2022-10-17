@@ -378,7 +378,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v3.3.5";
+            let currentVersion = "v3.3.6";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1171,7 +1171,7 @@ if(multiChoice.includes(num)) {
                         actNum = 3;
                     } else if(actNum == 3) {
                         actNum = 0;
-                        timerRunning = false; updateStatusLine(); music.win.play(); announceMusic("A Return To Order"); alert("You win! Nice job"); return;
+                        timerRunning = false; updateStatLine(); music.win.play(); announceMusic("A Return To Order"); alert("You win! Nice job"); return;
                     }
                 }
                 updateStatLine();
@@ -2665,6 +2665,8 @@ updateStatLine();
                 gainBuff("Strength", 1);
                 gainBuff("Metallicize", 1);
                 gold += 16;
+            }, ["exhausted"]), "Apparition": () => new Card("Apparition+", 1, "Skill", "Gain 1 Intangible. Exhaust.", function(enemy){
+                    gainBuff("Intangible", 1);
             }, ["exhausted"])
             };
             
@@ -3643,7 +3645,6 @@ getId("woogleButton").onclick = function() {showMap();}
             
             // Starting deck, relics, etc...
             let deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
-            //let deck = [new Card("Wooga", 0, "Status", "blah blah blah", function(enemy){})];
             let relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
             let potions = [];
             let drawPile = shuffle(deck.slice(0)); // no shallow copy //
@@ -4336,13 +4337,14 @@ getId('relicReward').style.display = 'none';
                 }
                 if(hp <= 0) {
                     hp = 0;
-                    alert("You died! D:\nReload to try again");
+                    alert("You died! D:\nRestarting game...");
                     getId("gameScreen").style.display = "none";
                     music.enemy.pause(); music.elite.pause(); music.boss1.pause(); music.boss2.pause(); music.boss3.pause();
                     music.enemy.currentTime = 0; music.elite.currentTime = 0;
                     music.boss1.currentTime = 0; music.boss2.currentTime = 0; music.boss3.currentTime = 0;
                     music.death.play();
-                    timerRunning = false; updateStatusLine();
+                    timerRunning = false; updateStatLine();
+                    resetGame();
                 }
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
@@ -5373,6 +5375,28 @@ getId('relicReward').style.display = 'none';
                 showMap();
                 beforeTime = Date.now();
                 currentTimer = 0;
+            }
+            function resetGame() {
+                deck = [bash(), strike(), strike(), strike(), neutralize(), defend(), defend(), defend(), eruption(), vigilance()];
+                relics = [{name: "Snake Ring", desc: "At the start of each combat, draw 2 more cards."}];
+                potions = [];
+                drawPile = shuffle(deck.slice(0)); // no shallow copy //
+                discardPile = [];
+                exhaustPile = [];
+                hand = [];
+                energy = 0;
+                maxEnergy = 3;
+                hp = 70;
+                maxHp = 70;
+                buffs = [];
+                stats = {timesLostHp: 0, attacksThisTurn: 999, skillsThisTurn: 999, rested: false, lastType: "None", pers: 0, windmill: 0, mantraGain: 0, cardsThisTurn: 999};
+                gold = 0;
+                mapX = 2;
+                mapY = 0;
+                actNum = 1;
+                turn = 0;
+                crCost = 75;
+                beginGame();
             }
             window.setInterval(updateStatLine, 47);
         </script>
