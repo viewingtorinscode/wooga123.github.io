@@ -374,11 +374,12 @@ Credits (in order of importance):
             let choice = x => x[Math.floor(Math.random()*x.length)];
             
             let crand = x => Math.ceil(Math.random()*x);
-            let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "new event", "events are more eventful"])};
+            //let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "new event", "events are more eventful"])};
+            let newFun = function(){getId("funText").innerHTML = "<br/>works up to act 2 boss"};
             newFun();
-            window.setInterval(newFun, 800);
+            //window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.0 (beta-2)";
+            let currentVersion = "v4.0.0 (beta-3)";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -477,7 +478,7 @@ if(multiChoice.includes(num)) {
             }
             async function choose(c, p, m=false) {
                 if(c.length >= 1) {
-                    if(m == true) {
+                    if(m) {
                         let woogas = await showMultiChoiceModal(c, p);
                         return woogas;
                     } else {
@@ -606,7 +607,7 @@ if(multiChoice.includes(num)) {
                 "No Draw": "Cannot draw cards this turn.",
                 "Combust": "At the end of your turn, lose 1 HP and deal [DAMT] damage to ALL enemies.",
                 "Dark Embrace": "When a card is Exhausted, draw [AMT] card[s].",
-                "Thorns": "When recieving unblocked damage, deal [DAMT] damage back.",
+                "Thorns": "Upon receiving damage, deal [DAMT] damage back.",
                 "Ritual": "At end of turn, gain [AMT] Strength.",
                 "Frail": "Gain 25% less Block for [AMT] turn[s].",
                 "Enrage": "When you play a Skill, gains [AMT] Strength.",
@@ -644,7 +645,7 @@ if(multiChoice.includes(num)) {
                 "Burst": "Your next [AMT] Skill[s] [are] played twice.",
                 "Envenom": "When you deal unblocked damage, apply [AMT] Poison.",
                 "Tools of the Trade": "At the start of your turn, draw [AMT] card[s] and a discard 1 card.",
-                "Flight": "Take 50% less damage. Removed after taking damage [AMT] time[s].",
+                "Flight": "Take 50% less damage. After taking damage [AMT] time[s], this is removed and enemy is stunned.",
                 "Confused": "All card costs become randomized.",
                 "Corruption": "Skills cost 0, but they Exhaust.",
                 "Calm": "When you exit this stance, gain 2 energy.",
@@ -677,8 +678,15 @@ if(multiChoice.includes(num)) {
                 "Curiosity": "When you play a Power, gains [AMT] Strength.",
                 "Split": "When it reaches half or less HP, splits into 2 small slimes.",
                 "Thievery": "You lose [AMT] gold if this enemy flees.",
-                "Curl Up": "Upon recieving damage, gains [BAMT] Block.",
-                "Spore Cloud": "On death, applies [AMT] Vulnerable to the player."
+                "Curl Up": "Upon receiving damage, gains [BAMT] Block.",
+                "Spore Cloud": "On death, applies [AMT] Vulnerable to the player.",
+                "Plated Armor": "Start each turn with [BAMT] Block. Goes down when taking damage.",
+                "Angry": "Upon receiving damage, gains [AMT] Strength.",
+                "Stunned": "Skips the next [AMT] turn[s].",
+                "Lifelink": "After being killed, uses its turn to revive itself. Kill all Darklings in one turn to win.",
+                "Fading": "Dies in [AMT] turns.",
+                "Shifting": "Upon receiving damage, lose that much Strength until end of turn.",
+                "Strength Up": "At end of turn, gain [AMT] Strength."
             };
             let buffDescPlus = {
                 ...buffDesc,
@@ -822,16 +830,16 @@ if(multiChoice.includes(num)) {
                         }
                         ifRelic("Chemical X", useCard, [this]);
                         ifRelic("Chemical X", useCard, [this]);
-                        if(!(hasBuff("Swivel") > 0 && this.type == "Attack")) {
+                        if(!(hasBuff("Swivel") && this.type == "Attack")) {
                             energy = 0;
                         }
                         played = true;
                     } else {
                         let newCost = this.cost;
-                        if(hasBuff("Corruption") > 0 && this.type == "Skill") {
+                        if(hasBuff("Corruption") && this.type == "Skill") {
                             newCost = 0;
                         }
-                        if(hasBuff("Swivel") > 0 && this.type == "Attack") {
+                        if(hasBuff("Swivel") && this.type == "Attack") {
                             loseBuff("Swivel", 1);
                             newCost = 0;
                         }
@@ -843,7 +851,7 @@ if(multiChoice.includes(num)) {
                     }
                     if(played) {
                         hand.splice(hand.indexOf(this), 1);
-                        if(this.flags.includes("exhausted") || (hasBuff("Corruption") > 0 && this.type == "Skill")) {
+                        if(this.flags.includes("exhausted") || (hasBuff("Corruption") && this.type == "Skill")) {
                             exhaustPile.push(this);
                             drawCard(hasBuff("Dark Embrace"));
                             gainBuff("Block", hasBuff("Feel No Pain"));
@@ -861,17 +869,17 @@ if(multiChoice.includes(num)) {
                 play_success() {
                     stats.lastType = this.type;
                     if(hand.length == 0) {ifRelic("Unceasing Top", function(){drawCard()})}
-                    if(hasBuff("Thousand Cuts") > 0) {for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}}
-                    if(hasBuff("After Image") > 0) {gainBuff("Block", hasBuff("After Image"));}
+                    for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}
+                    gainBuff("Block", hasBuff("After Image"));
                     if(Math.random() < 0.1) {ifRelic("Ink Bottle", function(){drawCard();})}
                     stats.cardsThisTurn += 1;
                     if(this.type == "Skill") {
                         stats.skillsThisTurn += 1;
                         if(stats.skillsThisTurn % 3 == 0) {ifRelic("Letter Opener", function(){for(let e of enemies){dealDamage(e, 5)}})}
                         for(let e of enemies) {
-                            if(e.hasBuff("Enrage") > 0) {e.gainBuff("Strength", e.hasBuff("Enrage"));}
+                            e.gainBuff("Strength", e.hasBuff("Enrage"));
                         }
-                        if(hasBuff("Burst") > 0 && this.name != "Burst" && this.name != "Burst+") {
+                        if(hasBuff("Burst") && this.name != "Burst" && this.name != "Burst+") {
                             loseBuff("Burst", 1);
                             this.use(target);
                         }
@@ -895,18 +903,18 @@ if(multiChoice.includes(num)) {
                             ifRelic("Shuriken", function(){gainBuff("Strength", 1)});
                             ifRelic("Ornamental Fan", function(){gainBuff("Block", 4)});
                         }
-                        if(hasBuff("Rage") > 0) {gainBuff("Block", hasBuff("Rage"));}
-                        if(hasBuff("Double Tap") > 0) {
+                        gainBuff("Block", hasBuff("Rage"));
+                        if(hasBuff("Double Tap")) {
                             loseBuff("Double Tap", 1);
                             this.use(target);
                         }
                         ifRelic("Pen Nib", function(){gainBuff("Pen Nib", 1)});
-                        if(hasBuff("Vigor") > 0) {loseBuff("Vigor");}
+                        loseBuff("Vigor");
                     }
                     if(this.name.toLowerCase().includes("strike")) {
                     }
                     if(this.type != "Attack") {
-                        if(hasBuff("Hex") > 0) {
+                        if(hasBuff("Hex")) {
                             for(let i=0; i<hasBuff("Hex"); i++) {discardPile.push(statusCards["Dazed"]());}
                         }
                     }
@@ -933,12 +941,12 @@ if(multiChoice.includes(num)) {
                 constructor(name, kind, hp, hpUp, attacks, attacksUp1, attacksUp2, flags=[], buffs={}, buffsUp={}) {
                     this.name = name;
                     this.number = Math.random();
-                    this.hp = hp;
                     this.maxHp = hp;
                     if(getId("ascensionLevel").value > (kind=="n"?4:(kind=="e"?5:6))) {
-                        this.hp = hpUp;
                         this.maxHp = hpUp;
                     }
+                    if(this.maxHp != 999) {this.maxHp = Math.round((Math.random()*0.3 + 0.85) * this.maxHp);} // Transient doesn't change hp
+                    this.hp = this.maxHp;
                     this.attacks = attacks;
                     if(getId("ascensionLevel").value > (kind=="n"?7:(kind=="e"?8:9))) {
                         this.attacks = attacksUp1;
@@ -982,7 +990,7 @@ if(multiChoice.includes(num)) {
                 }
                 gainBuff(name, amt) {
                     if(amt == 0) return;
-                    if(debuffs.includes(name) && this.hasBuff("Artifact") > 0) {this.loseBuff("Artifact", 1); updateHtml(); return;}
+                    if(debuffs.includes(name) && this.hasBuff("Artifact")) {this.loseBuff("Artifact", 1); updateHtml(); return;}
                     let newAmt = amt;
                     if(name == "Block") {newAmt = this.calcBlock(amt);}
                     if(name == "Poison") {ifRelic("Snecko Skull", function(){newAmt += 1})}
@@ -1003,25 +1011,26 @@ if(multiChoice.includes(num)) {
                 }
                 
                 calcDamage(amt, actuallyDeal=false) {
+                    if(amt == 0) return 0;
                     let finalAmt = amt;
-                    if(hasBuff("Vulnerable") > 0) {finalAmt = Math.round(finalAmt * 1.5);}
+                    if(hasBuff("Vulnerable")) {finalAmt = Math.round(finalAmt * 1.5);}
                     if(hasBuff("Wrath")) {finalAmt *= 2;}
                     finalAmt += this.hasBuff("Strength");
                     finalAmt -= this.hasBuff("Minus Strength");
-                    if(this.hasBuff("Weak") > 0) {finalAmt = Math.round(finalAmt * 0.75);}
+                    if(this.hasBuff("Weak")) {finalAmt = Math.round(finalAmt * 0.75);}
                     let ub = finalAmt - hasBuff("Block");
                     if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
                     if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
                     if(hasBuff("Intangible")) {finalAmt = 1;}
-                    if(hasBuff("Buffer") > 0 && ub > 0) {finalAmt = 0; if(actuallyDeal){loseBuff("Buffer", 1);}}
+                    if(hasBuff("Buffer") && ub > 0 && actuallyDeal) {finalAmt = 0; loseBuff("Buffer", 1);}
                     return finalAmt;
                 }
                 
                 calcBlock(amt) {
                     let newAmt = amt;
-                    if(this.hasBuff("Frail") > 0          ) {newAmt = Math.round(newAmt * 0.75);}
-                    if(this.hasBuff("Dexterity") > 0      ) {newAmt += this.hasBuff("Dexterity");}
-                    if(this.hasBuff("Minus Dexterity") > 0) {newAmt -= this.hasBuff("Minus Dexterity");}
+                    if(this.hasBuff("Frail")          ) {newAmt = Math.round(newAmt * 0.75);}
+                    if(this.hasBuff("Dexterity")      ) {newAmt += this.hasBuff("Dexterity");}
+                    if(this.hasBuff("Minus Dexterity")) {newAmt -= this.hasBuff("Minus Dexterity");}
                     return newAmt;
                 }
                 
@@ -1040,7 +1049,7 @@ if(multiChoice.includes(num)) {
                                 i.cost -= 1;
                             }
                         }
-                        if(hasBuff("Thorns") > 0 && procThorns) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
+                        if(hasBuff("Thorns") && procThorns) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
                         let red = dealt * 0.02 + 0.24;
                         let i = 0;
                         while(red > 0) {
@@ -1061,10 +1070,13 @@ if(multiChoice.includes(num)) {
                 if(amt == 0) return;
                 if(debuffs.includes(name) && hasBuff("Artifact") > 0) {loseBuff("Artifact", 1); updateHtml(); return;}
                 let newAmt = amt;
-                if(name == "Block") {newAmt = calcYourBlock(amt); for(let e of enemies){e.gainBuff("Weak", hasBuff("Wave of the Hand"));}}
+                if(name == "Block") {
+                    newAmt = calcYourBlock(amt);
+                    for(let e of enemies){e.gainBuff("Weak", hasBuff("Wave of the Hand"));}
+                    dealDamage(choice(enemies), hasBuff("Juggernaut"));
+                }
                 if(name == "Weak") {ifRelic("Ginger", function(){newAmt = 0});}
                 if(name == "Frail") {ifRelic("Turnip", function(){newAmt = 0});}
-                if(hasBuff("Juggernaut") > 0 && name == "Block") {dealDamage(choice(enemies), hasBuff("Juggernaut"));}
                 if(name == "Vulnerable") {gainBuff(".", 1);}
                 if(amt == 0) return;
                 let foundIt = false; for(let b of buffs) {if(b.name == name) {
@@ -1105,7 +1117,9 @@ if(multiChoice.includes(num)) {
                 if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3;})}
                 if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
                 finalAmt += Math.floor(target.hasBuff("Mark") * hasBuff("Precision") / 5);
-                if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){enemy.loseBuff("Flight", 1);}}
+                if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){
+                    enemy.loseBuff("Flight", 1); if(!enemy.hasBuff("Flight")) {enemy.gainBuff("Stunned", 3);}
+                }}
                 if(hasBuff("Wrath")) {finalAmt *= 2;}
                 if(hasBuff("Divinity")) {finalAmt *= 3;}
                 if(hasBuff("Pen Nib") >= 9) {
@@ -1136,16 +1150,18 @@ if(multiChoice.includes(num)) {
             function calcYourBlock(amt) {
                 if(amt == 0) return 0;
                 let newAmt = amt;
-                if(hasBuff("Frail") > 0          ) {newAmt = Math.round(newAmt * 0.75);}
-                if(hasBuff("Dexterity") > 0      ) {newAmt += hasBuff("Dexterity");}
-                if(hasBuff("Minus Dexterity") > 0) {newAmt -= hasBuff("Minus Dexterity");}
+                if(hasBuff("Frail")          ) {newAmt = Math.round(newAmt * 0.75);}
+                if(hasBuff("Dexterity")      ) {newAmt += hasBuff("Dexterity");}
+                if(hasBuff("Minus Dexterity")) {newAmt -= hasBuff("Minus Dexterity");}
                 return newAmt;
             }
             
             function dealDamage(enemy, amt, shiv=false, strike=false) {
                 let finalAmt = calcYourDamage(enemy, amt, shiv, strike, true);
+                if(finalAmt == 0) return;
                 let dealt = Math.max(0, finalAmt - enemy.hasBuff("Block"));
                 enemy.hp -= dealt;
+                if(enemy.hasBuff("Shifting")) {enemy.gainBuff("Minus Strength", dealt);}
                 let red = dealt * 10 + 120;
                 let i = 0;
                 while(red > 0) {
@@ -1161,10 +1177,19 @@ if(multiChoice.includes(num)) {
                 }
                 enemy.loseBuff("Block", finalAmt);
                 if(dealt > 0) {
-                    if(hasBuff("Envenom") > 0) {enemy.gainBuff("Poison", hasBuff("Envenom"));}
+                    if(hasBuff("Envenom")) {enemy.gainBuff("Poison", hasBuff("Envenom"));}
+                    enemy.loseBuff("Plated Armor", 1);
+                    if(enemy.hasBuff("Curl Up")) {
+                        enemy.gainBuff("Block", enemy.hasBuff("Curl Up"));
+                        enemy.loseBuff("Curl Up");
+                    }
+                    enemy.gainBuff("Strength", enemy.hasBuff("Angry"));
                 }
-                if(finalAmt > 0 && enemy.hasBuff("Thorns") > 0) {enemy.dealDamage(enemy.hasBuff("Thorns"), false); updateHtml();}
-                if(finalAmt > 0 && enemy.hasBuff("Talk to the Hand") > 0) {gainBuff("Block", enemy.hasBuff("Talk to the Hand"));}
+                if(finalAmt > 0) {
+                    enemy.dealDamage(enemy.hasBuff("Thorns"), false);
+                    gainBuff("Block", enemy.hasBuff("Talk to the Hand"));
+                    updateHtml();
+                }
             }
             
             let debuffs = ["Vulnerable", "Weak", "Strength Down", "No Draw", "Frail", "Minus Strength", "Minus Dexterity", "Dexterity Down", "Hex", "Draw Reduction", "Poison", "Confused", "Mark", "Fasting", "Talk to the Hand"];            
@@ -1238,7 +1263,7 @@ if(multiChoice.includes(num)) {
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
-                    if(eliteBattle == true) {music.elite.play(); announceMusic("Strike The Earth!");}
+                    if(eliteBattle) {music.elite.play(); announceMusic("Strike The Earth!");}
                     else if(bossBattle && actNum == 1) {music.boss1.play(); announceMusic("The Decadent Dandy");}
                     else if(bossBattle && actNum == 2) {music.boss2.play(); announceMusic("The Schemer");}
                     else if(bossBattle && actNum == 3) {music.boss3.play(); announceMusic("The Rival");}
@@ -1337,7 +1362,7 @@ if(multiChoice.includes(num)) {
                         } else {
                             enemies.push(new Enemy("Deca", 275, [
                                 {intent: "attack-nerf 24", desc: "deal [DAM24] damage and generate Status cards", effect: attack_status(24, "Dazed", 3)},
-                                {intent: "blocking", desc: "block", effect: function(me){for(let e of enemies){e.gainBuff("Block", 16); e.gainBuff("Metallicize", 1);}}}
+                                {intent: "blocking", desc: "block", effect: function(me){for(let e of enemies){e.gainBuff("Block", 16); e.gainBuff("Plated Armor", 4);}}}
                             ]));
                         }
                         for(let i of enemies) i.gainBuff("Artifact", 3);
@@ -1589,7 +1614,7 @@ updateStatLine();
             }, ["exhausted"]);
             let dropkick = () => new Card("Dropkick", 1, "Attack", "Deal [DAM5] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 5);
-                if(enemy.hasBuff("Vulnerable") > 0) {
+                if(enemy.hasBuff("Vulnerable")) {
                     energy++;
                     drawCard();
                 }
@@ -1604,7 +1629,7 @@ updateStatLine();
                 }
             });
             let entrench = () => new Card("Entrench", 2, "Skill", "Double your Block.", function(enemy){
-                if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
+                if(hasBuff("Block")) {gainBuff("Block", hasBuff("Block"));}
             });
             let evolve = () => new Card("Evolve", 1, "Power", "Whenever you draw a Status card, draw another card.", function(enemy){
                 gainBuff("Evolve", 1);
@@ -1612,7 +1637,7 @@ updateStatLine();
             let feelNoPain = () => new Card("Feel No Pain", 1, "Power", "When a card is Exhausted, gain [BLK3] Block.", function(enemy){
                 gainBuff("Feel No Pain", 3);
             }, ["exhausted"]);
-            let fireBreathing = () => new Card("Fire Breathing", 1, "Power", "Whenever you draw a Status card, deal 6 damage to ALL enemies", function(enemy){
+            let fireBreathing = () => new Card("Fire Breathing", 1, "Power", "Whenever you draw a Status card, deal 6 damage to ALL enemies.", function(enemy){
                 gainBuff("Fire Breathing", 6);
             }, ["exhausted"]);
             let flameBarrier = () => new Card("Flame Barrier", 2, "Skill", "Gain [BLK12] Block and 2 Thorns.", function(enemy){
@@ -1730,7 +1755,7 @@ updateStatLine();
                 gainBuff("Juggernaut", 5);
             }, ["exhausted"]);
             let limitBreak = () => new Card("Limit Break", 1, "Skill", "Double your Strength. Exhaust.", function(enemy){
-                if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
+                if(hasBuff("Strength")) {gainBuff("Strength", hasBuff("Strength"));}
             }, ["exhausted"]);
             let offering = () => new Card("Offering", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 3 cards. Exhaust.", function(enemy){
                 hp -= 6; energy += 2; drawCard(3);
@@ -1890,7 +1915,7 @@ updateStatLine();
             }, ["exhausted"]);
             let heelHook = () => new Card("Heel Hook", 1, "Attack", "Deal [DAM5] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 5);
-                if(enemy.hasBuff("Weak") > 0) {energy += 1; drawCard();}
+                if(enemy.hasBuff("Weak")) {energy += 1; drawCard();}
             });
             let infiniteBlades = () => new Card("Infinite Blades", 1, "Power", "At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
@@ -2265,7 +2290,7 @@ updateStatLine();
                     enemy.gainBuff("Minus Strength", 3);
                 }, ["exhausted"]), "Dropkick": () => new Card("Dropkick+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Vulnerable, gain 1 energy and draw a card.", function(enemy){
                     dealDamage(enemy, 8);
-                    if(enemy.hasBuff("Vulnerable") > 0) {
+                    if(enemy.hasBuff("Vulnerable")) {
                         energy++;
                         drawCard();
                     }
@@ -2279,12 +2304,12 @@ updateStatLine();
                         alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
                     }
                 }), "Entrench": () => new Card("Entrench+", 1, "Skill", "Double your Block.", function(enemy){
-                    if(hasBuff("Block")>0) {gainBuff("Block", hasBuff("Block"));}
+                    if(hasBuff("Block")) {gainBuff("Block", hasBuff("Block"));}
                 }), "Evolve": () => new Card("Evolve+", 1, "Power", "Whenever you draw a Status card, draw 2 more cards.", function(enemy){
                     gainBuff("Evolve", 2);
                 }, ["exhausted"]), "Feel No Pain": () => new Card("Feel No Pain+", 1, "Power", "When a card is Exhausted, gain [BLK4] Block.", function(enemy){
                     gainBuff("Feel No Pain", 4);
-                }, ["exhausted"]), "Fire Breathing": () => new Card("Fire Breathing+", 1, "Power", "Whenever you draw a Status card, deal 10 damage to ALL enemies", function(enemy){
+                }, ["exhausted"]), "Fire Breathing": () => new Card("Fire Breathing+", 1, "Power", "Whenever you draw a Status card, deal 10 damage to ALL enemies.", function(enemy){
                     gainBuff("Fire Breathing", 10);
                 }, ["exhausted"]), "Flame Barrier": () => new Card("Flame Barrier+", 2, "Skill", "Gain [BLK16] Block and 3 Thorns.", function(enemy){
                     gainBuff("Block", 16); gainBuff("Thorns", 3);
@@ -2372,7 +2397,7 @@ updateStatLine();
                 }, ["exhausted"]), "Juggernaut": () => new Card("Juggernaut+", 2, "Power", "Whenever you gain Block, deal [DAM7] damage to a random enemy.", function(enemy){
                     gainBuff("Juggernaut", 7);
                 }, ["exhausted"]), "Limit Break": () => new Card("Limit Break+", 1, "Skill", "Double your Strength.", function(enemy){
-                    if(hasBuff("Strength")>0) {gainBuff("Strength", hasBuff("Strength"));}
+                    if(hasBuff("Strength")) {gainBuff("Strength", hasBuff("Strength"));}
                 }), "Offering": () => new Card("Offering+", 0, "Skill", "Lose 6 HP. Gain 2 energy. Draw 5 cards. Exhaust.", function(enemy){
                     hp -= 6; energy += 2; drawCard(5);
                 }, ["exhausted"]), "Reaper": () => new Card("Reaper+", 2, "Attack", "Deal [DAM10] damage. Heal 10 HP. Exhaust.", function(enemy){
@@ -2491,7 +2516,7 @@ updateStatLine();
                 gainBuff("Dexterity", 3);
             }, ["exhausted"]), "Heel Hook": () => new Card("Heel Hook+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 8);
-                if(enemy.hasBuff("Weak") > 0) {energy += 1; drawCard();}
+                if(enemy.hasBuff("Weak")) {energy += 1; drawCard();}
             }), "Infinite Blades": () => new Card("Infinite Blades+", 1, "Power", "Innate. At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
             }, ["exhausted", "innate"]), "Leg Sweep": () => new Card("Leg Sweep+", 2, "Skill", "Apply 3 Weak. Gain [BLK14] Block.", function(enemy){
@@ -2776,9 +2801,16 @@ updateStatLine();
             function addCard() {
                 let newCards;
                 if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
-                    newCards = shuffle([randCard(), randRareCard(), randRareCard()]);
+                    newCards = shuffle([randRareCard(), randRareCard(), randRareCard()]);
                 } else {
                     newCards = [randCard(), randCard(), randCard()];
+                }
+                while(newCards.filter((v, i, a) => a.indexOf(v) === i).length < newCards.length) {
+                    if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
+                        newCards = shuffle([randCard(), randRareCard(), randRareCard()]);
+                    } else {
+                        newCards = [randCard(), randCard(), randCard()];
+                    }
                 }
                 if(relics.map(x=>x.name).includes("Busted Crown")) newCards = [newCards[0]];
                 possibleCards = newCards;
@@ -2822,6 +2854,9 @@ updateStatLine();
             
             function addBossRelic() {
                 let newCards = [choice(bossRelicPool), choice(bossRelicPool), choice(bossRelicPool)];
+                while(newCards.filter((v, i, a) => a.indexOf(v) === i).length < newCards.length) {
+                    newCards = [choice(bossRelicPool), choice(bossRelicPool), choice(bossRelicPool)];
+                }
                 possibleCards = newCards;
                 getId("bossModal").style.display = "block";
                 for(let x=0; x<3; x++) {
@@ -2978,7 +3013,7 @@ updateStatLine();
                 {name: "Cultist", desc: "Gain 1 Ritual.", effect: 'Promise.resolve(gainBuff("Ritual", 1))'},
                 {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: 'Promise.resolve(gainBuff("Dexterity", 2))'},
                 {name: "Energy", desc: "Gain 2 energy.", effect: 'energy += 2'},
-                {name: "Iron", desc: "Gain 3 Metallicize.", effect: 'Promise.resolve(gainBuff("Metallicize", 3))'},
+                {name: "Iron", desc: "Gain 5 Plated Armor.", effect: 'Promise.resolve(gainBuff("Plated Armor", 5))'},
                 {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: 'for(let e of enemies){dealDamage(e, 10);}'},
                 {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: 'Promise.resolve(tgt.gainBuff("Vulnerable", 3))'},
                 {name: "Fire", desc: "Deal 20 damage to target.", effect: 'dealDamage(tgt, 20)'},
@@ -3747,7 +3782,7 @@ getId("woogleButton").onclick = function() {showMap();}
             }
             let attack = amt => function(me){ me.dealDamage(amt); }
             let block = amt => function(me){ me.gainBuff("Block", amt); }
-            let block_random = amt => function(me){ choice(enemies).gainBuff("Block", amt); }
+            let block_other = (blk) => function(me){ choice(enemies.filter(x=>!x.number==me.number)).gainBuff("Block", amt); }
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
@@ -3953,11 +3988,11 @@ getId("woogleButton").onclick = function() {showMap();}
                 {intent: "attacking 5", desc: "deal [DAM5] damage", effect: attack(5)}
             ], [], {"Angry": 1}, {"Angry": 2});
             let shieldGremlin = () => new Enemy("Shield Gremlin", "n", 13, 16, [
-                {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(7)}
             ], [
-                {intent: "blocking", desc: "shield a random enemy", effect: block_random(8)}
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(8)}
             ], [
-                {intent: "blocking", desc: "shield a random enemy", effect: block_random(11)}
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(11)}
             ]);
             let sneakyGremlin = () => new Enemy("Sneaky Gremlin", "n", 12, 13, [
                 {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)}
@@ -3979,7 +4014,6 @@ getId("woogleButton").onclick = function() {showMap();}
                 {intent: "attacking 30", desc: "deal [DAM30] damage", effect: attack(30)}
             ]);
             let allGremlins = [fatGremlin, fatGremlin, sneakyGremlin, sneakyGremlin, madGremlin, madGremlin, shieldGremlin, gremlinWizard];
-            // TODO: Fix all below monsters //
             
             let possibleElites = [
                 () => new Enemy("Gremlin Nob", "e", 84, 88, [
@@ -4090,71 +4124,144 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "attacking 16", desc: "deal [DAM16] damage", effect: attack(16)}
                 ])
             ];
-            let possibleEnemies_act2 = [
-                () => new Enemy("Spheric Guardian", 60, [
-                    {intent: "block-buff", desc: "gain multiple buffs", effect: multi_buff([["Barricade", 1], ["Block", 25], ["Artifact", 3]])},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Frail", 5)},
-                    {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 7)}
-                ], ["no-repeat"]),
-                () => new Enemy("The Chosen", 95, [
-                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                    {intent: "meganerf", desc: "apply a powerful negative effect", effect: apply("Hex", 1)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(7, "Vulnerable", 1)},
-                    {intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)},
-                    {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
-                    {intent: "attacking 12", desc: "deal [DAM18] damage", effect: attack(12)},
-                    {intent: "attack-nerf 7", desc: "deal [DAM7] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 1)}
-                ]),
-                () => new Enemy("Shelled Parasite", 70, [
-                    {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
-                    {intent: "attack-block 8", desc: "deal [DAM8] damage and block", effect: attack_block(8, 10)},
-                    {intent: "attack-nerf 12", desc: "deal [DAM12] damage and apply a negative effect", effect: attack_apply(12, "Frail", 2)}
-                ]),
-                () => new Enemy("Byrd", 70, [
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Flight", 6)},
-                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)},
-                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 4)}
-                ]),
-                () => new Enemy("Snecko", 115, [
-                    {intent: "meganerf", desc: "apply a negative effect", effect: apply("Confused", 1)},
-                    {intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)}
-                ], ["no-repeat"])
-            ];
+            
+            let sphericGuardian = () => new Enemy("Spheric Guardian", "n", 20, 20, [
+                {intent: "block", desc: "block", effect: block(25)},
+                {intent: "attack-nerf 10", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(10, "Frail", 5)},
+                {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 15)}
+            ], [
+                {intent: "block", desc: "block", effect: block(25)},
+                {intent: "attack-nerf 11", desc: "deal [DAM11] damage and apply a negative effect", effect: attack_apply(11, "Frail", 5)},
+                {intent: "attack-block 11", desc: "deal [DAM11] damage and block", effect: attack_block(11, 15)}
+            ], [
+                {intent: "block", desc: "block", effect: block(40)},
+                {intent: "attack-nerf 11", desc: "deal [DAM11] damage and apply a negative effect", effect: attack_apply(11, "Frail", 5)},
+                {intent: "attack-block 11", desc: "deal [DAM11] damage and block", effect: attack_block(11, 15)}
+            ], ["no-repeat"], {"Barricade": 1, "Block": 40, "Artifact": 3}, {"Barricade": 1, "Block": 40, "Artifact": 3});
+            let theChosen = () => new Enemy("The Chosen", "n", 97, 101, [
+                {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                {intent: "meganerf", desc: "apply a powerful negative effect", effect: apply("Hex", 1)},
+                {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                {intent: "attack-nerf 10", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)}
+            ], [
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "meganerf", desc: "apply a powerful negative effect", effect: apply("Hex", 1)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
+                {intent: "attack-nerf 12", desc: "deal [DAM12] damage and apply a negative effect", effect: attack_apply(12, "Vulnerable", 2)}
+            ], [
+                {intent: "meganerf", desc: "apply a powerful negative effect", effect: apply("Hex", 1)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "nerfing", desc: "apply a negative effect and gain a buff", effect: buff_apply("Strength", 3, "Weak", 3)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
+                {intent: "attack-nerf 12", desc: "deal [DAM12] damage and apply a negative effect", effect: attack_apply(12, "Vulnerable", 2)}
+            ]);
+            let shelledParasite = () => new Enemy("Shelled Parasite", "n", 70, 73, [
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
+                {intent: "attacking 18", desc: "deal [DAM18] damage and apply a negative effect", effect: attack_apply(18, "Frail", 2)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage and apply a negative effect", effect: attack_apply(21, "Frail", 2)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage and apply a negative effect", effect: attack_apply(21, "Frail", 2)}
+            ], ["randomize", "repeatable"], {"Plated Armor": 14}, {"Plated Armor": 14});
+            let centurion = () => new Enemy("Centurion", "n", 78, 81, [
+                {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(15)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(15)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
+                {intent: "blocking", desc: "shield another enemy", effect: block_other(20)}
+            ], ["randomize"]);
+            let mystic = () => new Enemy("Mystic", "n", 52, 54, [
+                {intent: "buffing", desc: "buff ALL enemies", effect: function(me){for(let i of enemies){i.gainBuff("Strength", 2)}}},
+                {intent: "buffing", desc: "heal ALL enemies", effect: function(me){for(let i of enemies){i.hp=Math.min(i.maxHp,i.hp+16)}}},
+                {intent: "attack-nerf 8", desc: "deal [DAM8] damage and apply a negative effect", effect: attack_apply(8, "Frail", 2)}
+            ], [
+                {intent: "buffing", desc: "buff ALL enemies", effect: function(me){for(let i of enemies){i.gainBuff("Strength", 3)}}},
+                {intent: "buffing", desc: "heal ALL enemies", effect: function(me){for(let i of enemies){i.hp=Math.min(i.maxHp,i.hp+16)}}},
+                {intent: "attack-nerf 9", desc: "deal [DAM9] damage and apply a negative effect", effect: attack_apply(9, "Frail", 2)}
+            ], [
+                {intent: "buffing", desc: "buff ALL enemies", effect: function(me){for(let i of enemies){i.gainBuff("Strength", 4)}}},
+                {intent: "buffing", desc: "heal ALL enemies", effect: function(me){for(let i of enemies){i.hp=Math.min(i.maxHp,i.hp+20)}}},
+                {intent: "attack-nerf 9", desc: "deal [DAM9] damage and apply a negative effect", effect: attack_apply(9, "Frail", 2)}
+            ], ["randomize"]);
+            let snecko = () => new Enemy("Snecko", "n", 117, 123, [
+                {intent: "meganerf", desc: "apply a negative(?) effect", effect: apply("Confused", 1)},
+                {intent: "attack-nerf 8", desc: "deal [DAM8] damage & apply a negative effect", effect: attack_apply(8, "Vulnerable", 2)},
+                {intent: "attacking 15", desc: "deal [DAM15] damage", effect: attack(15)}
+            ], [
+                {intent: "meganerf", desc: "apply a negative(?) effect", effect: apply("Confused", 1)},
+                {intent: "attack-nerf 10", desc: "deal [DAM10] damage & apply a negative effect", effect: attack_apply(10, "Vulnerable", 2)},
+                {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)}
+            ], [
+                {intent: "meganerf", desc: "apply a negative(?) effect", effect: apply("Confused", 1)},
+                {intent: "attack-nerf 10", desc: "deal [DAM10] damage & apply a negative effect", effect: attack_multinerf(10, [["Vulnerable", 2], ["Weak", 2]])},
+                {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)}
+            ], ["skip-first"]);
+            let byrd = () => new Enemy("Byrd", "n", 28, 30, [
+                {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 5)},
+                {intent: "attacking 5", desc: "deal [DAM5] damage", effect: attack(5)}
+            ], [
+                {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 6)},
+                {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
+            ], [
+                {intent: "buffing", desc: "gain a buff", effect: buff("Strength", 6)},
+                {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
+            ], ["randomize"], {"Flight": 3}, {"Flight": 4});
+            
             let possibleElites_act2 = [
-                () => new Enemy("Book of Stabbing", 160, [
-                    {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
-                    {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)},
-                    {intent: "attack-buff 8", desc: "deal [DAM8] damage and gain a buff", effect: attack_buff(8, "Strength", 4)}
-                ]),
-                () => new Enemy("Gremlin Leader", 150, [
+                () => new Enemy("Book of Stabbing", "e", 161, 170, [
+                    {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
+                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_buff(12, "Strength", 6)},
+                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_buff(12, "Strength", 6)}
+                ], [
+                    {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)}
+                ], [
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 7)},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)}
+                ], ["randomize"], {"Painful Stabs": 1}, {"Painful Stabs": 1}),
+                () => new Enemy("Gremlin Leader", "e", 144, 151, [
                     {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 3)},
-                    {intent: "attacking 12", desc: "deal [DAM12] damage", effect: attack(12)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "unknown", desc: "summon allies", effect: function(me){
-                        let gremlins = [
-                            () => new Enemy("Fat Gremlin", 15, [
-                                {intent: "attack-nerf 3", desc: "deal [DAM3] damage and apply a negative effect", effect: attack_apply(3, "Weak", 1)}
-                            ], ["no-repeat"]),
-                            () => new Enemy("Mad Gremlin", 20, [
-                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)}
-                            ], ["no-repeat"]),
-                            () => new Enemy("Shield Gremlin", 15, [
-                                {intent: "attacking 4", desc: "deal [DAM4] damage", effect: attack(4)},
-                                {intent: "blocking", desc: "shield a random enemy", effect: block_random(7)}
-                            ], ["no-repeat"]),
-                            () => new Enemy("Sneaky Gremlin", 10, [
-                                {intent: "attacking 6", desc: "deal [DAM6] damage", effect: attack(6)}
-                            ], ["no-repeat"]),
-                            () => new Enemy("Wizard Gremlin", 25, [
-                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
-                                {intent: "unknown", desc: "charge a powerful attack", effect: passTurn()},
-                                {intent: "attacking 17", desc: "deal [DAM17] damage", effect: attack(17)}
-                            ])
-                        ];
-                        if(enemies.length <= 8) {enemies.unshift(choice(gremlins)()); enemies.unshift(choice(gremlins)());}
+                        enemies.unshift(choice(allGremlins)());
+                        enemies.unshift(choice(allGremlins)());
                     }}
-                ], ["randomize"])
+                ], [
+                    {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 4)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "unknown", desc: "summon allies", effect: function(me){
+                        enemies.unshift(choice(allGremlins)());
+                        enemies.unshift(choice(allGremlins)());
+                    }}
+                ], [
+                    {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 5)},
+                    {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
+                    {intent: "unknown", desc: "summon allies", effect: function(me){
+                        enemies.unshift(choice(allGremlins)());
+                        enemies.unshift(choice(allGremlins)());
+                    }}
+                ]["randomize"])
             ];
             let possibleBosses_act2 = [
                 () => new Enemy("The Champ", 420, [
@@ -4199,37 +4306,28 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "meganerf", desc: "apply powerful negative effects", effect: multi_apply([["Weak", 2], ["Vulnerable", 2], ["Frail", 2]])}
                 ], ["skip-first"])
             ];
-            let possibleEnemies_act3 = [
-                () => new Enemy("Huge Jaw Worm", 70, [
-                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(8, "Strength", 2)},
-                    {intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)},
-                    {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(8, "Strength", 2)},
-                    {intent: "attack-block 6", desc: "deal [DAM6] damage and block", effect: attack_block(6, 6)}
-                ]),
-                () => new Enemy("Spiker", 50, [
-                    {intent: "unknown", desc: "summon friends", effect: function(me){
-                        if(enemies.length <= 8) {
-                            let exploder = () => new Enemy("Exploder", 30, [
-                                {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
-                                {intent: "unknown 6", desc: "deal [DAM6] damage and get ready to explode", effect: attack(6)},
-                                {intent: "unknown 20", desc: "deal [DAM20] damage and die", effect: function(me){
-                                    enemies.splice(enemies.indexOf(me), 1); me.dealDamage(20);}
-                                }
-                            ], ["no-repeat"]);
-                            let repulsor = () => new Enemy("Repulsor", 30, [
-                                {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}
-                            ], ["no-repeat"]);
-                            enemies.unshift(repulsor());
-                            enemies.unshift(exploder());
-                        }
-                    }},
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Thorns", 3)}
-                ], ["no-repeat"]),
-                () => new Enemy("Orb Walker", 90, [
-                    {intent: "buffing", desc: "gain a buff", effect: buff("Ritual", 3)},
-                    {intent: "attack-nerf 10", desc: "deal [DAM10] damage and generate Status cards", effect: attack_status(10, "Burn", 1)}
-                ], ["no-repeat"])
-            ];
+            
+            let darkling = () => new Enemy("Darkling", "n", 52, 55, [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "blocking", desc: "block", effect: block(9)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "blocking", desc: "block", effect: block(9)}
+            ], [
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
+                {intent: "blocking", desc: "block", effect: block(9)}
+            ], ["randomize"], {"Lifelink": 1}, {"Lifelink": 1});
+            let transient = () => new Enemy("Transient", "n", 999, 999, [
+                {intent: "attack-buff 30", desc: "deal [DAM30] damage and gain a buff", effect: attack_buff(30, "Strength", 10)}
+            ], [
+                {intent: "attack-buff 40", desc: "deal [DAM40] damage and gain a buff", effect: attack_buff(40, "Strength", 10)}
+            ], [
+                {intent: "attack-buff 40", desc: "deal [DAM40] damage and gain a buff", effect: attack_buff(40, "Strength", 10)}
+            ], [], {"Fading": 5, "Shifting": 1}, {"Fading": 6, "Shifting": 1});
+            
             let possibleElites_act3 = [
                 () => new Enemy("Nemesis", 185, [
                     {intent: "nerfing", desc: "generate Status cards", effect: status("Burn", 2)},
@@ -4271,8 +4369,18 @@ getId("woogleButton").onclick = function() {showMap();}
                     [[rLouse, gLouse], [rLouse, gLouse]],
                     [[acidSlimeM, spikeSlimeM], [acidSlimeS, spikeSlimeS]]
                 ],
-                [],
-                []
+                [
+                    [[sphericGuardian]],
+                    [[theChosen]],
+                    [[shelledParasite]],
+                    [[byrd], [byrd], [byrd]],
+                    [[looter], [mugger]]
+                ],
+                [
+                    [[darkling], [darkling], [darkling]],
+                    //[[orbWalker]],
+                    //[[repulsor, spiker, exploder], [repulsor, spiker, exploder], [repulsor, spiker, exploder]]
+                ]
             ];
             let hardPools = [
                 ["The harder enemy pools, used for the later part of the Act."],
@@ -4287,8 +4395,26 @@ getId("woogleButton").onclick = function() {showMap();}
                     [[rLouse, gLouse, acidSlimeM, spikeSlimeM], [fungiBeast, jawWorm]],
                     [[looter]]
                 ],
-                [],
-                []
+                [
+                    [[theChosen], [byrd]],
+                    [[cultist], [theChosen]],
+                    [[() => new Enemy("Sentry", "e", 40, 42, [{intent: "attacking 9", desc: "deal [DAM9] damage", effect: attack(9)}, {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}], [{intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)}, {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 2)}], [{intent: "attacking 10", desc: "deal [DAM10] damage", effect: attack(10)}, {intent: "nerfing", desc: "generate Status cards", effect: status("Dazed", 3)}], [], {"Artifact": 1}, {"Artifact": 1})], [sphericGuardian]],
+                    //[[snakePlant]],
+                    [[snecko]],
+                    [[centurion], [mystic]],
+                    [[cultist], [cultist], [cultist]],
+                    [[shelledParasite], [fungiBeast]]
+                ],
+                [
+                    //[[repulsor, spiker, exploder], [repulsor, spiker, exploder], [repulsor, spiker, exploder] [repulsor, spiker, exploder]],
+                    //[[maw]],
+                    //[[sphericGuardian], [repulsor, spiker, exploder], [repulsor, spiker, exploder]],
+                    [[darkling], [darkling], [darkling]],
+                    //[[writhingMass]],
+                    //[[hardJawWorm], [hardJawWorm], [hardJawWorm]],
+                    //[[spireGrowth]],
+                    [[transient]]
+                ]
             ];
             
             let enemies = [];
@@ -4361,7 +4487,7 @@ getId("woogleButton").onclick = function() {showMap();}
             function updateHtml() {
                 timerRunning = true;
                 updateStatLine();
-                if(hasBuff("Strength") > 0 && hasBuff("Minus Strength") > 0) {
+                if(hasBuff("Strength") && hasBuff("Minus Strength")) {
                     if(hasBuff("Strength") >= hasBuff("Minus Strength")) {
                         loseBuff("Strength", hasBuff("Minus Strength"));
                         loseBuff("Minus Strength");
@@ -4370,7 +4496,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         loseBuff("Strength");
                     }
                 }
-                if(hasBuff("Dexterity") > 0 && hasBuff("Minus Dexterity") > 0) {
+                if(hasBuff("Dexterity") && hasBuff("Minus Dexterity")) {
                     if(hasBuff("Dexterity") >= hasBuff("Minus Dexterity")) {
                         loseBuff("Dexterity", hasBuff("Minus Dexterity"));
                         loseBuff("Minus Dexterity");
@@ -4386,11 +4512,11 @@ getId("woogleButton").onclick = function() {showMap();}
                 
                 let playerElem = getId("player");
                 playerElem.innerHTML = "<span style='font-size:28px;opacity:0;'>0</span>Your Hand ("+hand.length+"/10 cards):";
-                if(buffs.length > 0) {
+                if(buffs.length) {
                     playerElem.innerHTML += " |";
                     for(let x of buffs) {
                         let buffStuff = "";
-                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark", "Precision", "Battle Hymn", "Fasting", "Collect", "Mantra", "Foresight", "Like Water", "Mental Fortress", "Nirvana", "Rushdown", "Study", "Deva Form", "Establishment", "Simmering Fury", "Swivel", "Wave of the Hand", "Vault", "Blasphemy", "Omega", "Intangible"].includes(x.name)) {
+                        if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "No Draw", "Combust", "Dark Embrace", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Evolve", "Pen Nib", "Feel No Pain", "Fire Breathing", "Metallicize", "Rage", "Rampage", "Barricade", "Berserk", "Brutality", "Double Tap", "Juggernaut", "Regen", "Dexterity Down", "Artifact", "Hex", "Draw Reduction", "Buffer", "Next Turn Block", "Vigor", "Next Turn Energy", "Poison", "Accuracy", "Blur", "Infinite Blades", "Noxious Fumes", "Next Turn Cards", "Enrage", "Tools of the Trade", "After Image", "Envenom", "Burst", "Thousand Cuts", "Corruption", "Confused", "Calm", "Wrath", "Divinity", "Mark", "Precision", "Battle Hymn", "Fasting", "Collect", "Mantra", "Foresight", "Like Water", "Mental Fortress", "Nirvana", "Rushdown", "Study", "Deva Form", "Establishment", "Simmering Fury", "Swivel", "Wave of the Hand", "Vault", "Blasphemy", "Omega", "Intangible", "Plated Armor"].includes(x.name)) {
                             buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                         } else {
                             buffStuff += x.name+" ";
@@ -4455,7 +4581,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 enemiesElem.innerHTML = "";
                 for(let eIndex in enemies) {
                     let e = enemies[eIndex];
-                    if(e.hasBuff("Strength") > 0 && e.hasBuff("Minus Strength") > 0) {
+                    if(e.hasBuff("Strength") && e.hasBuff("Minus Strength")) {
                         if(e.hasBuff("Strength") >= e.hasBuff("Minus Strength")) {
                             e.loseBuff("Strength", e.hasBuff("Minus Strength"));
                             e.loseBuff("Minus Strength");
@@ -4504,11 +4630,11 @@ getId("woogleButton").onclick = function() {showMap();}
                     }
                     enemyElem.appendChild(enemyButton);
                     enemyElem.innerHTML += " HP: <span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime;'" : "")+">"+e.hp+" / "+e.maxHp+"</span>";
-                    if(e.buffs.length > 0) {
+                    if(e.buffs.length) {
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Strength Down", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -4525,7 +4651,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
-                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+("Barricade"==x.name?"":x.amt)+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+(["Barricade", "Split", "Lifelink", "Painful Stabs", "Shifting"].includes(x.name)?"":x.amt)+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
@@ -4558,16 +4684,19 @@ getId("woogleButton").onclick = function() {showMap();}
                         let awakened = enemies.filter(x=>x.name == "Awakened One")[0];
                         let attack = amt => function(me){ me.dealDamage(amt); }
                         let attack_status = (atk, what, amt) => function(me){ addStatus(what, amt); me.dealDamage(atk); }
-                        enemies.push(new Enemy("Awakened One (Second Form)", awakened.hp, [
+                        enemies.push(new Enemy("Awakened One (Second Form)", awakened.hp, awakened.hp, [
                             {intent: "attacking 40", desc: "deal [DAM40] damage", effect: attack(40)},
                             {intent: "attack-nerf 18", desc: "deal [DAM18] damage and apply a negative effect", effect: attack_status(18, "Void", 1)},
                             {intent: "attacking 30", desc: "deal [DAM30] damage", effect: attack(30)}
-                        ], ["skip-first"]));
+                        ], ["skip-first"], {"Stunned": 1}, {"Stunned": 1}));
                     }
-                    let livingEnemies = enemies.filter(x => x.hp > 0);
+                    let livingEnemies = enemies.filter(x => x.hp > 0 || (x.name == "Darkling" && enemies.filter(x => x.hp > 0).length));
                     let numDead = enemies.length - livingEnemies.length;
                     ifRelic("Gremlin Horn", function(){energy += numDead; drawCard(numDead);});
                     enemies = livingEnemies;
+                    for(let i of enemies) {
+                        i.hp = Math.max(0, i.hp);
+                    }
                     updateHtml();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
@@ -4593,7 +4722,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     getId("cardReward").style.display = "block";
                     getId("gameScreen").style.display = "none";
                     let goldAmt = Math.round(Math.random()*10) + (getId("ascensionLevel").value >= 13 ? 19 : 25);
-                    if(bossBattle == true) goldAmt = Math.round(Math.random()*10) + (getId("ascensionLevel").value >= 13 ? 76 : 100);
+                    if(bossBattle) goldAmt = Math.round(Math.random()*10) + (getId("ascensionLevel").value >= 13 ? 76 : 100);
                     if(relics.map(x=>x.name).includes("Ectoplasm")) goldAmt = 0;
                     getId("goldReward").innerHTML = goldAmt+" gold";
                     getId("goldReward").setAttribute("onclick", `gold += ${goldAmt}; updateStatLine(); getId('goldReward').style.display = 'none';`);
@@ -4606,7 +4735,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     } else {
                         getId("potionReward").style.display = "none";
                     }
-                    if(eliteBattle == true && !relics.map(x=>x.name).includes("N’loth’s Hungry Face")) {
+                    if(eliteBattle && !relics.map(x=>x.name).includes("N’loth’s Hungry Face")) {
                         getId("relicReward").style.display = "block";
                         let newRelic = choice([...relicPool, ...rareRelicPool]);
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
@@ -4622,11 +4751,11 @@ getId('relicReward').style.display = 'none';
                         `);
                     } else {
                         getId("relicReward").style.display = "none";
-                        if(eliteBattle == true) {
+                        if(eliteBattle) {
                             relics = relics.filter(x=>x.name!="N’loth’s Hungry Face");
                         }
                     }
-                    if(bossBattle == true) {
+                    if(bossBattle) {
                         ifRelic("Cursed Key", function(){
                             deck.push(new Card("Curse of the Key", 0, "Curse", "Unplayable.", function(){}, ["unplayable"]));
                         });
@@ -4738,7 +4867,7 @@ getId('relicReward').style.display = 'none';
                     ifRelic("Vajra", function(){gainBuff("Strength", 1)});
                     ifRelic("Ninja Scroll", function(){addShivs(3)});
                     ifRelic("Fossilized Helix", function(){gainBuff("Buffer", 1)});
-                    ifRelic("Thread and Needle", function(){gainBuff("Metallicize", 2)});
+                    ifRelic("Thread and Needle", function(){gainBuff("Plated Armor", 4)});
                     ifRelic("Teardrop Locket", function(){gainBuff("Calm", 1);});
                     ifRelic("Gremlin Visage", function(){gainBuff("Weak", 1);});
                     ifRelic("Mutagenic Strength", function(){gainBuff("Strength", 3); gainBuff("Strength Down", 3);});
@@ -4779,13 +4908,11 @@ getId('relicReward').style.display = 'none';
                 ifRelic("Ice Cream", function(){gainBuff("Next Turn Energy", energy);});
                 energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy") - hasBuff("Fasting") + hasBuff("Deva Form");
                 if(hasBuff("Deva Form")) {gainBuff("Deva Form", 1);}
-                if(stats.rested == true) {ifRelic("Ancient Tea Set", function(){energy += 2});}
+                if(stats.rested) {ifRelic("Ancient Tea Set", function(){energy += 2});}
                 if(turn % 3 == 0) {ifRelic("Happy Flower", function(){energy += 1});}
                 ifRelic("Slaver’s Collar", function(){if(bossBattle || eliteBattle){energy += 1;}});
                 loseBuff("Next Turn Energy");
-                if(stats.rested == true) {
-                    stats.rested = false;
-                }
+                stats.rested = false;
                 if(stats.attacksThisTurn == 0) {ifRelic("Art of War", function(){energy += 1});}
                 if(stats.attacksThisTurn <= 2) {ifRelic("Pocketwatch", function(){drawCard(2)})}
                 stats.attacksThisTurn = 0;
@@ -4799,6 +4926,7 @@ getId('relicReward').style.display = 'none';
                 }
                 if(hasBuff(".")) {loseBuff(".");} else {loseBuff("Vulnerable", 1);}
                 gainBuff("Block", hasBuff("Metallicize"));
+                gainBuff("Block", hasBuff("Plated Armor"));
                 gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");
                 gainBuff("Mantra", hasBuff("Devotion"));
                 if(hasBuff("Brutality")){hp -= 1; drawCard(hasBuff("Brutality"));}
@@ -4850,13 +4978,11 @@ getId('relicReward').style.display = 'none';
                     }
                 }
                 hand = hand.filter(x=>x.flags.includes("retain"));
-                if(hasBuff("Combust") > 0) {
+                if(hasBuff("Combust")) {
                     hp -= 1;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
-                if(hasBuff("Omega") > 0) {
-                    for(let e of enemies) {dealDamage(e, hasBuff("Omega"));}
-                }
+                for(let e of enemies) {dealDamage(e, hasBuff("Omega"));}
                 
                 if(hasBuff("Block") == 0) {ifRelic("Orichalcum", function(){gainBuff("Block", 6)});}
                 if(hasBuff("Calm")) gainBuff("Block", hasBuff("Like Water"));
@@ -4874,15 +5000,14 @@ getId('relicReward').style.display = 'none';
                 loseBuff("Strength Down");
                 loseBuff("Dexterity", hasBuff("Dexterity Down"));
                 loseBuff("Dexterity Down");
-                if(hasBuff("Vault") == 0) {
-                    let toAct = enemies.slice(0); // deep copy
+                if(!hasBuff("Vault")) {
+                    let toAct = enemies.slice(0).filter(x=>!x.hasBuff("Stunned")); // deep copy
                     for(let e of toAct) {
                         if(e.name == "Slime Boss" && e.hp <= 0.5 * e.maxHp) {
                             enemies.unshift(spikeSlimeL());
                             enemies.unshift(acidSlimeL());
                             for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
                             e.hp = 0;
-                            updateHtml();
                             continue;
                         }
                         if(e.name == "Large Acid Slime" && e.hp <= 0.5 * e.maxHp) {
@@ -4890,7 +5015,6 @@ getId('relicReward').style.display = 'none';
                             enemies.unshift(acidSlimeM());
                             for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
                             e.hp = 0;
-                            updateHtml();
                             continue;
                         }
                         if(e.name == "Large Acid Slime" && e.hp <= 0.5 * e.maxHp) {
@@ -4898,23 +5022,28 @@ getId('relicReward').style.display = 'none';
                             enemies.unshift(spikeSlimeM());
                             for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
                             e.hp = 0;
-                            updateHtml();
+                            continue;
+                        }
+                        if(e.name == "Darkling" && e.hp <= 0) {
+                            e.hp += 5;
                             continue;
                         }
                         if(e.hasBuff("Barricade")==0){e.loseBuff("Block");}
-                        if(e.hasBuff("Metallicize")){e.gainBuff("Block", e.hasBuff("Metallicize"));}
-                        if(e.hasBuff("Poison")>0) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
-                        let func = function() {e.attack(); updateHtml();}
-                        if(e.hp > 0){func();}
+                        e.gainBuff("Block", e.hasBuff("Metallicize"));
+                        e.gainBuff("Block", e.hasBuff("Plated Armor"));
+                        if(e.hasBuff("Poison")) {e.hp -= e.hasBuff("Poison"); e.loseBuff("Poison", 1);}
+                        if(e.hp > 0){e.attack();}
+                        if(e.hasBuff("Fading")==1) {e.hp = 0;} else {e.loseBuff("Fading", 1);}
                         e.loseBuff("Vulnerable", 1);
                         e.loseBuff("Weak", 1);
                         e.hp = Math.min(e.maxHp, e.hp + e.hasBuff("Regen"));
                         e.loseBuff("Regen", 1);
                         e.gainBuff("Strength", e.hasBuff("Ritual"));
-                        e.loseBuff("Strength", e.hasBuff("Strength Down"));
-                        e.loseBuff("Strength Down");
+                        e.gainBuff("Strength", e.hasBuff("Strength Up"));
+                        e.loseBuff("Strength Up");
                         e.loseBuff("Dexterity", e.hasBuff("Dexterity Down"));
                         e.loseBuff("Dexterity Down");
+                        if(e.hasBuff("Flight")) e.gainBuff("Flight", (getId("ascensionLevel").value>=18?4:3) - e.hasBuff("Flight"));
                     }
                 } else {
                     loseBuff("Vault", 1);
