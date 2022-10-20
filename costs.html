@@ -1,7 +1,9 @@
 <html id="html" class="default">
     <head>
         <title>Clone of Slay the Spire</title>
+        <!--<title>Media Literacy &amp; Dystopian Lit Circles - Google Slides</title>-->
         <link rel="shortcut icon" href="./StS/intent-attack.png">
+        <!--<link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">-->
         <style>
             html, input, button {
                 font-family: monospace;
@@ -379,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.0";
+            let currentVersion = "v4.0.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -410,7 +412,7 @@ Credits (in order of importance):
                 text.innerHTML = displayText+"\n(Click to close)";
                 getId("selectionModalContent").appendChild(text);
             }
-            async function showCardChoiceModal(displayCards, prompt) {
+            async function showCardChoiceModal(displayCards, prompt, showUps) {
                 getId("selectionModal").style.display = "block";
                 getId("selectionModalContent").innerHTML = prompt + "<br/>";
                 modalNames = [];
@@ -419,8 +421,10 @@ Credits (in order of importance):
                     let cardButton = document.createElement("button");
                     cardButton.setAttribute("onclick", "resolvePromise("+c.number+");");
                     cardButton.setAttribute("class", c.type+" tt");
-                    cardButton.innerHTML = makeTooltip(c);
-                    
+                    let tips = makeTooltip(c);
+                    let upCard = (upgradedCards[c.name] ? upgradedCards[c.name] : 0);
+                    if(showUps && upCard) tips = tips.replace("</span>", "<br/>======<br/>"+makeTooltip(upCard()).split("class='txt'>")[1]);
+                    cardButton.innerHTML = tips;
                     getId("selectionModalContent").appendChild(cardButton);
                     let helpNumber = document.createElement("span");
                     helpNumber.style.position = "absolute";
@@ -441,7 +445,7 @@ Credits (in order of importance):
                 });
                 return chosenCard;
             }
-            async function showMultiChoiceModal(displayCards, prompt) {
+            async function showMultiChoiceModal(displayCards, prompt, showUps) {
                 getId("msModal").style.display = "block";
                 getId("msModalContent").innerHTML = prompt + "<br/>";
                 multiChoice = [];
@@ -456,7 +460,10 @@ if(multiChoice.includes(num)) {
 }`
                     );
                     cardButton.setAttribute("class", c.type+" tt");
-                    cardButton.innerHTML = makeTooltip(c);
+                    let tips = makeTooltip(c);
+                    let upCard = (upgradedCards[c.name] ? upgradedCards[c.name] : 0);
+                    if(showUps && upCard) tips = tips.replace("</span>", "<br/>=== Upgrades to: ===<br/>"+makeTooltip(upCard()).split("class='txt'>")[1]);
+                    cardButton.innerHTML = tips;
                     getId("msModalContent").appendChild(cardButton);
                 }
                 let confirmButton = document.createElement("button");
@@ -476,13 +483,13 @@ if(multiChoice.includes(num)) {
                 });
                 return chosenCards;
             }
-            async function choose(c, p, m=false) {
+            async function choose(c, p, m=false, ups=false) {
                 if(c.length >= 1) {
                     if(m) {
-                        let woogas = await showMultiChoiceModal(c, p);
+                        let woogas = await showMultiChoiceModal(c, p, ups);
                         return woogas;
                     } else {
-                        let wooga = await showCardChoiceModal(c, p);
+                        let wooga = await showCardChoiceModal(c, p, ups);
                         return wooga;
                     }
                 } else {
@@ -953,7 +960,7 @@ if(multiChoice.includes(num)) {
                     if(getId("ascensionLevel").value > (kind=="n"?4:(kind=="e"?5:6))) {
                         this.maxHp = hpUp;
                     }
-                    if(this.maxHp != 999 && kind != "b") {this.maxHp = Math.round((Math.random()*0.3 + 0.85) * this.maxHp);}
+                    if(this.maxHp != 999 && kind != "b") {this.maxHp = Math.round((Math.random()*0.2 + 0.9) * this.maxHp);}
                     this.hp = this.maxHp;
                     this.attacks = attacks;
                     if(getId("ascensionLevel").value > (kind=="n"?7:(kind=="e"?8:9))) {
@@ -1057,6 +1064,7 @@ if(multiChoice.includes(num)) {
                                 i.cost -= 1;
                             }
                         }
+                        //todo
                         if(hasBuff("Thorns") && procThorns) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
                         loseBuff("Plated Armor", 1);
                         let red = dealt * 0.02 + 0.24;
@@ -2816,7 +2824,7 @@ updateStatLine();
                 } else {
                     newCards = [randCard(), randCard(), randCard()];
                 }
-                while(newCards.filter((v, i, a) => a.indexOf(v) === i).length < newCards.length) {
+                while(newCards.filter((v, i, a) => a.map(x=>x.name).indexOf(v.name) == i).length < newCards.length) {
                     if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
                         newCards = shuffle([randCard(), randRareCard(), randRareCard()]);
                     } else {
@@ -2865,7 +2873,7 @@ updateStatLine();
             
             function addBossRelic() {
                 let newCards = [choice(bossRelicPool), choice(bossRelicPool), choice(bossRelicPool)];
-                while(newCards.filter((v, i, a) => a.indexOf(v) === i).length < newCards.length) {
+                while(newCards.filter((v, i, a) => a.map(x=>x.name).indexOf(v.name) == i).length < newCards.length) {
                     newCards = [choice(bossRelicPool), choice(bossRelicPool), choice(bossRelicPool)];
                 }
                 possibleCards = newCards;
@@ -2935,7 +2943,6 @@ updateStatLine();
                 {name: "Dream Catcher", desc: "When you Rest, you may add a card to your deck."},
                 {name: "Happy Flower", desc: "Gain 1 energy every 3rd turn."},
                 {name: "Lantern", desc: "Start each combat with 1 more energy."},
-                /*TODO - Maw Bank - 12g per floor until you spend gold at a shop*/
                 {name: "Meal Ticket", desc: "When you enter a shop, heal 15 HP."},
                 {name: "Oddly Smooth Stone", desc: "Start each combat with 1 Dexterity."},
                 {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
@@ -3160,7 +3167,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Adjustments", "Pay $40 to upgrade a card from your deck.", `let fun = async function() {
 if(gold < 40) {return;}
 gold -= 40;
-let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.", false, true);
 upgradeCard(c);
 getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3169,7 +3176,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Full Service", "Pay $120 to do both.", `let fun = async function() {
 if(gold < 120) {return;}
 gold -= 120;
-let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.", false, true);
 upgradeCard(c);
 let d = await choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(d), 1);
@@ -3288,7 +3295,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "You duck into a small hut. Inside you find what appears to be a forge. The smithing tools are covered with dust, yet a fire still burns in the furnace.",
                         choices: [
                             ["Forge", "Upgrade a card.", `let fun = async function(){
-let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.", false, true);
 upgradeCard(c);
 updateStatLine();
 getId("eventDesc").innerHTML = "You decide to put the forge to use, improving your arsenal.";
@@ -3351,16 +3358,16 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "The Cleric",
                         desc: "A strange blue humanoid with a golden helm approaches you with a huge smile. “<b>Hello friend! I am Cleric! Are you interested in my services!?</b>” the creature shouts loudly.",
                         choices: [
-                            ["Heal", "Cost: 25 gold. Effect: Heal 20 HP.", `
-if(gold < 25) return;
-gold -= 25;
+                            ["Heal", "Pay $20 to heal 20 HP.", `
+if(gold < 20) return;
+gold -= 20;
 hp = Math.min(maxHp, hp + 20);
 updateStatLine();
 getId("eventDesc").innerHTML = "A warm gold flame envelops your body and dissipates. The creature grins. “Cleric talented. Have a good day!”";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Purify", "Cost: 50 gold. Effect: Remove a card.", `let fun = async function() {
+                            ["Purify", "Pay $50 to remove a card.", `let fun = async function() {
 if(gold < 50) return;
 gold -= 50;
 let c = await choose(deck, "Choose a card to remove.");
@@ -3398,7 +3405,7 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Grow", "Upgrade a card from your deck.", `let fun = async function() {
-let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.");
+let c = await choose(deck.filter(x=>!x.name.includes("+")), "Choose a card to upgrade.", false, true);
 upgradeCard(c);
 getId("eventDesc").innerHTML = "Satisfied, the walls merge back into the ceiling, leaving a path forward.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3800,6 +3807,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let status = (what, amt) => function(me){ addStatus(what, amt); }
             let multi_apply = (lst) => function(me){ for(let x of lst){gainBuff(x[0], x[1]);} }
             let attack_multinerf = (atk, lst) => function(me){ me.dealDamage(atk); for(let x of lst){gainBuff(x[0], x[1]);} }
+            let attack_multibuff = (atk, lst) => function(me){ me.dealDamage(atk); for(let x of lst){me.gainBuff(x[0], x[1]);} }
             let multi_buff = (lst) => function(me){ for(let x of lst){me.gainBuff(x[0], x[1]);} }
             let attack_block = (atk, blk) => function(me){ me.dealDamage(atk); me.gainBuff("Block", blk); }
             let attack_apply = (atk, what, amt) => function(me){ me.dealDamage(atk); gainBuff(what, amt); }
@@ -4261,20 +4269,25 @@ getId("woogleButton").onclick = function() {showMap();}
                 {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
                 {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Frail", 2], ["Weak", 2]])}
             ], ["randomize"], {"Malleable": 3}, {"Malleable": 3});
+            let reptoDagger = new Enemy("Dagger", "e", 23, 23,
+                [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}],
+                [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}],
+                [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}]
+            );
             
             let possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", "e", 161, 170, [
                     {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
-                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_buff(12, "Strength", 6)},
-                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_buff(12, "Strength", 6)}
+                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_multibuff(12, [["Painful Stabs", 1], ["Strength", 6]])},
+                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_multibuff(12, [["Painful Stabs", 1], ["Strength", 6]])}
                 ], [
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)}
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])}
                 ], [
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 7)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)}
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_multibuff(24, [["Painful Stabs", 1], ["Strength", 7]])},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])}
                 ], ["randomize"], {"Painful Stabs": 1}, {"Painful Stabs": 1}),
                 () => new Enemy("Gremlin Leader", "e", 144, 151, [
                     {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 3)},
@@ -4287,17 +4300,34 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 4)},
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "unknown", desc: "summon allies", effect: function(me){
-                        enemies.unshift(choice(allGremlins)());
-                        enemies.unshift(choice(allGremlins)());
+                        enemies.unshift(choice(allGremlins)()); enemies.unshift(choice(allGremlins)());
                     }}
                 ], [
                     {intent: "buffing", desc: "buff ALL enemies", effect: all_buff("Strength", 5)},
                     {intent: "attacking 18", desc: "deal [DAM18] damage", effect: attack(18)},
                     {intent: "unknown", desc: "summon allies", effect: function(me){
-                        enemies.unshift(choice(allGremlins)());
-                        enemies.unshift(choice(allGremlins)());
+                        enemies.unshift(choice(allGremlins)()); enemies.unshift(choice(allGremlins)());
                     }}
-                ]["randomize"])
+                ], ["randomize"]),
+                () => new Enemy("Reptomancer", "e", 185, 195, [
+                    {intent: "unknown", desc: "summon a dagger", effect: function(me){
+                        enemies.unshift(reptoDagger());
+                    }},
+                    {intent: "attack-nerf 26", desc: "deal [DAM26] damage and apply a negative effect", effect: attack_apply(26, "Weak", 1)},
+                    {intent: "attacking 30", desc: "deal [DAM30] damage", effect: attack(30)}
+                ], [
+                    {intent: "unknown", desc: "summon a dagger", effect: function(me){
+                        enemies.unshift(reptoDagger());
+                    }},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Weak", 1)},
+                    {intent: "attacking 34", desc: "deal [DAM34] damage", effect: attack(34)}
+                ], [
+                    {intent: "unknown", desc: "summon 2 daggers", effect: function(me){
+                        enemies.unshift(reptoDagger()); enemies.unshift(reptoDagger());
+                    }},
+                    {intent: "attack-nerf 32", desc: "deal [DAM32] damage and apply a negative effect", effect: attack_apply(32, "Weak", 1)},
+                    {intent: "attacking 34", desc: "deal [DAM34] damage", effect: attack(34)}
+                ])
             ];
             let possibleBosses_act2 = [
                 () => new Enemy("The Champ", "b", 420, 440, [
@@ -4939,7 +4969,7 @@ getId("woogleButton").onclick = function() {showMap();}
                                 else if(blockI < n) {return "<span style='color:#f00'>"+blockI+"</span>";}
                                 else {return blockI;}
                             }
-                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+(["Barricade", "Split", "Lifelink", "Painful Stabs", "Shifting", "Reactive"].includes(x.name)?"":x.amt)+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
+                            enemyElem.innerHTML += "<span class='tt'>"+buffStuff+(x.name.includes("Minus")?"-":"")+(["Barricade", "Split", "Lifelink", "Shifting", "Reactive"].includes(x.name)?"":x.amt)+"<span class='txt'>"+buffDesc[x.name].replace("[DAMT]", adjustedDamage(x.amt)).replace("[BAMT]", adjustedBlock(x.amt)).replace("[AMT]", x.amt).replaceAll("[PREC]", Math.floor(target.hasBuff("Mark") * x.amt / 5)).replace("[s]", (x.amt==1 ? "" : "s")).replace("[es]", (x.amt==1 ? "" : "es")).replaceAll("[are]", (x.amt==1 ? "is" : "are"))+"</span></span> ";
                         }
                         if(e.hasBuff("Time Warp") == 0 && e.name == "Time Eater") {
                             enemyElem.innerHTML += "<span class='tt'><img src='StS/time_warp.png'><span class='txt'>Time Warp: Whenever you play 12 cards, ends your turn and gains 2 Strength.</span></span> ";
@@ -4991,6 +5021,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     let numDead = enemies.length - livingEnemies.length;
                     ifRelic("Gremlin Horn", function(){energy += numDead; drawCard(numDead);});
                     gainBuff("Vulnerable", enemies.filter(x=>!livingEnemies.includes(x)).map(x=>x.hasBuff("Spore Cloud")).reduce((ps, a) => ps + a, 0));
+                    loseBuff(".");
                     enemies = livingEnemies;
                     for(let i of enemies) {
                         i.hp = Math.max(0, i.hp);
