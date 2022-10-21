@@ -1,9 +1,9 @@
 <html id="html" class="default">
     <head>
-        <title>Clone of Slay the Spire</title>
-        <!--<title>Media Literacy &amp; Dystopian Lit Circles - Google Slides</title>-->
-        <link rel="shortcut icon" href="./StS/intent-attack.png">
-        <!--<link rel="shortcut icon" href="https://ssl.gstatic.com/docs/documents/images/kix-favicon7.ico">-->
+        <!--<title>Clone of Slay the Spire</title>-->
+        <title>Media Literacy &amp; Dystopian Lit Circles - Google Slides</title>
+        <!--<link rel="shortcut icon" href="./StS/intent-attack.png">-->
+        <link rel="shortcut icon" href="https://ssl.gstatic.com/docs/presentations/images/favicon5.ico">
         <style>
             html, input, button {
                 font-family: monospace;
@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.1";
+            let currentVersion = "v4.0.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1355,6 +1355,9 @@ if(multiChoice.includes(num)) {
                     if(enemies[0].name == "Taskmaster") {
                         enemies.push(rSlaver()); enemies.push(bSlaver());
                     }
+                    if(enemies[0].name == "Reptomancer") {
+                        enemies.push(reptoDagger()); enemies.push(reptoDagger());
+                    }
                     eliteBattle = true;
                     bossBattle = false;
                     readyBattle();
@@ -1368,9 +1371,6 @@ if(multiChoice.includes(num)) {
                         nme = () => choice(possibleBosses_act3)();
                     }
                     enemies = [nme()];
-                    if(enemies[0].name == "Slime Boss") {
-                        enemies[0].gainBuff("Split", 1);
-                    }
                     if(enemies[0].name == "Donu") {
                         let a_b = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
                         let a_mb = (lst) => function(me){ for(let e of enemies){for(let i of lst){e.gainBuff(lst[0], lst[1]);}}}
@@ -2192,6 +2192,7 @@ updateStatLine();
                 gainBuff("Devotion", 2);
             }, ["exhausted"]);
             let establishment = () => new Card("Establishment", 1, "Power", "When a card is Retained, it gets -1 cost this combat.", function(enemy){
+                gainBuff("Establishment", 1);
             }, ["exhausted"]);
             let judgment = () => new Card("Judgment", 1, "Skill", "If the enemy has 30 or less HP, set their HP to 0.", function(enemy){
                 if(enemy.hp <= 30) dealDamage(enemy, 9999);
@@ -2703,6 +2704,7 @@ updateStatLine();
             }, ["exhausted"]), "Devotion": () => new Card("Devotion", 1, "Power", "At the start of your turn, gain 3 Mantra.", function(enemy){
                 gainBuff("Devotion", 3);
             }, ["exhausted"]), "Establishment": () => new Card("Establishment+", 1, "Power", "Innate. When a card is Retained, it gets -1 cost this combat.", function(enemy){
+                gainBuff("Establishment", 1);
             }, ["exhausted", "innate"]), "Judgment": () => new Card("Judgment+", 1, "Skill", "If the enemy has 40 or less HP, set their HP to 0.", function(enemy){
                 if(enemy.hp <= 40) dealDamage(enemy, 9999);
             }), "Lesson Learned": () => new Card("Lesson Learned+", 2, "Attack", "Deal [DAM13] damage. If fatal, upgrade a random card in your deck. Exhaust.", function(enemy){
@@ -4269,7 +4271,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
                 {intent: "meganerf", desc: "apply negative effects", effect: multi_apply([["Frail", 2], ["Weak", 2]])}
             ], ["randomize"], {"Malleable": 3}, {"Malleable": 3});
-            let reptoDagger = new Enemy("Dagger", "e", 23, 23,
+            let reptoDagger = () => new Enemy("Dagger", "e", 23, 23,
                 [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}],
                 [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}],
                 [{intent: "attack-nerf 9", desc: "deal [DAM9] damage and generate Status cards", effect: attack_status(9, "Wound", 1)}]
@@ -4927,9 +4929,11 @@ getId("woogleButton").onclick = function() {showMap();}
                     }
                     if((e.hasBuff("Split") && e.hp <= 0.5 * e.maxHp) || (e.name == "Darkling" && e.hp <= 0) || (e.name == "Time Eater" && e.hp < 0.5 * e.maxHp)) {
                         intentType = "unknown";
+                        intentNumber = "";
                     }
                     if(e.hasBuff("Stunned")) {
                         intentType = "stunned";
+                        intentNumber = "";
                     }
                     if(relics.map(x=>x.name).includes("Runic Dome")) {
                         if(e.number == target.number) {
@@ -4952,7 +4956,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up", "Malleable", "Constricting", "Reactive", "Thievery", "Spore Cloud", "Slow", "Healer", "Unawakened"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up", "Malleable", "Constricting", "Reactive", "Thievery", "Spore Cloud", "Slow", "Healer", "Unawakened", "Stunned", "Split"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
@@ -5322,6 +5326,7 @@ getId('relicReward').style.display = 'none';
                 loseBuff("Weak", 1);
                 loseBuff("Frail", 1);
                 loseBuff("No Draw");
+                loseBuff("Wave of the Hand");
                 hp = Math.min(maxHp, hp + hasBuff("Regen"));
                 loseBuff("Regen", 1);
                 loseBuff("Rage");
@@ -5336,21 +5341,21 @@ getId('relicReward').style.display = 'none';
                         if(e.name == "Slime Boss" && e.hp <= 0.5 * e.maxHp) {
                             enemies.unshift(spikeSlimeL());
                             enemies.unshift(acidSlimeL());
-                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
+                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.hp;}
                             e.hp = 0;
                             continue;
                         }
                         if(e.name == "Large Acid Slime" && e.hp <= 0.5 * e.maxHp) {
                             enemies.unshift(acidSlimeM());
                             enemies.unshift(acidSlimeM());
-                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
+                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.hp;}
                             e.hp = 0;
                             continue;
                         }
                         if(e.name == "Large Acid Slime" && e.hp <= 0.5 * e.maxHp) {
                             enemies.unshift(spikeSlimeM());
                             enemies.unshift(spikeSlimeM());
-                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.maxHp;}
+                            for(let i of enemies) {i.hp = e.hp; i.maxHp = e.hp;}
                             e.hp = 0;
                             continue;
                         }
