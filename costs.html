@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.2";
+            let currentVersion = "v4.0.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -700,7 +700,8 @@ if(multiChoice.includes(num)) {
                 "Phasing": "Damage on EVEN turns is reduced to 1.",
                 "Slow": "Whenever you play a card, takes 10% more damage this turn.",
                 "Healer": "When it falls under half HP, uses its turn to heal back to half and cleanse debuffs.",
-                "Unawakened": "This enemy has another form."
+                "Unawakened": "This enemy has another form.",
+                "Painful Stabs": "Whenever you take damage from this enemy, get [AMT] Wound[s]."
             };
             let buffDescPlus = {
                 ...buffDesc,
@@ -1057,14 +1058,14 @@ if(multiChoice.includes(num)) {
                     
                     if(dealt > 0) {
                         if(stats.timesLostHp == 0) {ifRelic("Centennial Puzzle", function(){drawCard(3)})}
-                        ifRelic("Self-Forming Clay", function(){gainBuff("Next Turn Block", 3)});
                         stats.timesLostHp++;
+                        ifRelic("Self-Forming Clay", function(){gainBuff("Next Turn Block", 3)});
                         for(let i of [...drawPile, ...hand, ...discardPile]) {
                             if(i.name == "Blood for Blood" && i.cost > 0){
                                 i.cost -= 1;
                             }
                         }
-                        //todo
+                        addStatus("Wound", this.hasBuff("Painful Stabs"));
                         if(hasBuff("Thorns") && procThorns) {dealDamage(this, hasBuff("Thorns")); updateHtml();}
                         loseBuff("Plated Armor", 1);
                         let red = dealt * 0.02 + 0.24;
