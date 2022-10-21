@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.3";
+            let currentVersion = "v4.0.3b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3803,7 +3803,7 @@ getId("woogleButton").onclick = function() {showMap();}
             }
             let attack = amt => function(me){ me.dealDamage(amt); }
             let block = amt => function(me){ me.gainBuff("Block", amt); }
-            let block_other = (blk) => function(me){ choice(enemies.filter(x=>!x.number==me.number)).gainBuff("Block", amt); }
+            let block_other = (blk) => function(me){ let x=choice(enemies.filter(x=>!x.number==me.number)); if(x) x.gainBuff("Block", blk); }
             let buff = (what, amt) => function(me){ me.gainBuff(what, amt); }
             let all_buff = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
             let apply = (what, amt) => function(me){ gainBuff(what, amt); }
