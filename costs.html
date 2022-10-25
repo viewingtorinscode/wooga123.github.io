@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.0.3b";
+            let currentVersion = "v4.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -856,7 +856,12 @@ if(multiChoice.includes(num)) {
                             loseBuff("Swivel", 1);
                             newCost = 0;
                         }
-                        if(energy >= newCost && !(this.flags.includes("unplayable"))) {
+                        if(
+                            energy >= newCost &&
+                            !this.flags.includes("unplayable") &&
+                            !(this.name.includes("Signature Move") && hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) &&
+                            !(this.name.includes("Clash") && hand.map(x=>x.type=="Attack").includes(false))
+                        ) {
                             energy -= newCost;
                             this.use(target);
                             played = true;
@@ -1281,6 +1286,7 @@ if(multiChoice.includes(num)) {
                     }
                     getId("mapScreen").appendChild(floorElem);
                 }
+                getId("mapScreen").innerHTML += "&nbsp;".repeat(5) + "Boss: " + runBosses[actNum - 1].name;
             }
             function gotoMap(y, x) {
                 mapY = y;
@@ -1363,15 +1369,7 @@ if(multiChoice.includes(num)) {
                     bossBattle = false;
                     readyBattle();
                 } else if(map[y][x].includes("👺")) {
-                    let nme;
-                    if(actNum == 1) {
-                        nme = () => choice(possibleBosses)();
-                    } else if(actNum == 2) {
-                        nme = () => choice(possibleBosses_act2)();
-                    } else {
-                        nme = () => choice(possibleBosses_act3)();
-                    }
-                    enemies = [nme()];
+                    enemies = [runBosses[(actNum - 1)]]
                     if(enemies[0].name == "Donu") {
                         let a_b = (what, amt) => function(me){ for(let e of enemies){e.gainBuff(what, amt);}}
                         let a_mb = (lst) => function(me){ for(let e of enemies){for(let i of lst){e.gainBuff(lst[0], lst[1]);}}}
@@ -1550,7 +1548,7 @@ updateStatLine();
                 dealDamage(enemy, hasBuff("Block"));
             });
             let clash = () => new Card("Clash", 0, "Attack","Deal [DAM14] damage if all cards in your hand are Attacks.", function(enemy){
-                if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);} else {alert("Failed to play Clash: There are non-Attack cards in your hand.");}
+                if(!hand.map(x=>x.type=="Attack").includes(false)) {dealDamage(enemy, 14);}
             });
             let cleave = () => new Card("Cleave", 1, "Attack", "Deal [DAM8] damage to ALL enemies.", function(enemy){
                 for(let e of enemies){dealDamage(e, 8);}
@@ -2123,7 +2121,7 @@ updateStatLine();
                 dealDamage(enemy, 20);
             }, ["retain"]);
             let signatureMove = () => new Card("Signature Move", 2, "Attack", "Can only be played if this is the only Attack in your hand. Deal [DAM30] damage.", function(enemy){
-                if(!hand.filter(x=>x.type=="Attack"&&x.name!="Signature Move").length) {dealDamage(enemy, 30);} else {alert("Failed to play Signature Move: There are other Attack cards in your hand.");}
+                if(!hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) {dealDamage(enemy, 30);}
             });
             let simmeringFury = () => new Card("Simmering Fury", 1, "Skill", "At the start of your next turn, enter Wrath and draw 2 cards.", function(enemy){
                 gainBuff("Simmering Fury", 1); gainBuff("Next Turn Cards", 2);
@@ -2657,7 +2655,7 @@ updateStatLine();
             }), "Sands of Time": () => new Card("Sands of Time+", 4, "Attack", "Deal [DAM25] damage. Retain. When this is Retained, it gets -1 cost this combat.", function(enemy){
                 dealDamage(enemy, 25);
             }, ["retain"]), "Signature Move": () => new Card("Signature Move+", 2, "Attack", "Can only be played if this is the only Attack in your hand. Deal [DAM40] damage.", function(enemy){
-                if(!hand.filter(x=>x.type=="Attack"&&x.name!="Signature Move").length) {dealDamage(enemy, 40);} else {alert("Failed to play Signature Move: There are other Attack cards in your hand.");}
+                if(!hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) {dealDamage(enemy, 40);}
             }), "Simmering Fury": () => new Card("Simmering Fury+", 1, "Skill", "At the start of your next turn, enter Wrath and draw 3 cards.", function(enemy){
                 gainBuff("Simmering Fury", 1); gainBuff("Next Turn Cards", 3);
             }), "Study": () => new Card("Study+", 1, "Power", "At end of turn, shuffle an Insight into your draw pile", function(enemy){
@@ -3741,9 +3739,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let turn = 0;
             let crCost = 75;
             let randomThing = () => choice(["❓","💀","💀","💀","💀","💲","😈","🏕️"]);
-            //let randomThing = () => "💲";
             let topThing = () => choice(["❓", "💀", choice(["💀","💀","💲","🏕️"])]);
-            //let topThing = () => "💲";
             function maybeThing() {if(Math.random()<0.6){return randomThing();}else{return "";}}
             let map; //❓
             function mapGen() {
@@ -4161,15 +4157,15 @@ getId("woogleButton").onclick = function() {showMap();}
             ];
             
             let sphericGuardian = () => new Enemy("Spheric Guardian", "n", 20, 20, [
-                {intent: "block", desc: "block", effect: block(25)},
+                {intent: "blocking", desc: "block", effect: block(25)},
                 {intent: "attack-nerf 10", desc: "deal [DAM10] damage and apply a negative effect", effect: attack_apply(10, "Frail", 5)},
                 {intent: "attack-block 10", desc: "deal [DAM10] damage and block", effect: attack_block(10, 15)}
             ], [
-                {intent: "block", desc: "block", effect: block(25)},
+                {intent: "blocking", desc: "block", effect: block(25)},
                 {intent: "attack-nerf 11", desc: "deal [DAM11] damage and apply a negative effect", effect: attack_apply(11, "Frail", 5)},
                 {intent: "attack-block 11", desc: "deal [DAM11] damage and block", effect: attack_block(11, 15)}
             ], [
-                {intent: "block", desc: "block", effect: block(40)},
+                {intent: "blocking", desc: "block", effect: block(40)},
                 {intent: "attack-nerf 11", desc: "deal [DAM11] damage and apply a negative effect", effect: attack_apply(11, "Frail", 5)},
                 {intent: "attack-block 11", desc: "deal [DAM11] damage and block", effect: attack_block(11, 15)}
             ], ["no-repeat"], {"Barricade": 1, "Block": 40, "Artifact": 3}, {"Barricade": 1, "Block": 40, "Artifact": 3});
@@ -4281,14 +4277,14 @@ getId("woogleButton").onclick = function() {showMap();}
             let possibleElites_act2 = [
                 () => new Enemy("Book of Stabbing", "e", 161, 170, [
                     {intent: "attacking 21", desc: "deal [DAM21] damage", effect: attack(21)},
-                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_multibuff(12, [["Painful Stabs", 1], ["Strength", 6]])},
+                    {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_buff(12, "Strength", 6)},
                     {intent: "attack-buff 12", desc: "deal [DAM12] damage and gain a buff", effect: attack_multibuff(12, [["Painful Stabs", 1], ["Strength", 6]])}
                 ], [
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)},
-                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])},
+                    {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_buff(14, "Strength", 7)},
                     {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])}
                 ], [
-                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_multibuff(24, [["Painful Stabs", 1], ["Strength", 7]])},
+                    {intent: "attack-buff 24", desc: "deal [DAM24] damage and gain a buff", effect: attack_buff(24, "Strength", 7)},
                     {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])},
                     {intent: "attack-buff 14", desc: "deal [DAM14] damage and gain a buff", effect: attack_multibuff(14, [["Painful Stabs", 1], ["Strength", 7]])}
                 ], ["randomize"], {"Painful Stabs": 1}, {"Painful Stabs": 1}),
@@ -4651,7 +4647,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 ], [
                     {intent: "buffing", desc: "gain a buff", effect: all_buff("Strength", 6)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(24)}
-                ], {"Artifact": 2}, {"Artifact": 3}),
+                ], [], {"Artifact": 2}, {"Artifact": 3}),
                 () => new Enemy("Awakened One", "b", 300, 320, [
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
                     {intent: "attacking 20", desc: "deal [DAM20] damage", effect: attack(20)},
@@ -4669,7 +4665,9 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "attacking 24", desc: "deal [DAM24] damage", effect: attack(24)}
                 ], ["randomize"], {"Unawakened": 1, "Regen": 10, "Curiosity": 1}, {"Unawakened": 1, "Regen": 15, "Curiosity": 2})
             ];
-            
+            let runBosses = [choice(possibleBosses)()];
+            runBosses.push(choice(possibleBosses_act2)());
+            runBosses.push(choice(possibleBosses_act3)());
             let easyPools = [
                 ["The easier enemy pools, used for the first part of the Act."],
                 [
@@ -4872,7 +4870,12 @@ getId("woogleButton").onclick = function() {showMap();}
                     let cardElem = document.createElement("button");
                     let playcard = () => { c.play(); }
                     cardElem.onclick = playcard;
-                    if(c.flags.includes("unplayable") || energy < c.cost) {cardElem.setAttribute("class", "tt unplayable "+c.type);}
+                    if(
+                        c.flags.includes("unplayable") ||
+                        energy < c.cost ||
+                        (c.name.includes("Signature Move") && hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) ||
+                        (c.name.includes("Clash") && hand.map(x=>x.type=="Attack").includes(false))
+                    ){cardElem.setAttribute("class", "tt unplayable "+c.type);}
                     else {cardElem.setAttribute("class", "tt "+c.type);}
                     cardElem.innerHTML = makeTooltip(c);
                     handElem.appendChild(cardElem);
@@ -4952,10 +4955,10 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     }
                     enemyElem.appendChild(enemyButton);
-                    enemyElem.innerHTML += " HP: <span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime;'" : "")+">"+e.hp+" / "+e.maxHp+"</span>";
+                    enemyElem.innerHTML += " HP:<span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime'" : "")+">"+(e.hasBuff("Block") ? "<span style='color: black; background-image: url(StS/block"+"_".repeat(Math.min(2, e.hasBuff("Block").toString().length))+".png); display: inline-block; height: 20px;'>&nbsp;"+(e.hasBuff("Block"))+"&nbsp;</span>&nbsp;"+e.hp : " "+e.hp)+" / "+e.maxHp+"</span>";
                     if(e.buffs.length) {
                         enemyElem.innerHTML += " |";
-                        for(let x of e.buffs) {
+                        for(let x of e.buffs.filter(x=>x.name!="Block")) {
                             let buffStuff = "";
                             if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up", "Malleable", "Constricting", "Reactive", "Thievery", "Spore Cloud", "Slow", "Healer", "Unawakened", "Stunned", "Split"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
