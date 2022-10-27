@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1.1";
+            let currentVersion = "v4.1.2";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -712,7 +712,9 @@ if(multiChoice.includes(num)) {
                 "enter": "Entering a stance causes you to exit all others.",
                 "shiv": "Costs 0 energy, has “Deals [SHIV] damage. Exhaust.”",
                 "smite": "Costs 1 energy, has “Retain. Deal [SMITE] damage. Exhaust.”",
-                "insight": "Costs 0 energy, has “Draw 2 cards. Exhaust.”"
+                "insight": "Costs 0 energy, has “Draw 2 cards. Exhaust.”",
+                "safety": "Costs 1 energy, has “Retain. Gain [BLK12] Block. Exhaust.”",
+                "through violence": "Costs 0 energy, has “Retain. Deal [DAM20] damage. Exhaust.”"
             };
             function addCircle(char) {
                 let circles = {"X": "ⓧ", "0": "⓪", "1": "①", "2": "②", "3": "③", "4": "④", "5": "⑤"};
@@ -770,9 +772,9 @@ if(multiChoice.includes(num)) {
                             .replaceAll("[es]", "es")
                             .replaceAll("[are]", "are");
                         if(enemies.length) {
-                            bd = bd.replaceAll("[SHIV]", calcYourDamage(target, 4, true)).replaceAll("[SMITE]", calcYourDamage(target, 4));
+                            bd = bd.replaceAll("[SHIV]", calcYourDamage(target, 4, true)).replaceAll("[SMITE]", calcYourDamage(target, 12)).replaceAll("[DAM20]", calcYourDamage(target, 20)).replaceAll("[BLK12]", calcYourBlock(12));
                         } else {
-                            bd = bd.replaceAll("[SHIV]", calcYourOOCDamage(4, true)).replaceAll("[SMITE]", calcYourOOCDamage(4));
+                            bd = bd.replaceAll("[SHIV]", calcYourOOCDamage(4, true)).replaceAll("[SMITE]", calcYourOOCDamage(12)).replaceAll("[DAM20]", calcYourOOCDamage(20)).replaceAll("[BLK12]", calcYourBlock(target, 12));
                         }
                         newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>").replaceAll(cap, "<b>"+cap+"</b>") + "<br/><i style='color:#222'>("+cap+": "+bd+")</i>";
                     }
@@ -1123,11 +1125,7 @@ if(multiChoice.includes(num)) {
             function loseBuff(name, amt=9999) {
                 for(let b of buffs) {
                     if(b.name == name) {
-                        if(amt >= b.amt) {
-                            buffs.splice(buffs.indexOf(b), 1);
-                            if(!["Block", "."].includes(b.name)) {
-                            }
-                        } else {b.amt -= amt;}
+                        if(amt >= b.amt) {buffs.splice(buffs.indexOf(b), 1);} else {b.amt -= amt;}
                         if(name == "Calm") {energy += 2; ifRelic("Violet Lotus", function(){energy += 1;});}
                     }
                 }
@@ -3076,7 +3074,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "We Meet Again!",
                         desc: '"We meet again!" A cheery, disheveled man walks up to you. "It\'s me, <span style=\'color: bb3\'>Ranwid</span>! Have anything for me today?" You have never met this man before.',
                         choices: [
-                            ["Give Potion", "Trade one of your potions for a relic.", `
+                            ["Give Potion", "Trade one of your potions for a random relic.", `
 if(!potions.length) {return;}
 potions.splice(Math.floor(Math.random()*potions.length), 1);
 let r = choice([...relicPool, ...rareRelicPool]);
@@ -3090,7 +3088,7 @@ getId("eventDesc").innerHTML = "He downs the potion in one go and lets out a sat
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Give Gold", "Trade 100 gold for a relic.", `
+                            ["Give Gold", "Trade 100 gold for a random relic.", `
 if(gold < 100) {return;}
 gold -= 100;
 let r = choice([...relicPool, ...rareRelicPool]);
@@ -3115,7 +3113,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Face Trader",
                         desc: "You walk by an eerie statue holding several masks. Something behind you softly whispers “Stop.” You spin around and realize that it's not a statue but a gaunt man. He says to you, “Face. Let me touch? Maybe trade?”",
                         choices: [
-                            ["Touch", "Gain 75 gold, but take 8 damage.", `
+                            ["Touch", "Gain 75 gold, but lose 8 HP.", `
 gold += 75;
 hp -= 8;
 let red = 0.4;
@@ -3214,7 +3212,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "The Ssssserpent",
                         desc: "You walk into a room with a large hole in the ground. As you approach, an enormous serpent creature appears from within. “Hello adventurer, I ask a simple question. The most fulfilling of lives is that in which you can <span style='color: #bb3'>buy anything!</span> Do you agree?”",
                         choices: [
-                            ["Yes", "Gain 175 gold, but receive a Curse.", `
+                            ["Yes", "Gain 175 gold, but gain Doubt.<br/><i>(Doubt: Unplayable. When drawn, gain 1 Frail.)</i>", `
 gold += 175;
 deck.push(new Card("Doubt", 0, "Curse", "Unplayable. When drawn, gain 1 Frail.", function(enemy){}, ["unplayable"]));
 updateStatLine();
@@ -3276,7 +3274,7 @@ getId("eventDesc").innerHTML = "You grab the donut. It really hits the spot! You
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Box", "Obtain a Relic, but become Cursed.", `
+                            ["Box", "Obtain a random relic, but gain Regret.<br/><i>(Regret: Unplayable. At the end of your turn, lose 1 HP per card in your hand.)</i>", `
 let r = choice([...relicPool, ...rareRelicPool]);
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
@@ -3303,7 +3301,7 @@ getId("eventDesc").innerHTML = "You decide to put the forge to use, improving yo
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
-                            ["Rummage", "Obtain a Relic, but become Cursed.", `
+                            ["Rummage", "Obtain a special relic, but gain Pain.<br/><i>(Pain: Unplayable. Whenever you play a card this turn, lose 1 HP.)</i>", `
 relics.push({name: "Warped Tongs", desc: "At the start of your turn, upgrade a random card in your hand this combat."});
 deck.push(new Card("Pain", 0, "Curse", "Unplayable. Whenever you play a card this turn, lose 1 HP.", function(enemy){}, ["unplayable"]));
 updateStatLine();
@@ -3368,7 +3366,7 @@ getId("eventDesc").innerHTML = "A warm gold flame envelops your body and dissipa
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Purify", "Pay $50 to remove a card.", `let fun = async function() {
+                            ["Give Gold", "Pay $50 to remove a card.", `let fun = async function() {
 if(gold < 50) return;
 gold -= 50;
 let c = await choose(deck, "Choose a card to remove.");
@@ -3481,7 +3479,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "As you continue your ascent, <span style='color: f7f'>thick smoke</span> begins to billow out of the ground and walls, coalescing into three forms that start to speak. “AnoThEr pUpPEt oF NeOW I tHiNK.”  <span style='color: #f33'>“AGREED! SHE ALWAYS MAKES THE FUNNIEST TOYS!”</span> ”Ignore the others... would you like a taste of our power?“",
                         choices:
                         [
-                            ["Yes", "Receive 5 Apparition. Lose 50% of Max HP.", `
+                            ["Yes", "Receive 5 Apparition. Lose 50% of Max HP.<br/><i>(Apparition: Ethereal. Reduce damage and HP loss to 1 this turn. Exhaust.)</i>", `
 maxHp = Math.round(0.5 * maxHp);
 hp = Math.min(hp, maxHp);
 for(let i=0; i<5; i++) {
@@ -3537,7 +3535,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "While sneaking past a group of shrouded figures, one of them approaches you. “Got anything for me friend? Maybe some gold? I just need somewhere to stay, I have things I can trade...”",
                         choices:
                         [
-                            ["Give", "Obtain a relic. Give 85 gold.", `let fun = async function(){
+                            ["Give", "Obtain a random relic. Give 85 gold.", `let fun = async function(){
 if(gold < 85) {return;}
 gold -= 85;
 let r = choice([...relicPool, ...rareRelicPool]);
@@ -3550,7 +3548,7 @@ getId("eventDesc").innerHTML = "“Oh yes! Here here, a fair trade!”";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
-                            ["Rob", "Obtain a relic, but become Cursed.", `
+                            ["Rob", "Obtain a random relic, but gain Shame.<br/><i>(Shame: Unplayable. When drawn, gain 1 Weak.)</i>", `
 let r = choice([...relicPool, ...rareRelicPool]);
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
@@ -3597,7 +3595,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Old Beggar",
                         desc: "An old beggar reaches toward you as you pass.",
                         choices: [
-                            ["Purify", "Cost: 50 gold. Effect: Remove a card.", `let fun = async function() {
+                            ["Purify", "Pay 50 gold. Effect: ???", `let fun = async function() {
 if(gold < 50) return;
 gold -= 50;
 let c = await choose(deck, "Choose a card to remove.");
@@ -3621,7 +3619,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "As you make your way up the twisting passageways, the ground and walls seem to shift before your eyes. The constant <span style='color: #f7f'>whispering voices</span> in the back of your head aren't helping either. You start to question if you are going insane, or if the impossible geography of this place is starting to get to you. You need to change something, and soon.",
                         choices:
                         [
-                            ["Embrace Madness", "Obtain 2 Madness. Take 10 damage.", `let fun = async function(){
+                            ["Embrace Madness", "Obtain 2 Madness. Lose 10 HP.<br/><i>(Madness: 0 energy. Reduce the cost of a random card in your hand to 0 this turn. Exhaust.)</i>", `let fun = async function(){
 hp -= 10;
 let red = 0.44;
 let i = 0;
@@ -3649,7 +3647,7 @@ getId("eventDesc").innerHTML = "Something in you cracks. You give in to the chat
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
-                            ["Press On", "Heal 18 HP, but become Cursed.", `
+                            ["Press On", "Heal 18 HP, but gain Writhe.<br/><i>(Madness: Unplayable. Innate.)</i>", `
 hp = Math.min(hp + 18, maxHp);
 deck.push(new Card("Writhe", 0, "Curse", "Unplayable. Innate.", function(enemy){}, ["unplayable", "innate"]));
 getId("eventDesc").innerHTML = "You take a moment to carefully observe the landscape around you. Slowly, the hint of a pattern emerges from the randomness. You struggle through the mental pain to map out a path forward.";
@@ -3670,7 +3668,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "A man with an eyepatch and a devilish grin strides up to you. “Hey there! Interested in advancing science? I can make you stronger than any training or blessing. You'll need it if you're one of those heroes with a death wish.”",
                         choices:
                         [
-                            ["Test JAX", "Obtain a JAX.", `let fun = async function(){
+                            ["Test JAX", "Obtain a JAX.<br/><i>(JAX: 0 energy. Lose 3 HP. Gain 2 Strength.)</i>", `let fun = async function(){
 deck.push(new Card("JAX", 0, "Skill", "Lose 3 HP. Gain 2 Strength.", function(enemy){
     hp -= 3; gainBuff("Strength", 2);
 }, ["exhausted"]));
@@ -3689,7 +3687,7 @@ getId("eventDesc").innerHTML = "The man injects you with two unknown substances 
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Ingest Mutagens", "Obtain a Mutagenic Strength.", `
+                            ["Ingest Mutagens", "Obtain a special relic.", `
 relics.push({name: "Mutagenic Strength", desc: "You have 3 Strength on the first turn."});
 getId("eventDesc").innerHTML = "You quaff the mysterious substance. Immediately, you are invigorated and you feel your muscle fibers twitch.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
@@ -3701,7 +3699,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Tomb of Lord Red Mask",
                         desc: "You notice a highly ornamental tomb on the other side of a path. You notice a slot for gold coins with a scratched out inscription above it.",
                         choices: [
-                            ["Offer", "Lose ALL gold. Obtain a relic.", `
+                            ["Offer", "Lose ALL gold. Obtain a special relic.", `
 gold = 0;
 relics.push({name: "Red Mask", desc: "ALL enemies start combat with 1 Weak."});
 getId("eventDesc").innerHTML = "An opening appears in the tomb and out slides a red mask with a note attached: “Take from others as I have taken from you!”";
@@ -4956,7 +4954,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     }
                     enemyElem.appendChild(enemyButton);
                     enemyElem.innerHTML += " HP:<span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime'" : "")+">"+(e.hasBuff("Block") ? "<span style='color: black; background-image: url(StS/block"+"_".repeat(Math.min(2, e.hasBuff("Block").toString().length))+".png); display: inline-block; height: 20px;'>&nbsp;"+(e.hasBuff("Block"))+"&nbsp;</span>&nbsp;"+e.hp : " "+e.hp)+" / "+e.maxHp+"</span>";
-                    if(e.buffs.length) {
+                    if(e.buffs.filter(x=>x.name!="Block").length) {
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs.filter(x=>x.name!="Block")) {
                             let buffStuff = "";
