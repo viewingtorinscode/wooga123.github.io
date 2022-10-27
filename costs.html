@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1";
+            let currentVersion = "v4.1.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -4421,7 +4421,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     {intent: "attacking 50", desc: "deal [DAM50] damage", effect: attack(50)},
                     {intent: "block-buff", desc: "block and gain a buff", effect: block_buff(12, "Strength", 4)}
                 ], ["skip-first"]),
-                () => new Enemy("The Collector", 280, [
+                () => new Enemy("The Collector", 280, 300, [
                     {intent: "unknown", desc: "summon friends", effect: function(me){
                             let th = () => new Enemy("Torch Head", "b", 39, 43, [{intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)}], [{intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)}], [{intent: "attacking 7", desc: "deal [DAM7] damage", effect: attack(7)}]); enemies.unshift(th()); enemies.unshift(th());
                     }},
@@ -4960,7 +4960,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs.filter(x=>x.name!="Block")) {
                             let buffStuff = "";
-                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up", "Malleable", "Constricting", "Reactive", "Thievery", "Spore Cloud", "Slow", "Healer", "Unawakened", "Stunned", "Split"].includes(x.name)) {
+                            if(["Block", "Vulnerable", "Weak", "Strength", "Dexterity", "Thorns", "Ritual", "Frail", "Minus Strength", "Minus Dexterity", "Metallicize", "Regen", "Dexterity Down", "Artifact", "Buffer", "Poison", "Enrage", "Mark", "Talk to the Hand", "Barricade", "Flight", "Time Warp", "Angry", "Plated Armor", "Curl Up", "Stunned", "Lifelink", "Painful Stabs", "Shifting", "Fading", "Strength Up", "Malleable", "Constricting", "Reactive", "Thievery", "Spore Cloud", "Slow", "Healer", "Unawakened", "Stunned", "Split", "Phasing"].includes(x.name)) {
                                 buffStuff += "<img src='StS/"+x.name.toLowerCase().replaceAll(" ","_")+".png'>";
                             } else {
                                 buffStuff += x.name+" ";
