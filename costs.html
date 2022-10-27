@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1.2";
+            let currentVersion = "v4.1.2b";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -1292,6 +1292,7 @@ if(multiChoice.includes(num)) {
                 timerRunning = true; updateStatLine();
                 music.map.pause();
                 music.map.currentTime = 0;
+                ifRelic("Maw Bank", function(){gold += 12;});
                 let readyBattle = function() {
                     getId("mapScreen").style.display = "none";
                     getId("gameScreen").style.display = "block";
@@ -1439,6 +1440,7 @@ if(multiChoice.includes(num)) {
 gold -= ${cardCost};
 deck.push(new Card("${offer.name}", ${offer.cost}, "${offer.type}", "${offer.desc}", ${offer.use}, ${JSON.stringify(offer.flags)}));
 getId("cardElem_${i}").style.display = "none";
+relics = relics.filter(x=>x.name!="Maw Bank");
 updateStatLine();
 }
                         `);
@@ -1466,6 +1468,7 @@ gold -= ${relicCost};
 let r = ${JSON.stringify(offer)};
 relics.push(r);
 getId("relicElem_${i}").style.display = "none";
+relics = relics.filter(x=>x.name!="Maw Bank");
 updateStatLine();
 }
                         `);
@@ -1489,6 +1492,7 @@ crCost += 25;
 let cardToRemove = await choose(deck, "Choose a card to remove.");
 deck.splice(deck.indexOf(cardToRemove), 1);
 getId("crElem").remove();
+relics = relics.filter(x=>x.name!="Maw Bank");
 updateStatLine();
                     }}; fun();`);
                     costElem.innerHTML = "🪙 "+crCost;
@@ -2942,6 +2946,7 @@ updateStatLine();
                 {name: "Dream Catcher", desc: "When you Rest, you may add a card to your deck."},
                 {name: "Happy Flower", desc: "Gain 1 energy every 3rd turn."},
                 {name: "Lantern", desc: "Start each combat with 1 more energy."},
+                {name: "Maw Bank", desc: "When you climb a floor, gain 12 gold. Lose this when you spend gold at a shop."},
                 {name: "Meal Ticket", desc: "When you enter a shop, heal 15 HP."},
                 {name: "Oddly Smooth Stone", desc: "Start each combat with 1 Dexterity."},
                 {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
@@ -3355,18 +3360,18 @@ getId("woogleButton").onclick = function() {showMap();}
                     },
                     {
                         title: "The Cleric",
-                        desc: "A strange blue humanoid with a golden helm approaches you with a huge smile. “<b>Hello friend! I am Cleric! Are you interested in my services!?</b>” the creature shouts loudly.",
+                        desc: "A strange blue humanoid with a golden helm(?) approaches you with a huge smile. “<b>Hello friend! I am Cleric! Are you interested in my services!?</b>” the creature shouts loudly.",
                         choices: [
                             ["Heal", "Pay $20 to heal 20 HP.", `
 if(gold < 20) return;
 gold -= 20;
 hp = Math.min(maxHp, hp + 20);
 updateStatLine();
-getId("eventDesc").innerHTML = "A warm gold flame envelops your body and dissipates. The creature grins. “Cleric talented. Have a good day!”";
+getId("eventDesc").innerHTML = "A warm gold flame envelops your body and dissipates. The creature grins. “Cleric best healer. Have a good day!”";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
-                            ["Give Gold", "Pay $50 to remove a card.", `let fun = async function() {
+                            ["Purify", "Pay $50 to remove a card.", `let fun = async function() {
 if(gold < 50) return;
 gold -= 50;
 let c = await choose(deck, "Choose a card to remove.");
@@ -3595,7 +3600,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         title: "Old Beggar",
                         desc: "An old beggar reaches toward you as you pass.",
                         choices: [
-                            ["Purify", "Pay 50 gold. Effect: ???", `let fun = async function() {
+                            ["Give Gold", "Pay 50 gold. Effect: ???", `let fun = async function() {
 if(gold < 50) return;
 gold -= 50;
 let c = await choose(deck, "Choose a card to remove.");
@@ -3647,7 +3652,7 @@ getId("eventDesc").innerHTML = "Something in you cracks. You give in to the chat
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
-                            ["Press On", "Heal 18 HP, but gain Writhe.<br/><i>(Madness: Unplayable. Innate.)</i>", `
+                            ["Press On", "Heal 18 HP, but gain Writhe.<br/><i>(Writhe: Unplayable. Innate.)</i>", `
 hp = Math.min(hp + 18, maxHp);
 deck.push(new Card("Writhe", 0, "Curse", "Unplayable. Innate.", function(enemy){}, ["unplayable", "innate"]));
 getId("eventDesc").innerHTML = "You take a moment to carefully observe the landscape around you. Slowly, the hint of a pattern emerges from the randomness. You struggle through the mental pain to map out a path forward.";
@@ -4953,7 +4958,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         enemyButton.innerHTML = "<span style='color:white'>"+intentNumber+"</span>&nbsp;"+e.name;
                     }
                     enemyElem.appendChild(enemyButton);
-                    enemyElem.innerHTML += " HP:<span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime'" : "")+">"+(e.hasBuff("Block") ? "<span style='color: black; background-image: url(StS/block"+"_".repeat(Math.min(2, e.hasBuff("Block").toString().length))+".png); display: inline-block; height: 20px;'>&nbsp;"+(e.hasBuff("Block"))+"&nbsp;</span>&nbsp;"+e.hp : " "+e.hp)+" / "+e.maxHp+"</span>";
+                    enemyElem.innerHTML += " HP:<span"+(e.hasBuff("Poison") >= e.hp ? " style='color: lime'" : "")+">"+(e.hasBuff("Block") ? "<span style='color: black; background-image: url(StS/block"+"_".repeat(Math.min(2, e.hasBuff("Block").toString().length))+".png); display: inline-block; height: 17px;'>&nbsp;"+(e.hasBuff("Block"))+"&nbsp;</span>&nbsp;"+e.hp : " "+e.hp)+" / "+e.maxHp+"</span>";
                     if(e.buffs.filter(x=>x.name!="Block").length) {
                         enemyElem.innerHTML += " |";
                         for(let x of e.buffs.filter(x=>x.name!="Block")) {
