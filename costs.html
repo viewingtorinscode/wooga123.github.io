@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1.2b";
+            let currentVersion = "v4.1.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -690,7 +690,7 @@ if(multiChoice.includes(num)) {
                 "Plated Armor": "Start each turn with [BAMT] Block. Goes down when taking damage.",
                 "Angry": "Upon receiving damage, gains [AMT] Strength.",
                 "Stunned": "Skips the next [AMT] turn[s].",
-                "Lifelink": "After being killed, uses its turn to revive itself. Kill all Darklings in one turn to win.",
+                "Lifelink": "Survives fatal blows on 1 HP. Dies when all enemies have 1 HP.",
                 "Fading": "Dies in [AMT] turns.",
                 "Shifting": "Upon receiving damage, loses that much Strength until end of turn.",
                 "Strength Up": "At end of turn, gain [AMT] Strength.",
@@ -1136,7 +1136,7 @@ if(multiChoice.includes(num)) {
                 let finalAmt = amt;
                 if(shiv) {finalAmt += hasBuff("Accuracy"); ifRelic("Wrist Blade", function(){finalAmt += 6;});}
                 if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3;})}
-                if(enemy.hasBuff("Vulnerable")) { finalAmt = Math.round(finalAmt * 1.5); }
+                if(enemy.hasBuff("Vulnerable")) {finalAmt = Math.round(finalAmt * 1.5);}
                 finalAmt += Math.floor(target.hasBuff("Mark") * hasBuff("Precision") / 5);
                 if(enemy.hasBuff("Flight")) {finalAmt = Math.round(finalAmt*0.5); if(actuallyDeal){
                     enemy.loseBuff("Flight", 1); if(!enemy.hasBuff("Flight")) {enemy.gainBuff("Stunned", 3);}
@@ -1154,7 +1154,8 @@ if(multiChoice.includes(num)) {
                     finalAmt -= hasBuff("Minus Strength");
                     if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
                 }
-                if(hasBuff("Weak")) { finalAmt = Math.round(finalAmt * 0.75); }
+                if(hasBuff("Weak")) {finalAmt = Math.round(finalAmt * 0.75);}
+                if(enemy.name == "Darkling") {finalAmt = Math.min(finalAmt, enemy.hp - 1);}
                 return finalAmt;
             }
             function calcYourOOCDamage(amt, shiv=false, strike=false) {
@@ -4451,7 +4452,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 ], ["skip-first"])
             ];
             
-            let darkling = () => new Enemy("Darkling", "n", 52, 55, [
+            let darkling = () => new Enemy("Darkling", "n", 78, 83, [
                 {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                 {intent: "attacking 14", desc: "deal [DAM14] damage", effect: attack(14)},
                 {intent: "blocking", desc: "block", effect: block(9)}
@@ -4687,8 +4688,8 @@ getId("woogleButton").onclick = function() {showMap();}
                     [[looter], [mugger]]
                 ],
                 [
-                    [[darkling], [darkling], [darkling]],
                     [[orbWalker]],
+                    [[darkling], [darkling]],
                     [[repulsor, spiker, exploder], [repulsor, spiker, exploder], [repulsor, spiker, exploder]]
                 ]
             ];
@@ -4735,7 +4736,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let potionDrop;
             function getPotion() {potions.push(potionDrop);}
             
-            let timerRunning = true;
+            let timerRunning = false;
             let currentTimer = 0;
             let hasPaused = false;
             let beforeTime = Date.now();
@@ -4934,7 +4935,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             intentNumber = e.intent.intent.split(" ")[1];
                         }
                     }
-                    if((e.hasBuff("Split") && e.hp <= 0.5 * e.maxHp) || (e.name == "Darkling" && e.hp <= 0) || (e.name == "Time Eater" && e.hp < 0.5 * e.maxHp)) {
+                    if((e.hasBuff("Split") && e.hp <= 0.5 * e.maxHp) || (e.name == "Time Eater" && e.hp < 0.5 * e.maxHp)) {
                         intentType = "unknown";
                         intentNumber = "";
                     }
@@ -4994,7 +4995,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     let newDesc = e.intent.desc
                         .replace("[HEX]", "[DAM"+(6*(1+Math.floor(hp/12)))+"]")
                         .replace("[MAW]", "[DAM"+(Math.ceil(turn/2) * 5)+"]");
-                    if((e.hasBuff("Split") && e.hp <= 0.5 * e.maxHp) || (e.name == "Darkling" && e.hp <= 0) || (e.name == "Time Eater" && e.hp < 0.5 * e.maxHp)) {
+                    if((e.hasBuff("Split") && e.hp <= 0.5 * e.maxHp) || (e.name == "Time Eater" && e.hp < 0.5 * e.maxHp)) {
                         newDesc = "use a special ability";
                     }
                     for(let i=0; i<300; i++) {
@@ -5028,7 +5029,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         awakened.loseBuff("Curiosity");
                         awakened.loseBuff("Unawakened");
                     }
-                    let livingEnemies = enemies.filter(x => x.hp > 0 || (x.name == "Darkling" && enemies.filter(x => x.hp > 0).length));
+                    let livingEnemies = enemies.filter(x => x.hp > 0);
                     let numDead = enemies.length - livingEnemies.length;
                     ifRelic("Gremlin Horn", function(){energy += numDead; drawCard(numDead);});
                     gainBuff("Vulnerable", enemies.filter(x=>!livingEnemies.includes(x)).map(x=>x.hasBuff("Spore Cloud")).reduce((ps, a) => ps + a, 0));
@@ -5040,7 +5041,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     updateHtml();
                 }
                 if(!enemies.includes(target) || !target) {target = enemies[0];}
-                if(enemies.length == 0) {
+                if(enemies.length == 0 || enemies.filter(x=>x.name=="Darkling"&&x.hp==1).length == enemies.length) {
                     music.boss1.pause(); music.boss2.pause(); music.boss3.pause();
                     music.boss1.currentTime = 0; music.boss2.currentTime = 0; music.boss3.currentTime = 0;
                     if(bossBattle) {music.bossDead.play();}
@@ -5364,10 +5365,6 @@ getId('relicReward').style.display = 'none';
                             enemies.unshift(spikeSlimeM());
                             for(let i of enemies) {i.hp = e.hp; i.maxHp = e.hp;}
                             e.hp = 0;
-                            continue;
-                        }
-                        if(e.name == "Darkling" && e.hp <= 0) {
-                            e.hp += 5;
                             continue;
                         }
                         if(e.hasBuff("Healer") && e.hp < 0.5 * e.maxHp) {
