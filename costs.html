@@ -381,7 +381,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1.3";
+            let currentVersion = "v4.1.4";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -774,7 +774,7 @@ if(multiChoice.includes(num)) {
                         if(enemies.length) {
                             bd = bd.replaceAll("[SHIV]", calcYourDamage(target, 4, true)).replaceAll("[SMITE]", calcYourDamage(target, 12)).replaceAll("[DAM20]", calcYourDamage(target, 20)).replaceAll("[BLK12]", calcYourBlock(12));
                         } else {
-                            bd = bd.replaceAll("[SHIV]", calcYourOOCDamage(4, true)).replaceAll("[SMITE]", calcYourOOCDamage(12)).replaceAll("[DAM20]", calcYourOOCDamage(20)).replaceAll("[BLK12]", calcYourBlock(target, 12));
+                            bd = bd.replaceAll("[SHIV]", calcYourOOCDamage(4, true)).replaceAll("[SMITE]", calcYourOOCDamage(12)).replaceAll("[DAM20]", calcYourOOCDamage(20)).replaceAll("[BLK12]", calcYourOOCBlock(12));
                         }
                         newDesc = newDesc.replaceAll(buff, "<b>"+buff+"</b>").replaceAll(cap, "<b>"+cap+"</b>") + "<br/><i style='color:#222'>("+cap+": "+bd+")</i>";
                     }
@@ -1170,6 +1170,11 @@ if(multiChoice.includes(num)) {
                 }
                 return finalAmt;
             }
+            function calcYourOOCBlock(amt) {
+                let finalAmt = amt;
+                ifRelic("Oddly Smooth Stone", function(){finalAmt += 1;});
+                return finalAmt;
+            }
             function calcYourBlock(amt) {
                 if(amt == 0) return 0;
                 let newAmt = amt;
@@ -1452,7 +1457,7 @@ updateStatLine();
                     }
                     getId("merchantScreen").innerHTML += "<br/>";
                     for(let i=0; i<3; i++) {
-                        let offer = choice(relicPool);
+                        let offer = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
                         let relicCost = Math.round(Math.random()*119 + 143);
                         offers.push({index: i+100, price: relicCost, offer: offer});
                         let relicElem = document.createElement("div");
@@ -2920,6 +2925,12 @@ updateStatLine();
                     if(r.name == "Serpent Ring") {
                         relics = relics.filter(x=>x.name!="Snake Ring");
                     }
+                    if(r.name == "Coffee Dripper") {
+                        getId("rester").style.display = "none";
+                    }
+                    if(r.name == "Fusion Hammer") {
+                        getId("smither").style.display = "none";
+                    }
                     updateStatLine();
                 } else if(cardNumber == -1) {
                     updateStatLine();
@@ -3083,7 +3094,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Give Potion", "Trade one of your potions for a random relic.", `
 if(!potions.length) {return;}
 potions.splice(Math.floor(Math.random()*potions.length), 1);
-let r = choice([...relicPool, ...rareRelicPool]);
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
 if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -3097,7 +3108,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Give Gold", "Trade 100 gold for a random relic.", `
 if(gold < 100) {return;}
 gold -= 100;
-let r = choice([...relicPool, ...rareRelicPool]);
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
 if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -3281,7 +3292,7 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `],
                             ["Box", "Obtain a random relic, but gain Regret.<br/><i>(Regret: Unplayable. At the end of your turn, lose 1 HP per card in your hand.)</i>", `
-let r = choice([...relicPool, ...rareRelicPool]);
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
 if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -3334,7 +3345,7 @@ while(red > 0) {
     if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
 }
 if(Math.random() < relicChance * 0.01) {
-    let r = choice([...relicPool, ...rareRelicPool]);
+    let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
     relics.push(r);
     if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
     if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -3544,7 +3555,7 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Give", "Obtain a random relic. Give 85 gold.", `let fun = async function(){
 if(gold < 85) {return;}
 gold -= 85;
-let r = choice([...relicPool, ...rareRelicPool]);
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
 if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -3555,7 +3566,7 @@ getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             }; fun();`],
                             ["Rob", "Obtain a random relic, but gain Shame.<br/><i>(Shame: Unplayable. When drawn, gain 1 Weak.)</i>", `
-let r = choice([...relicPool, ...rareRelicPool]);
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
 relics.push(r);
 if(r.name == "Strawberry"){maxHp += 7; hp += 7;}
 if(r.name == "Pear"){maxHp += 10; hp += 10;}
@@ -5078,7 +5089,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     }
                     if(eliteBattle && !relics.map(x=>x.name).includes("N’loth’s Hungry Face")) {
                         getId("relicReward").style.display = "block";
-                        let newRelic = choice([...relicPool, ...rareRelicPool]);
+                        let newRelic = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
                         getId("relicReward").innerHTML = newRelic.name+"<span class='txt'>"+newRelic.desc+"</span>";
                         getId("relicReward").setAttribute("onclick", `
 let r = ${JSON.stringify(newRelic)};
