@@ -374,14 +374,17 @@ Credits (in order of importance):
             }
             let getId = x => document.getElementById(x);
             getId("turnEnder").onclick = () => endTurn();
-            let choice = x => x[Math.floor(Math.random()*x.length)];
+            let choice = function(...arg) {
+                let x = arg.flat();
+                return x[Math.floor(Math.random()*x.length)];
+            }
             
             let crand = x => Math.ceil(Math.random()*x);
             let newFun = function(){getId("funText").innerHTML = "<br/>last update: "+choice([crand(99)+"% more fun", "browser support", "fourth character", "more interestingness", "less motivation", "graphics", "github page", (1+crand(98))+" new bugs", crand(99)+"% more content", "fire gameplay", "copyright infringement", "added this message", "new relic", "new card", "<a href='https://rickroll.com'>discord server</a>", "<a href='https://rickroll.com'>this</a>", "improved grammar", "snecko fix #"+crand(99), "5 star reviews", "unpopular opinions", "modding", "discord account (wooga123#8513)", "splash screen", "more educational", "now accepting suggestions", "difficulty spike", "unfair difficulty", "added act "+crand(10), "inside jokes", "no longer blocked by securly", "“StS act 2: electric boogaloo”", "now better than the real StS", "headphone support", "v"+crand(5)+"."+crand(15)+"."+crand(15), "can now be played on bus", "can now be played during school", "added cats", "added turtles", "new ascension level", "changed the keybinds again", "rainbows".split("").map(x=>"<span style='color: rgb("+crand(255)+","+crand(255)+","+crand(255)+");'>"+x+"</span>").join(""), crand(99)+"% less boring", "new boss", "lost my progress :(", "covid-"+(9+crand(90)), "hacking", "new event", "events are more eventful"])};
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.1.4";
+            let currentVersion = "v4.1.5";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -3760,7 +3763,7 @@ getId("woogleButton").onclick = function() {showMap();}
             function mapGen() {
                 map = [
                     ["","",   "🐋",  "",  ""],
-                    ["","💀", "💀",  "💀",""]
+                    ["","💀", "💲",  "💀",""]
                 ];
                 
                 let middleFloors = [];
