@@ -148,6 +148,7 @@
                 font-size: 16px;
             }
             .restSite .txt {font-size: 13px;}
+            
             #rester {background: green;}
             #smither {background: darkred;}
             #selectionModal {z-index: 100;}
@@ -1114,9 +1115,9 @@ if(multiChoice.includes(num)) {
                     buffs.push({name: name, amt: newAmt});
                 }
                 if(name == "Mantra") {stats.mantraGain += newAmt;}
-                if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity"); drawCard(hasBuff("Rushdown"));}
-                if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
-                if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3;}
+                if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity"); drawCard(hasBuff("Rushdown"));}
+                if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity"); ifRelic("Stance Locket", function(){gainBuff("Pen Nib", 5)});}
+                if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3; ifRelic("Stance Locket", function(){gainBuff("Buffer", 1)});}
                 if(["Wrath","Calm","Divinity"].includes(name)) {
                     let fobs = discardPile.filter(x=>x.name.includes("Flurry of Blows"));
                     hand = [...hand, ...fobs];
@@ -1129,7 +1130,7 @@ if(multiChoice.includes(num)) {
                 for(let b of buffs) {
                     if(b.name == name) {
                         if(amt >= b.amt) {buffs.splice(buffs.indexOf(b), 1);} else {b.amt -= amt;}
-                        if(name == "Calm") {energy += 2; ifRelic("Violet Lotus", function(){energy += 1;});}
+                        if(name == "Calm") {energy += 2; ifRelic("Stance Locket", function(){hp += 5;}); ifRelic("Violet Lotus", function(){energy += 1;});}
                     }
                 }
             }
@@ -3207,6 +3208,26 @@ getId("woogleButton").onclick = function() {showMap();}
                             ["Punch", "Lose 3 HP.", `
 hp -= 3;
 getId("eventDesc").innerHTML = "You punch him so hard, your fist hurts. “Oww! What was that for?”";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                             `]
+                        ]
+                    },
+                    {   
+                        title: "Extremists",
+                        desc: "You find a winding staircase and walk down. Inside, you see 5 figures shrouded by mist.",
+                        choices: [
+                            ["Offer", "Lose 20 hp. Obtain a Stance Locket.", `let fun = async function() {
+if(hp > 20) {return;}
+hp -= 20;
+relics.push({name: "Stance Locket", desc: "Whenever you enter a stance, gain unique buffs."});
+updateStatLine();
+getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["No", "No effect.", `let fun = async function() {
+getId("eventDesc").innerHTML = "“Okay, bye bye now.” ... should’ve punched him.";
 getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
 getId("woogleButton").onclick = function() {showMap();}
                             `]
