@@ -312,6 +312,10 @@ Credits (in order of importance):
 * MegaCrit
 * ToasterOven<span style="color: #aaa">#????</span>
 * A bunch of people at WSMS
+
+Updates Billboard
+* New event
+* Stance Locket
             </pre>
         </div>
         <table id="gameScreen" style="display: none;">
@@ -1113,10 +1117,10 @@ if(multiChoice.includes(num)) {
                 if(!foundIt) {
                     buffs.push({name: name, amt: newAmt});
                 }
-                if(name == "Mantra") {stats.mantraGain += newAmt;}
-                if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity"); drawCard(hasBuff("Rushdown"));}
-                if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity");}
-                if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3;}
+               if(name == "Mantra") {stats.mantraGain += newAmt;}
+                if(name == "Calm") {loseBuff("Wrath"); loseBuff("Divinity"); drawCard(hasBuff("Rushdown"));}
+                if(name == "Wrath") {loseBuff("Calm"); loseBuff("Divinity"); ifRelic("Stance Locket", function(){gainBuff("Pen Nib", 5)});}
+                if(name == "Divinity") {loseBuff("Wrath"); loseBuff("Calm"); energy += 3; ifRelic("Stance Locket", function(){gainBuff("Buffer", 1)});}
                 if(["Wrath","Calm","Divinity"].includes(name)) {
                     let fobs = discardPile.filter(x=>x.name.includes("Flurry of Blows"));
                     hand = [...hand, ...fobs];
@@ -3212,7 +3216,26 @@ getId("woogleButton").onclick = function() {showMap();}
                             `]
                         ]
                     },
-                    {
+                    {   
+                        title: "Extremists",
+                        desc: 'You find a winding staircase and walk down. Inside, you see 5 figures shrouded by mist. "Would you like a taste of ULTIMATE power?"',
+                        choices: [
+                            ["Offer", "Lose 20 hp. Obtain a Stance Locket.", `let fun = async function() {
+hp -= 20;
+relics.push({name: "Stance Locket", desc: "Whenever you enter a stance, gain unique buffs."});
+updateStatLine();
+getId("eventDesc").innerHTML = "Join us... forever....";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            }; fun();`],
+                            ["Leave", "No effect.", `let fun = async function() {
+getId("eventDesc").innerHTML = "You'll regret this.";
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                            `]
+                        ]
+                    },
+                    { 
                         title: "Duplicator",
                         desc: "Before you lies a decorated altar to some ancient entity.",
                         choices: [
