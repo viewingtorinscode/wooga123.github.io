@@ -211,9 +211,16 @@
         <div id="cardModal" style="display: none;">
             <div id="cardModalContent">
                 <p>Choose a card to add to your deck:</p>
-                <button id="modalCard1" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(0);"></button>
-                <button id="modalCard2" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(1);"></button>
-                <button id="modalCard3" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(2);"></button>
+                <button id="modalCard0" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(0);"></button>
+                <button id="modalCard1" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(1);"></button>
+                <button id="modalCard2" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(2);"></button>
+                <button id="modalCard3" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(3);"></button>
+                <button id="modalCard4" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(4);"></button>
+                <button id="modalCard5" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(5);"></button>
+                <button id="modalCard6" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(6);"></button>
+                <button id="modalCard7" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(7);"></button>
+                <button id="modalCard8" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(8);"></button>
+                <button id="modalCard9" class="tt" onclick="getId('cardModal').style.display = 'none'; finishAddCard(9);"></button>
                 <button id="modalSkipCard" class="Skill" onclick="getId('cardModal').style.display = 'none'; ifRelic('Singing Bowl', function(){maxHp += 2; hp += 2;}); finishAddCard(-1);">Skip</button>
             </div>
         </div>
@@ -347,6 +354,7 @@ Credits (in order of importance):
             <br/>
             <button onclick="if(!relics.map(x=>x.name).includes('Coffee Dripper')){ifRelic('Regal Pillow', function(){hp += 15}); hp = Math.min(maxHp, Math.round(hp + 0.3*maxHp)); stats.rested = true; ifRelic('Dream Catcher', function(){addCard()}); showMap();}" class="tt restSite" id="rester"><span style='text-decoration:underline'>R</span>est<span class="txt" id="rest_txt">Heal 30% of your max HP. (currently 21 HP)</span></button>
             <button onclick="if(!relics.map(x=>x.name).includes('Fusion Hammer')){upgradeDialog();}" class="tt restSite Attack" id="smither"><span style='text-decoration:underline'>S</span>mith<span class="txt">Upgrade a card in your deck.</span></button>
+            <button onclick="showMap();" class="tt restSite Curse" id="skipper">Skip<span class="txt">Don't do anything.</span></button>
             <br/><br/>
             <div id="upgradeDialog" style="display: none;">
                 <div id="cardDesc"></div>
@@ -384,7 +392,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.2";
+            let currentVersion = "v4.2.1";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -880,7 +888,7 @@ if(multiChoice.includes(num)) {
                             drawCard(hasBuff("Dark Embrace"));
                             gainBuff("Block", hasBuff("Feel No Pain"));
                             ifRelic("Dead Branch", function(){hand.push(randCard())});
-                            //ifRelic("Charon’s Ashes", function(){for(let e of enemies){dealDamage(e, 3);}});
+                            ifRelic("Charon’s Ashes", function(){for(let e of enemies){dealDamage(e, 3);}});
                         } else if(this.name == "Tantrum") {
                             drawPile.push(this); drawPile = shuffle(drawPile);
                         } else {
@@ -1294,7 +1302,7 @@ if(multiChoice.includes(num)) {
                     }
                     getId("mapScreen").appendChild(floorElem);
                 }
-                getId("mapScreen").innerHTML += "&nbsp;".repeat(5) + "Boss: " + runBosses[actNum - 1].name;
+                getId("mapScreen").innerHTML += "&nbsp;".repeat(5) + "Boss: " + runBosses[actNum-1].name + (runBosses[actNum-1].name=="Donu"?"Donu & Deca":"");
             }
             function gotoMap(y, x) {
                 mapY = y;
@@ -2843,26 +2851,41 @@ updateStatLine();
             }
             
             function addCard() {
-                let newCards;
+                //alert("Adding a card.");
+                let generated;
+                let c = randCard;
+                let r = randRareCard;
                 if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
-                    newCards = shuffle([randRareCard(), randRareCard(), randRareCard()]);
+                    generated = shuffle([c(), c(), c(), r(), r(), r(), r(), r(), r(), r()]);
                 } else {
-                    newCards = [randCard(), randCard(), randCard()];
+                    generated = [c(), c(), c(), c(), c(), c(), c(), c(), c(), c()];
                 }
-                while(newCards.filter((v, i, a) => a.map(x=>x.name).indexOf(v.name) == i).length < newCards.length) {
+                while(generated.filter((v, i, a) => a.map(x=>x.name).indexOf(v.name) == i).length < generated.length) {
                     if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
-                        newCards = shuffle([randCard(), randRareCard(), randRareCard()]);
+                        generated = shuffle([c(), c(), c(), r(), r(), r(), r(), r(), r(), r()]);
                     } else {
-                        newCards = [randCard(), randCard(), randCard()];
+                        generated = [c(), c(), c(), c(), c(), c(), c(), c(), c(), c()];
                     }
                 }
-                if(relics.map(x=>x.name).includes("Busted Crown")) newCards = [newCards[0]];
+                //alert("Generated ten cards -> "+generated.map(x=>x.number.toString().slice(2, 5)));
+                let amountOfCards = 3;
+                ifRelic("Question Card", function(){amountOfCards++;});
+                ifRelic("Busted Crown", function(){amountOfCards -= 2;});
+                amountOfCards = Math.min(amountOfCards, 10);
+                //alert("We need "+amountOfCards+" card(s)");
+                let newCards = generated.slice(0, amountOfCards);
+                //alert("New cards -> "+newCards.map(x=>x.number.toString().slice(2, 5)));
                 possibleCards = newCards;
                 getId("cardModal").style.display = "block";
-                for(let x=0; x<newCards.length; x++) {
-                    let cardTooltip = document.createElement("span");
-                    let modalCard = getId("modalCard"+(x+1));
-                    modalCard.innerHTML = makeTooltip(newCards[x]);
+                for(let x=0; x<10; x++) {
+                    let modalCard = getId("modalCard"+x);
+                    if(x<newCards.length) {
+                        modalCard.style.display = "inline";
+                        let cardTooltip = document.createElement("span");
+                        modalCard.innerHTML = makeTooltip(newCards[x]);
+                    } else {
+                        modalCard.style.display = "none";
+                    }
                 }
             };
             async function scry(amount) {
@@ -2994,9 +3017,9 @@ updateStatLine();
                 //{name: "War Paint", desc: "On pickup, upgrade 2 random Skills."}, // TODO
                 //{name: "Whetstone", desc: "On pickup, upgrade 2 random Attacks."}, // TODO
                 //{name: "Blue Candle", desc: "Curses can now be played. They cost 0 and will make you lose 1 HP and Exhaust them."}, // TODO
-                //{name: "Bottled Flame", desc: "On pickup, choose an Attack. Start each combat with it in hand."}, // TODO
-                //{name: "Bottled Lightning", desc: "On pickup, choose an Skill. Start each combat with it in hand."}, // TODO
-                //{name: "Bottled Tornado", desc: "On pickup, choose an Power. Start each combat with it in hand."}, // TODO
+                {name: "Bottled Flame", desc: "On pickup, choose an Attack. Start each combat with it in hand."},
+                {name: "Bottled Lightning", desc: "On pickup, choose an Skill. Start each combat with it in hand."},
+                {name: "Bottled Tornado", desc: "On pickup, choose an Power. Start each combat with it in hand."},
                 {name: "Eternal Feather", desc: "Heal 3 HP for each 5 cards in your deck when you rest."},
                 {name: "Frozen Egg", desc: "When you add a Power to your deck, upgrade it."},
                 {name: "Gremlin Horn", desc: "When an enemy dies, gain 1 energy and draw 1 card."},
@@ -3067,11 +3090,26 @@ updateStatLine();
                 {name: "Wrist Blade", desc: "Shivs deal 6 additional damage."}
             ];
             
-            function onRelicPickup(r) {
+            async function onRelicPickup(r) {
                 if(r.name == "Strawberry") {maxHp += 7; hp += 7;}
                 if(r.name == "Pear") {maxHp += 10; hp += 10;}
                 if(r.name == "Mango") {maxHp += 14; hp += 14;}
                 if(r.name == "Old Coin") {gold += 300;}
+                if(r.name == "Bottled Flame") {
+                    let chosen = await choose(deck.filter(x=>x.type=="Attack"), "Choose a card to start in your hand.");
+                    chosen.flags.push("innate");
+                    r.desc = "Start each combat with "+chosen.name+" in your hand.";
+                }
+                if(r.name == "Bottled Lightning") {
+                    let chosen = await choose(deck.filter(x=>x.type=="Skill"), "Choose a card to start in your hand.");
+                    chosen.flags.push("innate");
+                    r.desc = "Start each combat with "+chosen.name+" in your hand.";
+                }
+                if(r.name == "Bottled Tornado") {
+                    let chosen = await choose(deck.filter(x=>x.type=="Power"), "Choose a card to start in your hand.");
+                    chosen.flags.push("innate");
+                    r.desc = "Start each combat with "+chosen.name+" in your hand.";
+                }
             }
             
             let potionPool = [
@@ -3647,7 +3685,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         desc: "As you make your way up the twisting passageways, the ground and walls seem to shift before your eyes. The constant <span style='color: #f7f'>whispering voices</span> in the back of your head aren't helping either. You start to question if you are going insane, or if the impossible geography of this place is starting to get to you. You need to change something, and soon.",
                         choices:
                         [
-                            ["Embrace Madness", "Obtain 2 Madness. Lose 10 HP.<br/><i>(Madness: 0 energy. Reduce the cost of a random card in your hand to 0 this turn. Exhaust.)</i>", `let fun = async function(){
+                            ["Embrace Madness", "Obtain 2 Madness. Lose 10 HP.<br/><i>(Madness: 0 energy. Reduce the cost of a random card in your hand to 0 this combat. Exhaust.)</i>", `let fun = async function(){
 hp -= 10;
 let red = 0.44;
 let i = 0;
@@ -3657,18 +3695,18 @@ while(red > 0) {
     red -= 0.012;
     if(red < 0) {setTimeout(function(){getId("damage").style.opacity = 0;}, i * 10);}
 }
-deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this turn. Exhaust.", function(enemy){
+deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this combat. Exhaust.", function(enemy){
     let eligible = hand.filter(x=>x.cost > 0);
     if(eligible.length == 0) return;
     let c = eligible[Math.floor(Math.random()*eligible.length)];
-    c.flags.push("nextcost "+c.cost);
+    c.flags.push("aftercost "+c.cost);
     c.cost = 0;
 }, ["exhausted"]));
-deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this turn. Exhaust.", function(enemy){
+deck.push(new Card("Madness", 0, "Skill", "Reduce the cost of a random card in your hand to 0 this combat. Exhaust.", function(enemy){
     let eligible = hand.filter(x=>x.cost > 0);
     if(eligible.length == 0) return;
     let c = eligible[Math.floor(Math.random()*eligible.length)];
-    c.flags.push("nextcost "+c.cost);
+    c.flags.push("aftercost "+c.cost);
     c.cost = 0;
 }, ["exhausted"]));
 getId("eventDesc").innerHTML = "Something in you cracks. You give in to the chattering voices and continue with a new perspective.";
@@ -4772,12 +4810,12 @@ getId("woogleButton").onclick = function() {showMap();}
                 statusElemB4.innerHTML=(hp<=0.25*maxHp ? "<span style='color: red'>HP: "+hp+"/"+maxHp+"</span>" : "HP: "+hp+"/"+maxHp);
                 statusElemB4.innerHTML+=" | "+gold+" gold | Act "+"I".repeat(actNum)+", Floor "+mapY+", Asc "+getId("ascensionLevel").value;
                 deckNumber.innerHTML=deck.length;
-                statusElem.innerHTML="<span id='relics'><b>Relics:</b></span>";
+                statusElem.innerHTML="<span id='relics'><b>Relics:&nbsp;</b></span>";
                 for(let relic of relics) {
                     let relicElem = document.createElement("span");
                     relicElem.setAttribute("class", "tt");
                     //relicElem.innerHTML = " | "+relic.name;
-                    relicElem.innerHTML = "<img style='width:50px;height:50px;' src='StS/"+relic.name.replaceAll(" ","").replaceAll("’","")+".png'>";
+                    relicElem.innerHTML = "<img style='width:40px;height:40px;position:absolute;top:0%;' src='StS/"+relic.name.replaceAll(" ","").replaceAll("’","")+".png'>";
                     let relicTooltip = document.createElement("span");
                     relicTooltip.setAttribute("class", "txt");
                     relicTooltip.innerHTML = relic.desc;
@@ -4816,6 +4854,11 @@ getId("woogleButton").onclick = function() {showMap();}
                 getId("drawPile").innerHTML = "View Draw <span style='text-decoration:underline'>P</span>ile | <span style='color:white'>"+drawPile.length+"</span>";
                 getId("discardPile").innerHTML = "View D<span style='text-decoration:underline'>i</span>scard Pile | <span style='color:white'>"+discardPile.length+"</span>";
                 getId("exhaustPile").innerHTML = "View E<span style='text-decoration:underline'>x</span>haust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
+                let x = document.getElementsByClassName("txt");
+                for (t of x) {
+                    t.style.left = (mousex+10) + "px";
+                    t.style.top = (mousey+10+window.pageYOffset) + "px";
+                }
                 //alert("Finished!");
             }
             
@@ -5079,6 +5122,16 @@ getId("woogleButton").onclick = function() {showMap();}
                         }, 2000);
                     }
                     buffs = [];
+                    for(let card of [...drawPile, ...discardPile, ...hand, ...exhaustPile]) {
+                        if(card.flags.map(x=>x.split(" ")[0]).includes("nextcost")) {
+                            card.cost = card.flags.filter(x=>x.split(" ")[0] == "nextcost")[0].split(" ")[1];
+                            card.flags = card.flags.filter(x=>x.split(" ")[0] != "nextcost");
+                        }
+                        if(card.flags.map(x=>x.split(" ")[0]).includes("aftercost")) {
+                            card.cost = card.flags.filter(x=>x.split(" ")[0] == "aftercost")[0].split(" ")[1];
+                            card.flags = card.flags.filter(x=>x.split(" ")[0] != "aftercost");
+                        }
+                    }
                     ifRelic("Meat on the Bone", function(){hp = Math.min(Math.round(0.5*maxHp), hp + 12)});
                     ifRelic("Burning Blood", function(){hp = Math.min(maxHp, hp + 6);});
                     getId("rewardsScreen").style.display = "block";
