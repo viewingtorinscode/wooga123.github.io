@@ -392,7 +392,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.2.3";
+            let currentVersion = "v4.2.4";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -2241,7 +2241,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 dealDamage(enemy, 12 + stats.mantraGain);
             });
             let conjureBlade = () => new Card("Conjure Blade", "X", "Skill", "Shuffle X Expungers into your draw pile. Exhaust.", function(enemy){
-                drawPile.push(new Card("Expunger", 0, "Attack", "Deal [DAM4] damage. Draw a card.", function(enemy){dealDamage(enemy,4);drawCard();}));
+                drawPile.push(new Card("Expunger", 0, "Attack", "Deal [DAM3] damage. Draw a card.", function(enemy){dealDamage(enemy,3);drawCard();}, ["exhausted"]));
             }, ["exhausted"]);
             let deusExMachina = () => new Card("Deus Ex Machina", 0, "Skill", "Add 2 Miracles to your hand. Exhaust.", function(enemy){
                 hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
@@ -2752,7 +2752,7 @@ getId("woogleButton").onclick = function() {showMap();}
             }, ["exhausted", "retain"]), "Brilliance": () => new Card("Brilliance+", 1, "Attack", "Deal [BRILLIANCE+] damage. More effective based on Mantra gained this combat.", function(enemy){
                     dealDamage(enemy, 16 + stats.mantraGain);
             }), "Conjure Blade": () => new Card("Conjure Blade+", "X", "Skill", "Shuffle X upgraded Expungers into your draw pile. Exhaust.", function(enemy){
-                drawPile.push(new Card("Expunger+", 0, "Attack", "Deal [DAM6] damage. Draw a card.", function(enemy){dealDamage(enemy,6);drawCard();}));
+                drawPile.push(new Card("Expunger+", 0, "Attack", "Deal [DAM5] damage. Draw a card.", function(enemy){dealDamage(enemy,5);drawCard();}, ["exhausted"]));
             }, ["exhausted"]), "Deus Ex Machina": () => new Card("Deus Ex Machina+", 0, "Skill", "Add 3 Miracles to your hand. Exhaust.", function(enemy){
                 hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
                 hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
