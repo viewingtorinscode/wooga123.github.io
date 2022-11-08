@@ -236,7 +236,7 @@
         
         <span id="statusContainer" style="display: none;">
             <span id="statusLineB4"></span>
-            <button onclick='d=deck.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
+            <button onclick='d=deck.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View <span style="text-decoration:underline">D</span>eck | <span style="color:white" id="deckSize">10</span></button>
             <span id="statusLine"></span>
         </span>
         <br /><br />
@@ -328,9 +328,9 @@ Credits (in order of importance):
                     <br />
                     <span id="energy" class="tt"></span>&nbsp;&nbsp;&nbsp;<span id="hand"></span>
                     <br /><br />
-                    <button id="discardPile" onclick='d=discardPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View D<span style="text-decoration:underline">i</span>scard Pile</button>
-                    <button id="drawPile" onclick='d=drawPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View Draw <span style="text-decoration:underline">P</span>ile</button>
-                    <button id="exhaustPile" onclick='d=exhaustPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View E<span style="text-decoration:underline">x</span>haust Pile</button>
+                    <button id="discardPile" onclick='d=discardPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View D<span style="text-decoration:underline">i</span>scard Pile</button>
+                    <button id="drawPile" onclick='d=drawPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View Draw <span style="text-decoration:underline">P</span>ile</button>
+                    <button id="exhaustPile" onclick='d=exhaustPile.map(x=>x.name);o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);'>View E<span style="text-decoration:underline">x</span>haust Pile</button>
                     | <button id="turnEnder"><span style="text-decoration:underline">E</span>nd Turn</button><br/>
                 </td>
                 <td id="enemiesTd">
@@ -392,7 +392,7 @@ Credits (in order of importance):
             newFun();
             window.setInterval(newFun, 800);
             
-            let currentVersion = "v4.2.2";
+            let currentVersion = "v4.2.3";
             getId("version").innerHTML = "Clone of Slay the Spire "+currentVersion+" ~ checking for updates";
             let myRequest = new Request("https://api.github.com/repos/wooga123/wooga123.github.io/branches/main");
             function fetchIt() {
@@ -553,15 +553,15 @@ if(multiChoice.includes(num)) {
             document.onkeypress = function(e) {
                 e = e || window.event;
                 if(e.keyCode == 100) { // d
-                    let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
+                    let d=deck.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 116) { // t
                     if(timerRunning){timerRunning=false;hasPaused=true;getId('timer').setAttribute('class','Attack');updateStatLine();}else{timerRunning=true;getId('timer').setAttribute('class','Skill');updateStatLine();}
                 } else if(e.keyCode == 112 && getId("gameScreen").style.display != "none") { // p
-                    let d=drawPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
+                    let d=drawPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 105 && getId("gameScreen").style.display != "none") { // i
-                    let d=discardPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
+                    let d=discardPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 120 && getId("gameScreen").style.display != "none") { // x
-                    let d=exhaustPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]+=1;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
+                    let d=exhaustPile.map(x=>x.name);let o={};for(let i of d){if(Object.keys(o).includes(i)){o[i]++;}else{o[i]=1;}}let t=[];for(let i of Object.keys(o).sort()){t.push([i,o[i]]);}let T=t.map(x=>x[1]+"x "+x[0]).join("\n");showPopup(T);
                 } else if(e.keyCode == 101 && getId("gameScreen").style.display != "none") { // e
                     endTurn();
                 // numbers
@@ -884,12 +884,17 @@ if(multiChoice.includes(num)) {
                         }
                         if(
                             energy >= newCost &&
-                            !this.flags.includes("unplayable") &&
+                            !(this.flags.includes("unplayable") && !(relics.includes("Blue Candle") && this.type == "Curse")) &&
                             !(this.name.includes("Signature Move") && hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) &&
                             !(this.name.includes("Clash") && hand.map(x=>x.type=="Skill").includes(true))
                         ) {
                             energy -= newCost;
-                            this.use(target);
+                            if(relics.includes("Blue Candle") && this.type == "Curse") {
+                                if(!this.flags.includes("exhausted")) {this.flags.push("exhausted");}
+                                hp--;
+                            } else {
+                                this.use(target);
+                            }
                             played = true;
                         }
                     }
@@ -916,9 +921,9 @@ if(multiChoice.includes(num)) {
                     for(let i of enemies) {dealDamage(i, hasBuff("Thousand Cuts"));}
                     gainBuff("Block", hasBuff("After Image"));
                     if(Math.random() < 0.1) {ifRelic("Ink Bottle", function(){drawCard();})}
-                    stats.cardsThisTurn += 1;
+                    stats.cardsThisTurn++;
                     if(this.type == "Skill") {
-                        stats.skillsThisTurn += 1;
+                        stats.skillsThisTurn++;
                         if(stats.skillsThisTurn % 3 == 0) {ifRelic("Letter Opener", function(){for(let e of enemies){dealDamage(e, 5)}})}
                         for(let e of enemies) {
                             e.gainBuff("Strength", e.hasBuff("Enrage"));
@@ -941,7 +946,7 @@ if(multiChoice.includes(num)) {
                         en.gainBuff("Strength", en.hasBuff("Curiosity"));
                     }
                     if(this.type == "Attack") {
-                        stats.attacksThisTurn += 1;
+                        stats.attacksThisTurn++;
                         if(stats.attacksThisTurn % 3 == 0) {
                             ifRelic("Kunai", function(){gainBuff("Dexterity", 1)});
                             ifRelic("Shuriken", function(){gainBuff("Strength", 1)});
@@ -953,6 +958,7 @@ if(multiChoice.includes(num)) {
                             this.use(target);
                         }
                         ifRelic("Pen Nib", function(){gainBuff("Pen Nib", 1)});
+                        ifRelic("Duality", function(){gainBuff("Dexterity", 1); gainBuff("Dexterity Down", 1)});
                         loseBuff("Vigor");
                     }
                     if(this.name.toLowerCase().includes("strike")) {
@@ -975,7 +981,7 @@ if(multiChoice.includes(num)) {
                         en.gainBuff("Slow", 1);
                     }
                     for(let i of hand) {
-                        if(i.name == "Pain") hp -= 1;
+                        if(i.name == "Pain") hp--;
                     }
                 }
             }
@@ -1040,7 +1046,7 @@ if(multiChoice.includes(num)) {
                     if(debuffs.includes(name) && this.hasBuff("Artifact")) {this.loseBuff("Artifact", 1); updateHtml(); return;}
                     let newAmt = amt;
                     if(name == "Block") {newAmt = this.calcBlock(amt);}
-                    if(name == "Poison") {ifRelic("Snecko Skull", function(){newAmt += 1})}
+                    if(name == "Poison") {ifRelic("Snecko Skull", function(){newAmt++})}
                     if(amt == 0) return;
                     let foundBuff = false;
                     for(let b of this.buffs) {if(b.name == name) {b.amt += newAmt; foundBuff = true;}}
@@ -1067,7 +1073,7 @@ if(multiChoice.includes(num)) {
                     if(this.hasBuff("Weak")) {finalAmt = Math.round(finalAmt * 0.75);}
                     let ub = finalAmt - hasBuff("Block");
                     if(ub > 0 && ub <= 5) {ifRelic("Torii", function(){finalAmt = 1;})}
-                    if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt -= 1;})}
+                    if(ub > 0) {ifRelic("Tungsten Rod", function(){finalAmt--;})}
                     if(hasBuff("Intangible")) {finalAmt = 1;}
                     if(hasBuff("Buffer") && ub > 0 && actuallyDeal) {finalAmt = 0; loseBuff("Buffer", 1);}
                     return finalAmt;
@@ -1093,7 +1099,7 @@ if(multiChoice.includes(num)) {
                         ifRelic("Self-Forming Clay", function(){gainBuff("Next Turn Block", 3)});
                         for(let i of [...drawPile, ...hand, ...discardPile]) {
                             if(i.name == "Blood for Blood" && i.cost > 0){
-                                i.cost -= 1;
+                                i.cost--;
                             }
                         }
                         addStatus("Wound", this.hasBuff("Painful Stabs"));
@@ -1150,7 +1156,7 @@ if(multiChoice.includes(num)) {
                 for(let b of buffs) {
                     if(b.name == name) {
                         if(amt >= b.amt) {buffs.splice(buffs.indexOf(b), 1);} else {b.amt -= amt;}
-                        if(name == "Calm") {energy += 2; ifRelic("Violet Lotus", function(){energy += 1;});}
+                        if(name == "Calm") {energy += 2; ifRelic("Violet Lotus", function(){energy++;});}
                     }
                 }
             }
@@ -1188,7 +1194,7 @@ if(multiChoice.includes(num)) {
                 if(shiv) {ifRelic("Wrist Blade", function(){finalAmt += 6;});}
                 if(strike) {ifRelic("Strike Dummy", function(){finalAmt += 3;})}
                 if(finalAmt > 0) {
-                    ifRelic("Vajra", function(){finalAmt += 1;});
+                    ifRelic("Vajra", function(){finalAmt++;});
                     ifRelic("Red Skull", function(){if(hp<=0.5*maxHp){finalAmt += 3;}});
                     if(finalAmt < 5 && relics.map(x=>x.name).includes("The Boot")) {finalAmt = 5;}
                 }
@@ -1196,7 +1202,7 @@ if(multiChoice.includes(num)) {
             }
             function calcYourOOCBlock(amt) {
                 let finalAmt = amt;
-                ifRelic("Oddly Smooth Stone", function(){finalAmt += 1;});
+                ifRelic("Oddly Smooth Stone", function(){finalAmt++;});
                 return finalAmt;
             }
             function calcYourBlock(amt) {
@@ -1556,6 +1562,25 @@ updateStatLine();
                     getId("eventScreen").style.display = "block";
                     ifRelic("Sssserpent Head", function(){gold += 50;});
                     let event = choice([...possibleEvents["Act "+actNum.toString()], ...possibleEvents["All Acts"]]);
+                    let chestChance = 0;
+                    ifRelic("Tiny Chest", function(){chestChance+=0.25});
+                    if(Math.random() < chestChance) {
+                        event = {
+                            title: "Tiny Chest",
+                            desc: "You discover a miniature hidden treasure chest full of valuables!",
+                            choices: [
+                                ["Open", "Gain gold and a random relic.", `
+gold += Math.round(Math.random()*10) + 24;
+let r = choice(choice(relicPool), choice(relicPool), choice(rareRelicPool));
+relics.push(r);
+onRelicPickup(r);
+updateStatLine();
+getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
+getId("woogleButton").onclick = function() {showMap();}
+                                `]
+                            ]
+                        };
+                    }
                     getId("eventTitle").innerHTML = event.title;
                     getId("eventDesc").innerHTML = event.desc;
                     getId("eventChoices").innerHTML = event.choices.map(x=>"<button class='eventButton tt' onclick='"+x[2]+"'>"+x[0]+"<span class='txt'>"+x[1]+"</span></button>").join(" ");
@@ -1686,8 +1711,6 @@ updateStatLine();
                 if(chosen) {
                     hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
                     updateHtml();
-                } else {
-                    alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
                 }
             });
             let entrench = () => new Card("Entrench", 2, "Skill", "Double your Block.", function(enemy){
@@ -1750,7 +1773,7 @@ updateStatLine();
                 }
             });
             let seeingRed = () => new Card("Seeing Red", 0, "Skill", "Gain 1 energy. Exhaust.", function(enemy){
-                energy += 1;
+                energy++;
             }, ["exhausted"]);
             let severSoul = () => new Card("Sever Soul", 2, "Attack", "Exhaust all non-Attack cards in your hand. Deal [DAM16] damage.", function(enemy){
                 for(let card of hand) {
@@ -1764,8 +1787,6 @@ updateStatLine();
             let spotWeakness = () => new Card("Spot Weakness", 1, "Skill", "If the enemy intends to attack, gain 3 Strength.", function(enemy){
                 if(enemy.intent.intent.includes("attack")) {
                     gainBuff("Strength", 3);
-                } else {
-                    alert("Failed to play Spot Weakness: That enemy does not intend to attack.");
                 }
             });
             let uppercut = () => new Card("Uppercut", 2, "Attack", "Deal [DAM13] damage. Apply 1 Weak and Vulnerable.", function(enemy){
@@ -1802,8 +1823,6 @@ updateStatLine();
                     hand.push(chosen);
                     exhaustPile.splice(exhaustPile.indexOf(chosen), 1);
                     updateHtml();
-                } else {
-                    alert("Failed to play Exhume: Exhaust pile is empty.");
                 }
             }, ["exhausted"]);
             let feed = () => new Card("Feed", 1, "Skill", "Enemy loses 10 HP. If they die from it, gain 3 Max HP. Exhaust.", function(enemy){
@@ -1977,7 +1996,7 @@ updateStatLine();
             }, ["exhausted"]);
             let heelHook = () => new Card("Heel Hook", 1, "Attack", "Deal [DAM5] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 5);
-                if(enemy.hasBuff("Weak")) {energy += 1; drawCard();}
+                if(enemy.hasBuff("Weak")) {energy++; drawCard();}
             });
             let infiniteBlades = () => new Card("Infinite Blades", 1, "Power", "At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
@@ -2005,7 +2024,7 @@ updateStatLine();
                 gainBuff("Thousand Cuts", 1);
             }, ["exhausted"]);
             let adrenaline = () => new Card("Adrenaline", 0, "Skill", "Gain 1 energy. Draw 2 cards. Exhaust.", function(enemy){
-                energy += 1; drawCard(2);
+                energy++; drawCard(2);
             }, ["exhausted"]);
             let afterImage = () => new Card("After Image", 1, "Power", "Whenever you play a card, gain [BLK1] Block.", function(enemy){
                 gainBuff("After Image", 1);
@@ -2023,7 +2042,7 @@ updateStatLine();
                 gainBuff("Envenom", 1);
             }, ["exhausted"]);
             let grandFinale = () => new Card("Grand Finale", 0, "Attack", "If there are no cards in your draw pile, deal [DAM50] damage to ALL enemies.", function(enemy) {
-                if(drawPile.length == 0) {for(let e of enemies){dealDamage(e, 50);}} else {alert("Failed to play Grand Finale: There are cards in your draw pile.");}
+                if(drawPile.length == 0) {for(let e of enemies){dealDamage(e, 50);}}
             });
             let stormOfSteel = () => new Card("Storm of Steel", 1, "Skill", "Replace your hand with Shivs.", function(enemy){
                 let handSize = hand.length;
@@ -2069,7 +2088,7 @@ updateStatLine();
                 dealDamage(enemy, 4); dealDamage(enemy, 4);
             }, ["retain"]);
             let followUp = () => new Card("Follow Up", 1, "Attack", "Deal [DAM7] damage. If the last card played this combat was an Attack, gain 1 energy.", function(enemy){
-                dealDamage(enemy, 7); if(stats.lastType == "Attack") {energy += 1;}
+                dealDamage(enemy, 7); if(stats.lastType == "Attack") {energy++;}
             });
             let halt = () => new Card("Halt", 0, "Skill", "Gain [BLK3] Block. If you're in Wrath, gain [BLK9] more Block.", function(enemy){
                 gainBuff("Block", 3); if(hasBuff("Wrath")) {gainBuff("Block", 9);}
@@ -2225,8 +2244,8 @@ updateStatLine();
                 drawPile.push(new Card("Expunger", 0, "Attack", "Deal [DAM4] damage. Draw a card.", function(enemy){dealDamage(enemy,4);drawCard();}));
             }, ["exhausted"]);
             let deusExMachina = () => new Card("Deus Ex Machina", 0, "Skill", "Add 2 Miracles to your hand. Exhaust.", function(enemy){
-                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy += 1;}, ["exhausted", "retain"]));
-                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy += 1;}, ["exhausted", "retain"]));
+                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
+                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
             }, ["exhausted"]);
             let devaForm = () => new Card("Deva Form", 3, "Power", "Ethereal. At the start of your turn, gain 1 energy and increase the gain by 1.", function(enemy){
                 gainBuff("Deva Form", 1);
@@ -2363,8 +2382,6 @@ updateStatLine();
                         hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
                         hand.push(new Card(chosen.name, chosen.cost, chosen.type, chosen.desc, chosen.use, chosen.flags));
                         updateHtml();
-                    } else {
-                        alert("Failed to play Dual Wield: No Attack or Power cards in hand.");
                     }
                 }), "Entrench": () => new Card("Entrench+", 1, "Skill", "Double your Block.", function(enemy){
                     if(hasBuff("Block")) {gainBuff("Block", hasBuff("Block"));}
@@ -2449,8 +2466,6 @@ updateStatLine();
                         hand.push(chosen);
                         exhaustPile.splice(exhaustPile.indexOf(chosen), 1);
                         updateHtml();
-                    } else {
-                        alert("Failed to play Exhume: Exhaust pile is empty.");
                     }
                 }, ["exhausted"]), "Feed": () => new Card("Feed+", 1, "Attack", "Enemy loses 12 HP. If they die from it, gain 4 Max HP. Exhaust.", function(enemy){
                     if(enemy.hp <= 12) {maxHp += 4; hp += 4;}
@@ -2579,7 +2594,7 @@ updateStatLine();
                 gainBuff("Dexterity", 3);
             }, ["exhausted"]), "Heel Hook": () => new Card("Heel Hook+", 1, "Attack", "Deal [DAM8] damage. If the enemy has Weak, gain 1 energy and draw a card.", function(enemy){
                 dealDamage(enemy, 8);
-                if(enemy.hasBuff("Weak")) {energy += 1; drawCard();}
+                if(enemy.hasBuff("Weak")) {energy++; drawCard();}
             }), "Infinite Blades": () => new Card("Infinite Blades+", 1, "Power", "Innate. At the start of your turn, add a Shiv into your hand.", function(enemy){
                 gainBuff("Infinite Blades", 1);
             }, ["exhausted", "innate"]), "Leg Sweep": () => new Card("Leg Sweep+", 2, "Skill", "Apply 3 Weak. Gain [BLK14] Block.", function(enemy){
@@ -2607,7 +2622,7 @@ updateStatLine();
             }), "Envenom": () => new Card("Envenom+", 1, "Power", "Whenever you deal unblocked damage, apply 1 Poison.", function(enemy){
                 gainBuff("Envenom", 1);
             }, ["exhausted"]), "Grand Finale": () => new Card("Grand Finale+", 0, "Attack", "If there are no cards in your draw pile, deal [DAM60] damage to ALL enemies.", function(enemy) {
-                if(drawPile.length == 0) {for(let e of enemies){dealDamage(e, 60);}} else {alert("Failed to play Grand Finale: There are cards in your draw pile.");}
+                if(drawPile.length == 0) {for(let e of enemies){dealDamage(e, 60);}}
             }), "Storm of Steel": () => new Card("Storm of Steel+", 1, "Skill", "Replace your hand with upgraded Shivs.", function(enemy){
                 let handSize = hand.length;
                 for(let i of hand) {discardPile.push(i);}
@@ -2637,7 +2652,7 @@ updateStatLine();
             }), "Flying Sleeves": () => new Card("Flying Sleeves+", 1, "Attack", "Retain. Deal [DAM6] damage twice.", function(enemy){
                 dealDamage(enemy, 6); dealDamage(enemy, 6);
             }, ["retain"]), "Follow Up": () => new Card("Follow Up+", 1, "Attack", "Deal [DAM11] damage. If the last card played this combat was an Attack, gain 1 energy.", function(enemy){
-                dealDamage(enemy, 11); if(stats.lastType == "Attack") {energy += 1;}
+                dealDamage(enemy, 11); if(stats.lastType == "Attack") {energy++;}
             }), "Halt": () => new Card("Halt+", 0, "Skill", "Gain [BLK4] Block. If you're in Wrath, gain [BLK14] more Block.", function(enemy){
                 gainBuff("Block", 4); if(hasBuff("Wrath")) {gainBuff("Block", 14);}
             }), "Just Lucky": () => new Card("Just Lucky+", 0, "Attack", "Scry 2, gain [BLK3] Block, deal [DAM4] damage.", function(enemy){
@@ -2739,9 +2754,9 @@ updateStatLine();
             }), "Conjure Blade": () => new Card("Conjure Blade+", "X", "Skill", "Shuffle X upgraded Expungers into your draw pile. Exhaust.", function(enemy){
                 drawPile.push(new Card("Expunger+", 0, "Attack", "Deal [DAM6] damage. Draw a card.", function(enemy){dealDamage(enemy,6);drawCard();}));
             }, ["exhausted"]), "Deus Ex Machina": () => new Card("Deus Ex Machina+", 0, "Skill", "Add 3 Miracles to your hand. Exhaust.", function(enemy){
-                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy += 1;}, ["exhausted", "retain"]));
-                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy += 1;}, ["exhausted", "retain"]));
-                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy += 1;}, ["exhausted", "retain"]));
+                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
+                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
+                hand.push(new Card("Miracle", 0, "Skill", "Retain. Gain 1 energy. Exhaust.", function(enemy){energy++;}, ["exhausted", "retain"]));
             }, ["exhausted"]), "Deva Form": () => new Card("Deva Form", 3, "Power", "At the start of your turn, gain 1 energy and increase the gain by 1.", function(enemy){
                 gainBuff("Deva Form", 1);
             }, ["exhausted"]), "Devotion": () => new Card("Devotion", 1, "Power", "At the start of your turn, gain 3 Mantra.", function(enemy){
@@ -2805,7 +2820,8 @@ updateStatLine();
             
             let randCard = function(upg=true) {
                 let card = choice([bodySlam, clash, cleave, clothesline, flex, headbutt, heavyBlade, ironWave, pommelStrike, shrugItOff, swordBoomerang, thunderclap, trueGrit, twinStrike, wildStrike, battleTrance, bloodForBlood, bloodletting, burningPact, carnage, combust, darkEmbrace, disarm, dropkick, dualWield, entrench, evolve, feelNoPain, fireBreathing, flameBarrier, ghostlyArmor, hemokinesis, infernalBlade, inflame, intimidate, metallicize, powerThrough, pummel, rage, rampage, secondWind, seeingRed, severSoul, spotWeakness, uppercut, whirlwind, acrobatics, backflip, bane, bladeDance, cloakAndDagger, daggerSpray, daggerThrow, deadlyPoison, deflect, dodgeAndRoll, flyingKnee, outmaneuver, poisonedStab, prepared, quickSlash, slice, suckerPunch, accuracy, allOutAttack, backstab, blur, bouncingFlask, caltrops, catalyst, concentrate, cripplingCloud, dash, distraction, expertise, finisher, footwork, heelHook, infiniteBlades, legSweep, noxiousFumes, predator, skewer, terror, bowlingBash, consecrate, crescendo, crushJoints, cutThroughFate, emptyBody, emptyFist, evaluate, flurryOfBlows, flyingSleeves, followUp, halt, justLucky, pressurePoints, predict, precision, prostrate, protect, sashWhip, thirdEye, tranquility, battleHymn, collect, conclude, deceiveReality, emptyMind, fasting, fearNoEvil, foresight, indignation, innerPeace, likeWater, mentalFortress, nirvana, perseverance, pray, reachHeaven, rushdown, sanctity, sandsOfTime, signatureMove, simmeringFury, study, swivel, talkToTheHand, tantrum, wallop, waveOfTheHand, weave, wheelKick, windmillStrike, worship, wreathOfFlame]);
-                if(Math.random() < 0.3 * (actNum - 1) && upg) {
+                let alum = 0; ifRelic("Aluminum Foil", function(){alum++});
+                if(Math.random() < (0.2 * alum + 0.3 * (actNum - 1)) && upg) {
                     return upgradedCards[card().name]();
                 } else {
                     return card();
@@ -2872,12 +2888,14 @@ updateStatLine();
                 } else {
                     generated = [c(), c(), c(), c(), c(), c(), c(), c(), c(), c()];
                 }
+                let alum = 0; ifRelic("Aluminum Foil", function(){generated[alum] = r(); alum++;});
                 while(generated.filter((v, i, a) => a.map(x=>x.name).indexOf(v.name) == i).length < generated.length) {
                     if((eliteBattle && getId("ascensionLevel").value < 12) || bossBattle) {
                         generated = shuffle([c(), c(), c(), r(), r(), r(), r(), r(), r(), r()]);
                     } else {
                         generated = [c(), c(), c(), c(), c(), c(), c(), c(), c(), c()];
                     }
+                    alum = 0; ifRelic("Aluminum Foil", function(){generated[alum] = r(); alum++;});
                 }
                 //alert("Generated ten cards -> "+generated.map(x=>x.number.toString().slice(2, 5)));
                 let amountOfCards = 3;
@@ -2951,7 +2969,7 @@ updateStatLine();
                 if(cardNumber >= 0 && cardNumber < possibleCards.length) {
                     let r = possibleCards[cardNumber];
                     relics.push(r);
-                    if(["Busted Crown", "Coffee Dripper", "Cursed Key", "Ectoplasm", "Fusion Hammer", "Philosopher’s Stone", "Runic Dome", "Velvet Choker", "Sozu"].includes(r.name)) maxEnergy += 1;
+                    if(["Busted Crown", "Coffee Dripper", "Cursed Key", "Ectoplasm", "Fusion Hammer", "Philosopher’s Stone", "Runic Dome", "Velvet Choker", "Sozu"].includes(r.name)) maxEnergy++;
                     if(r.name == "Empty Cage") {
                         let fun = async function() {
                             let c1 = await choose(deck, "Choose a card to remove.");
@@ -2962,7 +2980,7 @@ updateStatLine();
                     }
                     if(r.name == "Pandora’s Box") {
                         let toAdd = 0;
-                        for(let i of deck) {if(["Strike", "Strike+", "Defend", "Defend+"].includes(i.name)) {toAdd += 1;}}
+                        for(let i of deck) {if(["Strike", "Strike+", "Defend", "Defend+"].includes(i.name)) {toAdd++;}}
                         deck = deck.filter(x=>!["Strike", "Strike+", "Defend", "Defend+"].includes(x.name));
                         for(let j=0; j<toAdd; j++) {
                             if(j % 3 == 0) deck.push(randRareCard());
@@ -2972,9 +2990,6 @@ updateStatLine();
                     if(r.name == "Mark of Pain") {
                         deck.push(new Card("Injury", 0, "Curse", "Unplayable.", function(){}, ["unplayable"]));
                         deck.push(new Card("Injury", 0, "Curse", "Unplayable.", function(){}, ["unplayable"]));
-                    }
-                    if(r.name == "Serpent Ring") {
-                        relics = relics.filter(x=>x.name!="Snake Ring");
                     }
                     if(r.name == "Coffee Dripper") {
                         getId("rester").style.display = "none";
@@ -2995,7 +3010,9 @@ updateStatLine();
                 }
             }
             let relicPool = [
+                // Common
                 {name: "Akabeko", desc: "Your first attack each combat deals 8 more damage."},
+                {name: "Aluminum Foil", desc: "Card rewards are more likely to be rare and upgraded."},
                 {name: "Anchor", desc: "Start each combat with 10 Block."},
                 {name: "Ancient Tea Set", desc: "When you leave a Rest Site, start the next combat with 2 more energy."},
                 {name: "Art of War", desc: "If you play no Attacks in a turn, gain 1 more Energy next turn."},
@@ -3013,10 +3030,9 @@ updateStatLine();
                 {name: "Maw Bank", desc: "When you climb a floor, gain 12 gold. Lose this when you spend gold at a shop."},
                 {name: "Meal Ticket", desc: "When you enter a shop, heal 15 HP."},
                 {name: "Oddly Smooth Stone", desc: "Start each combat with 1 Dexterity."},
-                //{name: "Omamori", desc: "Negate the next 2 Curses you obtain."}, // TODO
                 {name: "Orichalcum", desc: "When you end your turn without Block, gain 6 Block."},
                 {name: "Pen Nib", desc: "Every 10th Attack you play deals double damage."},
-                //{name: "Potion Belt", desc: "On pickup, gain 2 Potion slots."}, // TODO
+                {name: "Potion Belt", desc: "On pickup, gain 2 Potion slots."},
                 {name: "Preserved Insect", desc: "Elites have 25% less HP."},
                 {name: "Red Skull", desc: "Deal 3 more damage when your HP is half or less."},
                 {name: "Regal Pillow", desc: "Heal 15 more HP when you rest."},
@@ -3024,14 +3040,17 @@ updateStatLine();
                 {name: "Snecko Skull", desc: "When you apply Poison, apply 1 more."},
                 {name: "Strawberry", desc: "On pickup, gain 7 max HP."},
                 {name: "The Boot", desc: "When you would deal 4 or less damage, deal 5 instead."},
+                {name: "Tiny Chest", desc: "Every ❓ room has a 25% chance to be a Tiny Chest event."},
                 {name: "Toy Ornithopter", desc: "When you use a Potion, heal 5 HP."},
                 {name: "Vajra", desc: "Start each combat with 1 Strength."},
-                //{name: "War Paint", desc: "On pickup, upgrade 2 random Skills."}, // TODO
-                //{name: "Whetstone", desc: "On pickup, upgrade 2 random Attacks."}, // TODO
-                //{name: "Blue Candle", desc: "Curses can now be played. They cost 0 and will make you lose 1 HP and Exhaust them."}, // TODO
+                {name: "War Paint", desc: "On pickup, upgrade 2 random Skills."},
+                {name: "Whetstone", desc: "On pickup, upgrade 2 random Attacks."},
+                // Uncommon
+                {name: "Blue Candle", desc: "Curses can now be played. They cost 0 and will make you lose 1 HP and Exhaust them."},
                 {name: "Bottled Flame", desc: "On pickup, choose an Attack. Start each combat with it in hand."},
                 {name: "Bottled Lightning", desc: "On pickup, choose an Skill. Start each combat with it in hand."},
                 {name: "Bottled Tornado", desc: "On pickup, choose an Power. Start each combat with it in hand."},
+                {name: "Duality", desc: "Whenever you play an Attack, gain 1 Dexterity this turn."},
                 {name: "Eternal Feather", desc: "Heal 3 HP for each 5 cards in your deck when you rest."},
                 {name: "Frozen Egg", desc: "When you add a Power to your deck, upgrade it."},
                 {name: "Gremlin Horn", desc: "When an enemy dies, gain 1 energy and draw 1 card."},
@@ -3096,7 +3115,7 @@ updateStatLine();
                 {name: "Velvet Choker", desc: "+1 Max Energy. You can only play 6 cards per turn."},
                 {name: "Burning Blood", desc: "At end of combat, heal 6 HP."},
                 {name: "Mark of Pain", desc: "+1 Max Energy. On pickup, get 2 Injuries.<br/><i>(Injury: Unplayable.)</i>"},
-                {name: "Serpent Ring", desc: "Replaces Snake Ring. At the start of each turn, draw a card."},
+                {name: "Serpent Ring", desc: "At the start of each turn, draw a card."},
                 {name: "Holy Water", desc: "Start each combat with a Miracle+ in hand."},
                 {name: "Violet Lotus", desc: "Whenever you exit Calm, gain an additional energy."},
                 {name: "Wrist Blade", desc: "Shivs deal 6 additional damage."}
@@ -3107,6 +3126,7 @@ updateStatLine();
                 if(r.name == "Pear") {maxHp += 10; hp += 10;}
                 if(r.name == "Mango") {maxHp += 14; hp += 14;}
                 if(r.name == "Old Coin") {gold += 300;}
+                if(r.name == "Potion Belt") {maxPotions += 2;}
                 if(r.name == "Bottled Flame") {
                     let chosen = await choose(deck.filter(x=>x.type=="Attack"), "Choose a card to start in your hand.");
                     chosen.flags.push("innate");
@@ -3121,6 +3141,18 @@ updateStatLine();
                     let chosen = await choose(deck.filter(x=>x.type=="Power"), "Choose a card to start in your hand.");
                     chosen.flags.push("innate");
                     r.desc = "Start each combat with "+chosen.name+" in your hand.";
+                }
+                if(r.name == "War Paint") {
+                    let skillz = deck.filter(x=>x.type=="Skill"&&!x.name.includes("+"));
+                    if(skillz.length) {upgradeCard(choice(skillz));}
+                    skillz = deck.filter(x=>x.type=="Skill"&&!x.name.includes("+"));
+                    if(skillz.length) {upgradeCard(choice(skillz));}
+                }
+                if(r.name == "Whetstone") {
+                    let skillz = deck.filter(x=>x.type=="Attack"&&!x.name.includes("+"));
+                    if(skillz.length) {upgradeCard(choice(skillz));}
+                    skillz = deck.filter(x=>x.type=="Attack"&&!x.name.includes("+"));
+                    if(skillz.length) {upgradeCard(choice(skillz));}
                 }
             }
             
@@ -3428,7 +3460,7 @@ if(Math.random() < relicChance * 0.01) {
     getId("eventChoices").innerHTML = "<button id=woogleButton>Leave</button>";
     getId("woogleButton").onclick = function() {showMap();};
 } else {
-    hpLoss += 1;
+    hpLoss++;
     relicChance += 10;
     getId("eventDesc").innerHTML = "Ouch! You didn’t find a relic, but you’re convinced that there is one...";
     getId("hploss").innerHTML = hpLoss;
@@ -4807,6 +4839,7 @@ getId("woogleButton").onclick = function() {showMap();}
             let bossBattle = false;
             let target;
             
+            let maxPotions = 3;
             let potionDrop;
             function getPotion() {potions.push(potionDrop);}
             
@@ -4825,14 +4858,15 @@ getId("woogleButton").onclick = function() {showMap();}
                 statusElemB4.innerHTML+=" | "+gold+" gold | Act "+"I".repeat(actNum)+", Floor "+mapY+", Asc "+getId("ascensionLevel").value;
                 deckNumber.innerHTML=deck.length;
                 statusElem.innerHTML="<span id='relics'><b>Relics:&nbsp;</b></span>";
-                for(let relic of relics) {
+                for(let r in relics) {
+                    let relic = relics[r];
                     let relicElem = document.createElement("span");
                     relicElem.setAttribute("class", "tt");
                     //relicElem.innerHTML = " | "+relic.name;
-                    relicElem.innerHTML = "<img style='width:40px;height:40px;position:absolute;top:0%;' src='StS/"+relic.name.replaceAll(" ","").replaceAll("’","")+".png'>";
+                    relicElem.innerHTML = "<img style='width:40px;height:40px;position:absolute;top:0px;left:"+(40*r+getId("relics").getBoundingClientRect().right)+"px;' src='StS/"+relic.name.replaceAll(" ","").replaceAll("’","")+".png'>";
                     let relicTooltip = document.createElement("span");
                     relicTooltip.setAttribute("class", "txt");
-                    relicTooltip.innerHTML = relic.desc;
+                    relicTooltip.innerHTML = relic.name+": "+relic.desc;
                     relicElem.appendChild(relicTooltip);
                     getId("relics").appendChild(relicElem);
                 }
@@ -4841,7 +4875,7 @@ getId("woogleButton").onclick = function() {showMap();}
                 for(let potion of potions) {
                     let potionElem = document.createElement("button");
                     potionElem.setAttribute("class", "tt");
-                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target); ifRelic("Sacred Bark", function(){x(target);});} potions.splice(${potions.indexOf(potion)}, 1); ifRelic("Toy Ornithopter", function(){hp = Math.min(maxHp, hp + 5)}); if(getId("gameScreen").style.display != "none" || getId("rewardsScreen").style.display != "none"){updateHtml();}`);
+                    potionElem.setAttribute("onclick", `let x = function(tgt){${potion.effect}}; if(getId("gameScreen").style.display != "none" || ${(["Fruit Juice", "Blood"].includes(potion.name) ? "true" : "false")}) {x(target); ifRelic("Sacred Bark", function(){x(target);});} potions.splice(${potions.indexOf(potion)}, 1); ifRelic("Toy Ornithopter", function(){hp = Math.min(maxHp, hp + 5)}); if(getId("gameScreen").style.display != "none" && ${(["Fruit Juice", "Blood"].includes(potion.name) ? "false" : "true")}){updateHtml();}`);
                     potionElem.innerHTML = potion.name+" Potion";
                     let potionTooltip = document.createElement("span");
                     potionTooltip.setAttribute("class", "txt");
@@ -4849,7 +4883,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     potionElem.appendChild(potionTooltip);
                     getId("potions").appendChild(potionElem);
                 }
-                for(let i=0; i<((getId("ascensionLevel").value >= 11 ? 2 : 3)-potions.length); i++) {
+                for(let i=0; i<(maxPotions-potions.length); i++) {
                     let potionElem = document.createElement("button");
                     potionElem.classList.add("nonbutton");
                     potionElem.innerHTML = "Empty Slot";
@@ -4868,11 +4902,14 @@ getId("woogleButton").onclick = function() {showMap();}
                 getId("drawPile").innerHTML = "View Draw <span style='text-decoration:underline'>P</span>ile | <span style='color:white'>"+drawPile.length+"</span>";
                 getId("discardPile").innerHTML = "View D<span style='text-decoration:underline'>i</span>scard Pile | <span style='color:white'>"+discardPile.length+"</span>";
                 getId("exhaustPile").innerHTML = "View E<span style='text-decoration:underline'>x</span>haust Pile | <span style='color:white'>"+exhaustPile.length+"</span>";
+                //alert("Piles done");
+                let curses = deck.filter(x=>x.type=="Curse");
                 let x = document.getElementsByClassName("txt");
                 for (t of x) {
                     t.style.left = (mousex+10) + "px";
                     t.style.top = (mousey+10+window.pageYOffset) + "px";
                 }
+                //alert("Random other things done");
                 //alert("Finished!");
             }
             
@@ -4955,7 +4992,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     let playcard = () => { c.play(); }
                     cardElem.onclick = playcard;
                     if(
-                        c.flags.includes("unplayable") ||
+                        (c.flags.includes("unplayable") && !(relics.includes("Blue Candle") && this.type == "Curse")) ||
                         energy < c.cost ||
                         (c.name.includes("Signature Move") && hand.filter(x=>x.type=="Attack"&&!x.name.includes("Signature Move")).length) ||
                         (c.name.includes("Clash") && hand.map(x=>x.type=="Skill").includes(true))
@@ -4966,7 +5003,7 @@ getId("woogleButton").onclick = function() {showMap();}
                     
                     let helpNumber = document.createElement("span");
                     helpNumber.style.position = "absolute";
-                    let coords = cardElem.getBoundingClientRect()
+                    let coords = cardElem.getBoundingClientRect();
                     helpNumber.style.top = coords.bottom;
                     helpNumber.style.left = coords.left + 0.5 * (coords.right - coords.left) - 5;
                     let ind = hand.indexOf(c) + 1;
@@ -5162,7 +5199,7 @@ getId("woogleButton").onclick = function() {showMap();}
                         getId("potionReward").style.display = "block";
                         potionDrop = choice(potionPool);
                         getId("potionReward").innerHTML = potionDrop.name+" Potion";
-                        getId("potionReward").setAttribute("onclick", `if(potions.length < (getId("ascensionLevel").value >= 11 ? 2 : 3)){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
+                        getId("potionReward").setAttribute("onclick", `if(potions.length < maxPotions){getPotion(); updateStatLine(); getId('potionReward').style.display = 'none';}`);
                     } else {
                         getId("potionReward").style.display = "none";
                     }
@@ -5193,7 +5230,7 @@ getId('relicReward').style.display = 'none';
                     } else {
                         getId("bossRelicReward").style.display = "none";
                     }
-                    ifRelic("Face of Cleric", function(){maxHp += 1; hp += 1;});
+                    ifRelic("Face of Cleric", function(){maxHp++; hp++;});
                 }
                 if(hp <= 0) {
                     hp = 0;
@@ -5260,7 +5297,7 @@ getId('relicReward').style.display = 'none';
                         });
                         drawPile = shuffle(discardPile);
                         discardPile = [];
-                        ifRelic("Sundial", function(){energy += 1});
+                        ifRelic("Sundial", function(){energy++});
                     }
                     if(drawPile.length > 0 && hand.length < 10) {
                         let toDraw = drawPile.pop(0);
@@ -5308,7 +5345,7 @@ getId('relicReward').style.display = 'none';
                 }
                 if(turn == 1) {ifRelic("Horn Cleat", function(){gainBuff("Block", 14)})}
                 if(turn == 2) {ifRelic("Captain’s Wheel", function(){gainBuff("Block", 18)})}
-                turn += 1;
+                turn++;
                 getId("turnEnder").innerHTML = "<span style='text-decoration:underline'>E</span>nd turn "+turn;
                 ifRelic("Mercury Hourglass", function(){for(let e of enemies){dealDamage(e, 3)}});
                 ifRelic("Damaru", function(){gainBuff("Mantra", 1);});
@@ -5339,11 +5376,11 @@ getId('relicReward').style.display = 'none';
                 energy = maxEnergy + hasBuff("Berserk") + hasBuff("Next Turn Energy") - hasBuff("Fasting") + hasBuff("Deva Form");
                 if(hasBuff("Deva Form")) {gainBuff("Deva Form", 1);}
                 if(stats.rested) {ifRelic("Ancient Tea Set", function(){energy += 2});}
-                if(turn % 3 == 0) {ifRelic("Happy Flower", function(){energy += 1});}
-                ifRelic("Slaver’s Collar", function(){if(bossBattle || eliteBattle){energy += 1;}});
+                if(turn % 3 == 0) {ifRelic("Happy Flower", function(){energy++});}
+                ifRelic("Slaver’s Collar", function(){if(bossBattle || eliteBattle){energy++;}});
                 loseBuff("Next Turn Energy");
                 stats.rested = false;
-                if(stats.attacksThisTurn == 0) {ifRelic("Art of War", function(){energy += 1});}
+                if(stats.attacksThisTurn == 0) {ifRelic("Art of War", function(){energy++});}
                 if(stats.attacksThisTurn <= 2) {ifRelic("Pocketwatch", function(){drawCard(2)})}
                 stats.attacksThisTurn = 0;
                 stats.skillsThisTurn = 0;
@@ -5352,7 +5389,7 @@ getId('relicReward').style.display = 'none';
                 loseBuff("Blur", 1);
                 if(turn == 0) {
                     ifRelic("Anchor", function(){gainBuff("Block", 10)});
-                    ifRelic("Lantern", function(){energy += 1});
+                    ifRelic("Lantern", function(){energy++});
                 }
                 if(hasBuff(".")) {loseBuff(".");} else {loseBuff("Vulnerable", 1);}
                 gainBuff("Block", hasBuff("Metallicize"));
@@ -5360,7 +5397,7 @@ getId('relicReward').style.display = 'none';
                 gainBuff("Block", hasBuff("Next Turn Block")); loseBuff("Next Turn Block");
                 loseBuff("Divinity");
                 gainBuff("Mantra", hasBuff("Devotion"));
-                if(hasBuff("Brutality")){hp -= 1; drawCard(hasBuff("Brutality"));}
+                if(hasBuff("Brutality")){hp--; drawCard(hasBuff("Brutality"));}
                 if(hasBuff("Tools of the Trade")){
                     drawCard(hasBuff("Tools of the Trade"));
                     let chosen = await choose(hand, "Choose a card to discard.");
@@ -5396,20 +5433,20 @@ getId('relicReward').style.display = 'none';
                         else if(!c.flags.includes("retain")) {discardPile.push(c);}
                         if(c.flags.includes("retain")) {
                             c.cost = Math.max(0, c.cost - hasBuff("Establishment"));
-                            if(c.name == "Sands of Time" && c.cost > 0){c.cost -= 1;}
-                            if(c.name == "Sands of Time+" && c.cost > 0){c.cost -= 1;}
+                            if(c.name == "Sands of Time" && c.cost > 0){c.cost--;}
+                            if(c.name == "Sands of Time+" && c.cost > 0){c.cost--;}
                             if(c.name == "Windmill Strike"){stats.windmill += 4;}
                             if(c.name == "Windmill Strike+"){stats.windmill += 7;}
                             if(c.name == "Perseverance"){stats.pers += 2;}
                             if(c.name == "Perseverance+"){stats.pers += 4;}
                         }
-                        if(c.name == "Burn") {hp -= 1;}
+                        if(c.name == "Burn") {hp--;}
                         if(c.name == "Burn+") {hp -= 2;}
                     }
                 }
                 hand = hand.filter(x=>x.flags.includes("retain"));
                 if(hasBuff("Combust")) {
-                    hp -= 1;
+                    hp--;
                     for(let e of enemies) {dealDamage(e, hasBuff("Combust"));}
                 }
                 for(let e of enemies) {dealDamage(e, hasBuff("Omega"));}
@@ -5496,6 +5533,7 @@ getId('relicReward').style.display = 'none';
                 if(lv >= 1) {randomThing = () => choice(["😈","❓","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 6) {hp = 0.9 * maxHp;}
                 if(lv >= 10) {deck.push(new Card("Ascenders’ Bane", 0, "Curse", "Unplayable. Ethereal.", function(enemy){}, ["unplayable", "ethereal"]))}
+                if(lv >= 11) {maxPotions--;}
                 if(lv >= 14) {maxHp -= 5; hp -= 5;}
                 if(lv >= 15) {randomThing = () => choice(["😈","😈","❓","❓","💀","💀","💀","💲","😈","🏕️"]);}
                 if(lv >= 17) {
