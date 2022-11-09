@@ -3157,23 +3157,35 @@ getId("woogleButton").onclick = function() {showMap();}
             }
             
             let potionPool = [
-                {name: "Block", desc: "Gain 20 Block.", effect: 'gainBuff("Block", 20)'},
+               {name: "Block", desc: "Gain 20 Block.", effect: 'gainBuff("Block", 20)'},
+                {name: "Tranquility", desc: "Enter Calm.", effect: 'gainBuff("Calm", 1)'},
+                {name: "Wrath", desc: "Enter Wrath.", effect: 'gainBuff("Wrath", 1)'},
+                {name: "Torin", desc: "Divine.", effect: 'gainBuff("Divinity", 1)'},
+                {name: "Buffer", desc: "Gain 1 Buffer.", effect: 'gainBuff("Buffer", 1)'},
                 {name: "Blood", desc: "Heal for 20% of your Max HP.", effect: 'hp = Math.min(maxHp, hp + Math.round(0.2 * maxHp))'},
                 {name: "Cultist", desc: "Gain 1 Ritual.", effect: 'gainBuff("Ritual", 1)'},
+                {name: "Vigor", desc: "Gain 15 Vigor.", effect: 'gainBuff("Vigor", 15)'},
                 {name: "Dexterity", desc: "Gain 2 Dexterity.", effect: 'gainBuff("Dexterity", 2)'},
+                {name: "Acrobatics", desc: "Gain 3 Dexterity.", effect: 'gainBuff("Dexterity", 3)'},
                 {name: "Energy", desc: "Gain 2 energy.", effect: 'energy += 2'},
+                {name: "Adrenaline", desc: "Gain 1 energy and draw 2 cards.", effect: 'energy += 1; drawCard(2);'},
                 {name: "Freeze", desc: "Stun target for 1 turn.", effect: 'tgt.gainBuff("Stunned", 1)'},
                 {name: "Iron", desc: "Gain 5 Plated Armor.", effect: 'gainBuff("Plated Armor", 5)'},
                 {name: "Explosive", desc: "Deal 10 damage to ALL enemies.", effect: 'for(let e of enemies){dealDamage(e, 10);}'},
+                {name: "Bomb", desc: "Deal 15 damage to ALL enemies.", effect: 'for(let e of enemies){dealDamage(e, 15);}'},
                 {name: "Fear", desc: "Apply 3 Vulnerable to target.", effect: 'tgt.gainBuff("Vulnerable", 3)'},
+                {name: "Terror", desc: "Apply 999 Vulnerable to target.", effect: 'tgt.gainBuff("Vulnerable", 999)'},
                 {name: "Fire", desc: "Deal 20 damage to target.", effect: 'dealDamage(tgt, 20)'},
+                {name: "Lava", desc: "Deal 30 damage to target.", effect: 'dealDamage(tgt, 30)'},
                 {name: "Flex", desc: "Gain 5 Strength. At end of turn, lose 5 Strength.", effect: 'gainBuff("Strength", 5); gainBuff("Strength Down", 5)'},
                 {name: "Fruit Juice", desc: "Gain 5 Max HP.", effect: 'maxHp += 5; hp += 5'},
                 {name: "Rage", desc: "Gain 10 Rage.", effect: 'gainBuff("Rage", 10)'},
                 {name: "Steel", desc: "Gain 3 Metallicize.", effect: 'gainBuff("Metallicize", 3)'},
+                {name: "Diamond", desc: "Gain 7 Metallicize.", effect: 'gainBuff("Metallicize", 7)'},
                 {name: "Bronze", desc: "Gain 3 Thorns.", effect: 'gainBuff("Thorns", 3)'},
+                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'gainBuff("Dexterity", 5); gainBuff("Dexterity Down", 5)'},
                 {name: "Regen", desc: "Gain 5 Regen.", effect: 'gainBuff("Regen", 5)'},
-                {name: "Speed", desc: "Gain 5 Dexterity. At end of turn, lose 5 Dexterity.", effect: 'gainBuff("Dexterity", 5); gainBuff("Dexterity Down", 5)'}
+                {name: "Respite", desc: "Gain 10 Regen.", effect: 'gainBuff("Regen", 10)'}
             ];
             
             let possibleEvents = {
